@@ -1,0 +1,423 @@
+:root {
+    --green: #8bc34a;
+    --dark: #000000;
+    --light-bg: #f7f7f7; /* lighter gray for WHY section */
+    --text-dark: #1a1a1a;
+    --text-muted: #666666;
+    --card-bg: #f5f5f5;
+    --white: #ffffff;
+  }
+  
+  /* RESET */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    line-height: 1.6;
+  }
+  
+  /* Prevent anchor targets from sitting under the sticky header */
+  html { scroll-padding-top: 50px; }
+  section { scroll-margin-top: 80px; }
+  
+  /* Header */
+  .site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 40px;
+    background: var(--dark);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .brand .logo {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .brand .name {
+    color: var(--white);
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  /* New navbar structure */
+  .navbar ul {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    gap: 20px;
+  }
+  
+  .navbar a {
+    text-decoration: none;
+    color: var(--white);
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  .navbar a:hover { color: var(--green); }
+  
+  .navbar .join-btn {
+    background-color: #28a745;
+    color: #fff;
+    padding: 10px 36px;   /* expand horizontally */
+    border-radius: 8px;   /* less round */
+    font-weight: 600;
+    transition: background 0.3s ease;
+    display: inline-block;
+  }
+  .navbar .join-btn:hover { background-color: #218838; }
+  
+  /* Hero */
+  .hero {
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      linear-gradient(0deg, rgba(139,195,74,0.35), rgba(139,195,74,0.35)),
+      linear-gradient(0deg, rgba(0,0,0,0.35), rgba(0,0,0,0.35)),
+      url('/static/gymapp/img/cebufitnesshub_bg.jpg') center/cover no-repeat;
+    position: relative;
+  }
+  
+  .hero-content {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  
+  .hero h1 {
+    font-size: 64px;
+    color: var(--white);
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Welcome Section */
+  .welcome {
+    text-align: center;
+    padding: 60px 20px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    background: transparent; /* removed the block background */
+  }
+  
+  .welcome h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+  }
+  
+  .welcome .highlight {
+    color: var(--green);
+    font-weight: 700;
+  }
+  
+  .welcome-text {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  /* Features Section */
+  .features {
+    padding: 60px 20px;
+    background: var(--light-bg); /* now light gray */
+  }
+  
+  .section-title {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 50px;
+    color: var(--text-dark);
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .feature-item {
+    padding: 20px;
+  }
+  
+  .feature-icon {
+    color: var(--green);
+    margin-bottom: 15px;
+  }
+  
+  .feature-item h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: var(--text-dark);
+  }
+  
+  .feature-item p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  
+  /* Amenities Box */
+  .amenities-box {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .amenities-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .amenities-header svg {
+    color: var(--green);
+  }
+  
+  .amenities-header h3 {
+    font-size: 20px;
+    color: var(--text-dark);
+    margin: 0;
+  }
+  
+  .amenities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  
+  .amenity-item svg {
+    color: var(--text-muted);
+  }
+  
+  /* Join Section */
+  .join-section {
+    padding: 60px 20px;
+    background: var(--white);
+    text-align: center;
+  }
+  
+  .join-title {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+  }
+  
+  .join-title .highlight {
+    color: var(--green);
+    font-weight: 700;
+  }
+  
+  .join-text {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 800px;
+    margin: 0 auto 10px;
+    line-height: 1.8;
+  }
+  
+  .join-subtext {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+  }
+  
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 35px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+  }
+  
+  .staff-icon {
+    background: #7d8a96;
+  }
+  
+  .card h4 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+  }
+  
+  .portal-features {
+    list-style: none;
+    text-align: left;
+    margin: 20px 0 30px;
+    padding: 0;
+  }
+  
+  .portal-features li {
+    padding-left: 20px;
+    position: relative;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+  }
+  
+  .portal-features li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--green);
+  }
+  
+  .btn {
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 30px;
+    background: var(--green);
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 600;
+    margin: 5px;
+    transition: background 0.3s;
+  }
+  
+  .btn:hover {
+    background: #7cb342;
+  }
+  
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--green);
+    color: var(--green);
+  }
+  
+  .btn-outline:hover {
+    background: var(--green);
+    color: var(--white);
+  }
+  
+  .btn-staff {
+    background: #7d8a96;
+  }
+  
+  .btn-staff:hover {
+    background: #6b747e;
+  }
+  
+  /* Footer */
+  .site-footer {
+    background: var(--dark);
+    color: var(--white);
+    padding: 40px 20px;
+    text-align: center;
+  }
+  
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .footer-logo {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .footer-name {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  
+  .footer-slogan {
+    font-style: italic;
+    font-size: 14px;
+    color: #aaa;
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: 25px;
+  }
+  
+  .footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--white);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  .footer-link:hover {
+    color: var(--green);
+  }
+  
+  .footer-link svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .copyright {
+    margin-top: 30px;
+    font-size: 12px;
+    color: #aaa;
+  }
+  
