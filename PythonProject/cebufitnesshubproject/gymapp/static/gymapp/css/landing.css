@@ -352,6 +352,180 @@
     background: #6b747e;
   }
   
+  /* Login Modal */
+  .login-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+  }
+
+  .login-backdrop.is-open { display: flex; }
+
+  .login-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 540px;
+    padding: 50px 40px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #7fb33e;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+  }
+  .login-close:hover { color: #6a9835; }
+
+  .login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .login-logo-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: #ffffff;
+  }
+
+  .logo-text .cebu {
+    color: #7fb33e;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+  .logo-text .fitness-hub {
+    color: #888;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  .login-title {
+    text-align: center;
+    font-size: 32px;
+    color: #000;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .login-subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .login-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px;
+    border: 2px solid #bbb;
+    background: #ccc;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .tab-btn:first-child { border-radius: 8px 0 0 8px; border-right: 1px solid #bbb; }
+  .tab-btn:last-child { border-radius: 0 8px 8px 0; border-left: 1px solid #bbb; }
+  .tab-btn.active {
+    background: #fff;
+    border-color: #7fb33e;
+    color: #7fb33e;
+    position: relative;
+    z-index: 1;
+  }
+  .user-icon { width: 20px; height: 20px; }
+
+  .login-form .form-group { margin-bottom: 16px; }
+  .login-form label {
+    display: block;
+    color: #333;
+    font-size: 15px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .login-form .input-wrapper { position: relative; }
+  .login-form input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+    background: #f5f5f5;
+  }
+  .login-form input:focus { outline: none; border-color: #7fb33e; background: #fff; }
+  .login-form input::placeholder { color: #aaa; }
+
+  .toggle-password {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #7fb33e;
+    font-size: 20px;
+    padding: 0;
+  }
+
+  .login-submit {
+    width: 100%;
+    padding: 16px;
+    background: #7fb33e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 8px;
+  }
+  .login-submit:hover { background: #6a9835; }
+
+  .register-cta {
+    text-align: center;
+    margin-top: 16px;
+    color: #666;
+    font-size: 15px;
+  }
+  .register-cta .register-link { color: #7fb33e; text-decoration: none; font-weight: 600; }
+  .register-cta .register-link:hover { text-decoration: underline; }
+
   /* Footer */
   .site-footer {
     background: var(--dark);
