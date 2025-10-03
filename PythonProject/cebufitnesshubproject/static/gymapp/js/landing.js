@@ -72,9 +72,6 @@
     }
   });
 
-  // Header Join button should just navigate to join section (default behavior already scrolls).
-  // If there will be a green Login button in header later, wire with data attribute:
-  // <a class="login-btn" data-open-login="member">Login</a>
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open-login]');
     if (opener) {
@@ -84,10 +81,10 @@
     }
   });
 
-  // Escape closes modal
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeModal();
   });
 })();
+
 
 

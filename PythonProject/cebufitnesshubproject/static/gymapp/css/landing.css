@@ -1,3 +1,8 @@
+/* moved from app static */
+/* contents preserved below */
+/* The actual CSS is identical to the previous file */
+
+/* START ORIGINAL CONTENT */
 :root {
     --green: #8bc34a;
     --dark: #000000;
@@ -595,3 +600,6 @@
     color: #aaa;
   }
   
+/* END ORIGINAL CONTENT */
+
+
