@@ -1,0 +1,232 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cebu Fitness Hub dashboard</title>
+  <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
+</head>
+<body>
+  <!-- Header (top, full width) -->
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+            <div class="cebu-reg">CEBU</div>
+            <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z"/></svg>
+        </span>
+        <span class="user-name">{{ member_name|default:"Naruto Uzumaki" }}</span>
+    </div>
+    <nav class="navbar">
+      <ul>
+          <li><a href="#home">Homepage</a></li>
+          <li><a href="#schedule">Schedule</a></li>
+          <li><a href="#occupancy">Occupancy</a></li>
+      </ul>
+    </nav>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <div class="sidebar-bg-fix"></div>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h3 class="sidebar-title">DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="#" class="nav-item active">Home / Overview</a>
+        <a href="#details" class="nav-item">My Details</a>
+        <a href="#checkins" class="nav-item">Check-in History</a>
+        <a href="#settings" class="nav-item">Account Settings</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Header Section -->
+      <section class="header-section">
+        <div class="welcome-left">
+          <h2 class="welcome-text">Welcome back,<br> {{ userName|default:"Naruto Uzumaki" }}!</h2>
+        </div>
+        <div class="overview-right">
+          <h1 class="overview-title">OVERVIEW</h1>
+          <p class="subtext">Here's an overview of your account information!</p>
+        </div>
+      </section>
+
+      <!-- Info Cards Row -->
+      <section class="info-cards">
+        <div class="card">
+          <div class="card-icon money">
+            <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#6BCB3D"><path d="M560-440q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM280-320q-33 0-56.5-23.5T200-400v-320q0-33 23.5-56.5T280-800h560q33 0 56.5 23.5T920-720v320q0 33-23.5 56.5T840-320H280Zm80-80h400q0-33 23.5-56.5T840-480v-160q-33 0-56.5-23.5T760-720H360q0 33-23.5 56.5T280-640v160q33 0 56.5 23.5T360-400Zm440 240H120q-33 0-56.5-23.5T40-240v-440h80v440h680v80ZM280-400v-320 320Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Account Balance</div>
+            <div class="card-value">{{ accountBalance|default:"₱2,040.00" }}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon calendar">
+            <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#6BCB3D"><path d="M200-640h560v-80H200v80Zm0 0v-80 80Zm0 560q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v227q-19-9-39-15t-41-9v-43H200v400h252q7 22 16.5 42T491-80H200Zm520 40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40Zm67-105 28-28-75-75v-112h-40v128l87 87Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Days Attended This Month</div>
+            <div class="card-value">{{ daysAttended|default:"28" }}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon checkin">
+            <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#6BCB3D"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Total Check-ins</div>
+            <div class="card-value">{{ totalCheckins|default:"28" }}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon wave">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="#6BCB3D"><path d="M360-160q-19 0-34-11t-22-28l-92-241H40v-80h228l92 244 184-485q7-17 22-28t34-11q19 0 34 11t22 28l92 241h172v80H692l-92-244-184 485q-7 17-22 28t-34 11Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Status</div>
+            <div class="status-badge">{{ accountStatus|default:"Active" }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Member Information Box -->
+      <section class="member-info-box">
+        <div class="box-header">
+          <div class="box-icon clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="34px" fill="#8d8d8d"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>
+          </div>
+          <h2 class="box-title">Member Information</h2>
+          <div class="title-divider"></div> 
+        </div>
+        <div class="member-grid">
+          <div class="member-left">
+            <div class="member-item">
+              <span class="member-label">Member Since</span>
+              <span class="member-value blue">{{ memberSince|default:"6/15/2023" }}</span>
+            </div>
+            <div class="member-item">
+              <span class="member-label">Days Attended</span>
+              <span class="member-value">{{ memberDays|default:"18 days" }}</span>
+            </div>
+          </div>
+          <div class="member-right">
+            <div class="member-item">
+              <span class="member-label">Next Payment</span>
+              <span class="member-value blue">{{ nextPayment|default:"1/15/2024" }}</span>
+            </div>
+            <div class="member-item">
+              <span class="member-label">Account Balance</span>
+              <span class="member-value">{{ memberBalance|default:"₱156.00" }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Weekly Activity Box -->
+      <section class="weekly-activity-box">
+        <div class="box-header">
+          <div class="box-icon clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="34px" fill="#8d8d8d"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>
+          </div>
+          <h2 class="box-title">Weekly Activity</h2>
+          <div class="title-divider"></div> 
+        </div>
+        <p class="activity-subtitle">Workout duration this week</p>
+        <div class="activity-cards">
+          <div class="activity-card">
+            <div class="day">Mon</div>
+            <div class="duration">{{ weeklyActivity.Mon|default:"75" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Tue</div>
+            <div class="duration">{{ weeklyActivity.Tue|default:"90" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Wed</div>
+            <div class="duration">{{ weeklyActivity.Wed|default:"60" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Thu</div>
+            <div class="duration">{{ weeklyActivity.Thu|default:"105" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Fri</div>
+            <div class="duration">{{ weeklyActivity.Fri|default:"85" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Sat</div>
+            <div class="duration">{{ weeklyActivity.Sat|default:"120" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+          <div class="activity-card">
+            <div class="day">Sun</div>
+            <div class="duration">{{ weeklyActivity.Sun|default:"0" }}<br></div>
+            <div class="minutes">minutes</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gym Occupancy Tracker Box -->
+      <section class="occupancy-box">
+        <div class="box-header">
+          <div class="box-icon clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" height="34px" viewBox="0 -960 960 960" width="34px" fill="#8d8d8d"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>
+          </div>
+          <h2 class="box-title">Gym Occupancy Tracker</h2>
+          <div class="title-divider"></div> 
+        </div>
+        <div class="occupancy-content">
+          <div class="occupancy-left">
+            <div class="gym-status">
+              <div class="status-icon person">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z"/></svg>
+              </div>
+              <div class="gym-status-orientation">
+                <span class="status-label">Gym Status:</span>
+                <span class="status-badge">{{ gymStatus|default:"Open" }}</span>
+                <p class="peak-hours">{{ peakHours|default:"6:00 AM – 9:00 AM, 6:00 PM – 8:00 PM" }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="occupancy-right">
+            <div class="occupancy-stats">
+              <div class="stat-item">
+                <span class="stat-current">{{ currentOccupancy|default:"67" }}</span>
+                <span class="stat-label">Current</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-capacity">{{ maxCapacity|default:"120" }}</span>
+                <span class="stat-label">Capacity</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-percent">{{ occupancyPercent|default:"56%" }}</span>
+                <span class="stat-label">Full</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
+</body>
+</html>
+<!--/-->

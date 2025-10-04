@@ -1,0 +1,134 @@
+<!-- templates/gymapp/register_modal.html -->
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'gymapp/css/register.css' %}">
+</head>
+<body>
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <a href="{% url 'landing' %}" class="back-to-home-link">
+                &larr; Back to Home
+            </a>
+            <div class="modal-header">
+                <div class="logo-container">
+                    
+                    <span class="logo-icon">
+                        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo">
+                    </span>
+                    <!--<span class="logo-text">CEBU FITNESS HUB</span>-->
+                    <div class="logo-text">
+                        <div class="cebu-reg">CEBU</div>
+                        <div class="fitness-hub-reg">FITNESS HUB</div>
+                    </div>
+                </div>
+                
+                <div class="icon-container">
+                    <!-- Person silhouette icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.38 0 2.5 1.12 2.5 2.5S13.38 10 12 10 9.5 8.88 9.5 7.5 10.62 5 12 5zm0 14.2c-2.43 0-4.71-1.39-5.83-3.6C5.11 14.59 5 14.3 5 14s.11-.59.17-1.2h.01c.42-.56 1.1-1 1.9-1.25.79-.25 1.7-.35 2.72-.35h2.4c1.02 0 1.93.1 2.72.35.8.25 1.48.69 1.9 1.25h.01c.06.61.17.9 0 1.2-.12.29-.4.57-.96.95-1.12 2.21-3.4 3.6-5.83 3.6z"/>
+                    </svg>
+                    <div class="plus-icon">+</div>
+                </div>
+                
+                <h2>Membership Registration</h2>
+                <p>Fill out the form below to request membership. Staff will review and approve your application.</p>
+            </div>
+
+            <form action="{% url 'register_submission' %}" method="post" id="registrationForm">
+                <!-- in this "action", it calls the "register_submission" in URL
+                which is linked to the views function namely "register_member" -->
+                <!-- Django's CSRF token for security (required for form submission) -->
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_first_name">First Name</label>
+                        <input type="text" id="id_first_name" name="first_name" placeholder="Enter your first name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_last_name">Last Name</label>
+                        <input type="text" id="id_last_name" name="last_name" placeholder="Enter your last name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_email">Email</label>
+                    <input type="email" id="id_email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_contact_number">Contact Number</label>
+                    <input type="tel" id="id_contact_number" name="contact_number" placeholder="Enter your phone number" required>
+                </div>
+
+                <div class="form-group">
+                <label for="id_password">Password</label>
+                <div class="password-group">
+                    <input type="password" id="id_password" name="password" placeholder="Enter your password" required>
+                    <span class="toggle-password" data-target="id_password" title="Toggle Password Visibility">
+                        <!-- Eye Open (visible) -->
+                        <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        <!-- Eye Closed (hidden by default) -->
+                        <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_confirm_password">Confirm Password</label>
+                <div class="password-group">
+                    <input type="password" id="id_confirm_password" name="confirm_password" placeholder="Enter your password" required>
+                    <span class="toggle-password" data-target="id_confirm_password" title="Toggle Password Visibility">
+                        <!-- Eye Open (visible) -->
+                        <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        <!-- Eye Closed (hidden by default) -->
+                        <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+
+                <hr class="form-divider">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_emergency_contact_name">Emergency Contact Name</label>
+                        <input type="text" id="id_emergency_contact_name" name="emergency_contact_name" placeholder="Enter emergency contact name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_emergency_contact_number">Emergency Contact Number</label>
+                        <input type="tel" id="id_emergency_contact_number" name="emergency_contact_number" placeholder="Enter contact number" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_medical_conditions">Medical Conditions (Optional)</label>
+                    <textarea id="id_medical_conditions" name="medical_conditions" placeholder="Please list any medical conditions or allergies we should be aware of"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_fitness_goals">Fitness Goals (Optional)</label>
+                    <textarea id="id_fitness_goals" name="fitness_goals" placeholder="What are your fitness goals? This helps our staff provide better services"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-button">Submit Registration</button>
+            </form>
+
+            <div class="modal-footer">
+                Already have an account? <a href="#" class="login-link">Login here</a>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="{% static 'gymapp/js/register.js' %}"></script>
+</html>
