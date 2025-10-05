@@ -29,3 +29,27 @@ def member_dashboard(request):
     Renders the member dashboard with dynamic and hardcoded data.
     """
     return render(request, 'gymapp/dashboard.html')
+
+
+def staff_dashboard_view(request):
+    """
+    Test view to render the staff dashboard template with placeholder context.
+    """
+    context = {
+        'staff_name': 'Test Staff',
+    }
+    return render(request, 'gymapp/staff_dashboard.html', context)
+
+
+def logout_confirm_view(request):
+    """
+    Simple page shown after confirming logout (no backend logic yet).
+    """
+    return render(request, 'gymapp/logout_confirm.html')
+
+
+def logout_prompt_view(request):
+    """
+    Page that asks for logout confirmation (fallback when JS modal is not used).
+    """
+    return render(request, 'gymapp/logout_prompt.html')
