@@ -1,0 +1,337 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cebu Fitness Hub • Staff Dashboard</title>
+  <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+        <div class="cebu-reg">CEBU</div>
+        <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
+        </span>
+        <span class="user-name">Test Staff</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-bg-fix"></div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="sidebar-title">STAFF DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="#overview" class="nav-item active">Overview</a>
+        <a href="#approvals" class="nav-item">Approval Queue</a>
+        <a href="#members" class="nav-item">Member Management</a>
+        <a href="#revenue" class="nav-item">Revenue Tracker</a>
+        <a href="#notifications" class="nav-item">Notifications</a>
+        <a href="#settings" class="nav-item">Settings</a>
+        <a href="{% url 'logout_prompt' %}" class="nav-item" id="open-logout" aria-label="Open logout confirmation">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section id="overview" class="header-section">
+        <div class="welcome-left">
+          <h2 class="welcome-text">Welcome back,<br> [Staff Name Placeholder]!</h2>
+        </div>
+        <div class="overview-right">
+          <h1 class="overview-title">STAFF OVERVIEW</h1>
+          <p class="subtext">[Overview Subtitle Placeholder]</p>
+        </div>
+      </section>
+
+      <section class="info-cards">
+        <div class="card">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#6BCB3D"><path d="M200-200h560v-560H200v560Zm-80 80v-720h720v720H120Zm160-160h80v-240h-80v240Zm160 0h80v-400h-80v400Zm160 0h80v-160h-80v160Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Pending Approvals</div>
+            <div class="card-value">##</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#6BCB3D"><path d="M640-120v-80h80q17 0 28.5-11.5T760-240v-80H480q-33 0-56.5-23.5T400-400v-160q0-33 23.5-56.5T480-640h360v-80q0-17-11.5-28.5T800-760h-80v-80h80q50 0 85 35t35 85v440q0 50-35 85t-85 35h-80ZM200-760v-80h80v80h80q33 0 56.5 23.5T440-680v80H80v-80q0-33 23.5-56.5T160-760h40Zm-40 520q-50 0-85-35t-35-85v-80h360v80q0 33-23.5 56.5T320-240h-80v80h-80Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">MRR</div>
+            <div class="card-value">₱##,###.00</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#6BCB3D"><path d="M120-160v-80h720v80H120Zm120-160v-400q0-33 23.5-56.5T320-800h320q33 0 56.5 23.5T720-720v400H240Zm80-80h320v-320H320v320Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Active Members</div>
+            <div class="card-value">###</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#6BCB3D"><path d="M120-720h80v-80h80v80h400v-80h80v80h80q33 0 56.5 23.5T920-640v400q0 33-23.5 56.5T840-160H120q-33 0-56.5-23.5T40-240v-400q0-33 23.5-56.5T120-720Zm0 160h720v-80H120v80Zm0 240h720v-160H120v160Z"/></svg>
+          </div>
+          <div class="card-content">
+            <div class="card-title">Today’s Revenue</div>
+            <div class="card-value">₱##,###.00</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="approvals" class="content-box approvals-box" data-section="approvals">
+        <div class="box-header">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="#8d8d8d"><path d="M360-120 160-320l56-56 144 144 384-384 56 56-440 440Z"/></svg>
+          </div>
+          <h2 class="box-title">Approval Queue</h2>
+          <div class="title-divider"></div>
+        </div>
+        <div class="table-actions">
+          <input type="search" class="input" placeholder="[Search Placeholder]" aria-label="Search approval requests">
+          <div class="actions-right">
+            <button class="btn btn-outline" type="button">Refresh</button>
+            <button class="btn" type="button">Bulk Approve</button>
+          </div>
+        </div>
+        <div class="table-wrap" role="region" aria-live="polite">
+          <table class="table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" aria-label="Select all"></th>
+                <th>Applicant</th>
+                <th>Email</th>
+                <th>Plan</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox" aria-label="Select row"></td>
+                <td>[Applicant Name Placeholder]</td>
+                <td>[email@example.com]</td>
+                <td>[Plan Placeholder]</td>
+                <td>[Date Placeholder]</td>
+                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" aria-label="Select row"></td>
+                <td>[Applicant Name Placeholder]</td>
+                <td>[email@example.com]</td>
+                <td>[Plan Placeholder]</td>
+                <td>[Date Placeholder]</td>
+                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" aria-label="Select row"></td>
+                <td>[Applicant Name Placeholder]</td>
+                <td>[email@example.com]</td>
+                <td>[Plan Placeholder]</td>
+                <td>[Date Placeholder]</td>
+                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="fallback" aria-hidden="true">Section unavailable</div>
+        </div>
+      </section>
+
+      <section id="revenue" class="content-box revenue-box" data-section="revenue">
+        <div class="box-header">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="#8d8d8d"><path d="M120-160v-80h720v80H120Zm80-160v-400q0-33 23.5-56.5T280-800h400q33 0 56.5 23.5T760-720v400H200Zm80-80h400v-320H280v320Z"/></svg>
+          </div>
+          <h2 class="box-title">Revenue Tracker</h2>
+          <div class="title-divider"></div>
+        </div>
+        <div class="revenue-grid">
+          <div class="revenue-cards">
+            <div class="mini-card">
+            <div class="mini-label">Today</div>
+            <div class="mini-value">₱##,###.00</div>
+            </div>
+            <div class="mini-card">
+            <div class="mini-label">This Month</div>
+            <div class="mini-value">₱###,###.00</div>
+            </div>
+            <div class="mini-card">
+            <div class="mini-label">MRR</div>
+            <div class="mini-value">₱###,###.00</div>
+            </div>
+          </div>
+          <div class="revenue-chart" role="img" aria-label="Revenue trend chart placeholder">
+          <div class="chart-placeholder">[Chart Placeholder]</div>
+            <div class="fallback" aria-hidden="true">Section unavailable</div>
+            <noscript>
+              <div class="noscript-msg">Section unavailable (JavaScript disabled)</div>
+            </noscript>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table compact">
+            <thead>
+              <tr>
+                <th>Receipt #</th>
+                <th>Member</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>[Receipt Placeholder]</td>
+                <td>[Member Name Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td>[Method Placeholder]</td>
+                <td>[Date Placeholder]</td>
+              </tr>
+              <tr>
+                <td>[Receipt Placeholder]</td>
+                <td>[Member Name Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td>[Method Placeholder]</td>
+                <td>[Date Placeholder]</td>
+              </tr>
+              <tr>
+                <td>[Receipt Placeholder]</td>
+                <td>[Member Name Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td>[Method Placeholder]</td>
+                <td>[Date Placeholder]</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="members" class="content-box members-box" data-section="members">
+        <div class="box-header">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="#8d8d8d"><path d="M520-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-120q0-45 23.5-82.5T244-418q73-37 149.5-49.5T540-480q76 0 152 12.5T842-418q37 19 60.5 56.5T926-279v119H160Z"/></svg>
+          </div>
+          <h2 class="box-title">Member Management</h2>
+          <div class="title-divider"></div>
+        </div>
+        <div class="table-actions">
+          <input type="search" class="input" placeholder="[Search Placeholder]" aria-label="Search members">
+          <div class="actions-right">
+            <button class="btn btn-outline" type="button">Export</button>
+            <button class="btn" type="button">Add Member</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Plan</th>
+                <th>Last Check-in</th>
+                <th>Balance</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>[Member Name Placeholder]</td>
+                <td><span class="badge success">[Status Placeholder]</span></td>
+                <td>[Plan Placeholder]</td>
+                <td>[Time Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td class="row-actions">
+                  <button class="link">[Action Placeholder]</button>
+                  <button class="link">[Action Placeholder]</button>
+                </td>
+              </tr>
+              <tr>
+                <td>[Member Name Placeholder]</td>
+                <td><span class="badge warning">[Status Placeholder]</span></td>
+                <td>[Plan Placeholder]</td>
+                <td>[Time Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td class="row-actions">
+                  <button class="link">[Action Placeholder]</button>
+                  <button class="link">[Action Placeholder]</button>
+                </td>
+              </tr>
+              <tr>
+                <td>[Member Name Placeholder]</td>
+                <td><span class="badge neutral">[Status Placeholder]</span></td>
+                <td>[Plan Placeholder]</td>
+                <td>[Time Placeholder]</td>
+                <td>₱##,###.00</td>
+                <td class="row-actions">
+                  <button class="link">[Action Placeholder]</button>
+                  <button class="link">[Action Placeholder]</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="fallback" aria-hidden="true">Section unavailable</div>
+        </div>
+      </section>
+
+      <section id="notifications" class="content-box notifications-box" data-section="notifications">
+        <div class="box-header">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="#8d8d8d"><path d="M480-80q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM200-240v-80h80v-240q0-83 48-149t128-87v-24q0-17 11.5-28.5T496-860q17 0 28.5 11.5T536-820v24q80 21 128 87t48 149v240h80v80H200Z"/></svg>
+          </div>
+          <h2 class="box-title">Notifications</h2>
+          <div class="title-divider"></div>
+        </div>
+        <ul class="notif-list" aria-live="polite">
+          <li class="notif-item">
+            <span class="dot success" aria-hidden="true"></span>
+            [Notification Placeholder]
+            <time class="time">[Time Placeholder]</time>
+          </li>
+          <li class="notif-item">
+            <span class="dot warning" aria-hidden="true"></span>
+            [Notification Placeholder]
+            <time class="time">[Time Placeholder]</time>
+          </li>
+          <li class="notif-item">
+            <span class="dot neutral" aria-hidden="true"></span>
+            [Notification Placeholder]
+            <time class="time">[Time Placeholder]</time>
+          </li>
+        </ul>
+        <div class="fallback" aria-hidden="true">Section unavailable</div>
+      </section>
+    </main>
+  </div>
+
+  <div id="logout-backdrop" class="logout-backdrop" aria-hidden="true">
+    <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logout-title" aria-describedby="logout-desc">
+      <button type="button" class="logout-close" id="logout-close" aria-label="Close logout modal">✕</button>
+      <div class="logout-header">
+        <h2 id="logout-title" class="logout-title">Are you sure you want to logout?</h2>
+        <p id="logout-desc" class="logout-desc">You can log back in anytime.</p>
+      </div>
+      <div class="logout-actions">
+        <a href="{% url 'logout_confirm' %}" class="btn btn-danger" id="logout-yes" aria-label="Confirm logout">Yes</a>
+        <button type="button" class="btn btn-outline" id="logout-cancel" aria-label="Cancel logout">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="{% static 'gymapp/js/staff_dashboard.js' %}"></script>
+</body>
+</html>
+
+
