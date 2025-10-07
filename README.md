@@ -174,7 +174,7 @@ python manage.py runserver
 
 | Name               | Role      | CIT-U Email                                                   |
 | ------------------ | --------- | ------------------------------------------------------------- |
-| Elvin O. Lagamo    | Lead Developer | [elvin.lagamo@cit.edu](mailto:elvin.lagamo@cit.edu)           |
+| Elvin O. Lagamo Jr.| Lead Developer | [elvin.lagamo@cit.edu](mailto:elvin.lagamo@cit.edu)           |
 | Gee Caliph A. Juen | Developer | [geecaliph.juen@cit.edu](mailto:geecaliph.juen@cit.edu)       |
 | Zyrrah Kaye Lacida | Developer | [zyrrahkaye.lacida@cit.edu](mailto:zyrrahkaye.lacida@cit.edu) |
 
