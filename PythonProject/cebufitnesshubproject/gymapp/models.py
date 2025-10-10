@@ -1,32 +1,98 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager # Import AbstractUser
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _ # For translating field names and help texts
 
 # Create your models here.
 
-class MemberRegistration(models.Model):
-    
-    #Model representing a pending member registration request.
-    #Fields capture all necessary information for initial sign-up.
+# Custom Manager for our CustomUser
+#Cruicial for creating users and superusers
+# This is required when using AbstractBaseUser
+# It defines how to create users and superusers
+# You can customize this further as needed
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError(_('The Email must be set'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password) # Handles password hashing
+        user.save(using=self._db)
+        return user
 
-    # Database Fields 
-    memberID = models.AutoField(primary_key=True) 
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    contact_number = models.CharField(max_length=20)
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+        
+        return self.create_user(email, password, **extra_fields)
+
+# Custom user model
+# Inheriting from AbstractBaseUser and PermissionsMixin
+# AbstractBaseUser provides the core implementation of a user model, including hashed passwords and tokenized password resets.
+# PermissionsMixin adds fields and methods for handling user permissions and groups.
+# This allows us to define our own fields and authentication methods
+# We will use email as the unique identifier instead of username
+# We also add custom fields relevant to our gym application
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    # AbstractBaseUser provides:
+    # password, last_login, is_active
+    # PermissionsMixin provides:
+    # is_superuser, groups, user_permissions
+
+    email = models.EmailField(_('email address'), unique=True)
+    first_name = models.CharField(_('first name'), max_length=150, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
     
-    # Note on Password: This field holds the raw password initially. 
-    # Best practice is to handle password hashing/saving logic 
-    # within a custom form's save() method or the view/serializer 
-    # before saving to the database.
-    password = models.CharField(max_length=255)
-    confirm_password = models.CharField(max_length=255)
-    emergency_contact_name = models.CharField(max_length=255)
-    emergency_contact_number = models.CharField(max_length=20)
-    
-    # Optional fields
+    # Custom fields from your previous MemberRegistration model
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    emergency_contact_name = models.CharField(max_length=255, blank=True, null=True)
+    emergency_contact_number = models.CharField(max_length=20, blank=True, null=True)
     medical_conditions = models.TextField(blank=True, null=True)
     fitness_goals = models.TextField(blank=True, null=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    # The class Meta block and the __str__ method have been removed as requested.
+    is_staff = models.BooleanField(
+        _('staff status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this admin site.'),
+    )
+    is_active = models.BooleanField(
+        _('active'),
+        default=True,
+        help_text=_(
+            'Designates whether this user should be treated as active. '
+            'Unselect this instead of deleting accounts.'
+        ),
+    )
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    objects = CustomUserManager() # Use our custom manager
+
+    USERNAME_FIELD = 'email' # Use email as the unique identifier for login
+    REQUIRED_FIELDS = ['first_name', 'last_name'] # Fields required for creating a superuser
+
+    class Meta:
+        verbose_name = 'Member' # More user-friendly name for admin
+        verbose_name_plural = 'Members'
+        #db_table = 'my_gym_members' # Your custom table name
+
+    def __str__(self):
+        return self.email # Represent user by email
+
+    def get_full_name(self):
+        """
+        Returns the first_name plus the last_name, with a space in between.
+        """
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        """
+        Returns the short name for the user.
+        """
+        return self.first_name
