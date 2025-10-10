@@ -2,71 +2,65 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById("registrationModal");
-    // Select all elements that should open the modal
     const openModalBtns = document.querySelectorAll(".register-link");
-    const closeModalBtn = document.querySelector(".modal-content .close-button");
+    // const registrationForm = document.getElementById('registrationForm'); // No longer needed for validation logic
 
-    // Function to open the modal
+    // Modal open/close logic
     if (openModalBtns.length > 0) {
         openModalBtns.forEach(btn => {
             btn.addEventListener('click', (event) => {
-                event.preventDefault(); // Prevents the link from navigating
-                modal.style.display = "flex"; // Use flex to center the modal
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                event.preventDefault();
+                modal.style.display = "flex";
+                document.body.style.overflow = 'hidden';
             });
         });
     }
 
-    // Function to close the modal
     const close = () => {
         modal.style.display = "none";
-        document.body.style.overflow = 'auto'; // Restore background scrolling
+        document.body.style.overflow = 'auto';
+        // No client-side errors to clear if we're not displaying them
     };
-
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', close);
-    }
     
-    // Also attach close function to the "Back to Home" link inside the modal
     const backToHomeLink = document.querySelector('.back-to-home-link');
     if (backToHomeLink) {
         backToHomeLink.addEventListener('click', close);
     }
 
-    // Close the modal if the user clicks anywhere outside of the modal content (backdrop click)
     window.addEventListener('click', (event) => {
         if (event.target === modal) {
-            backToHomeLink.click();
+            close();
         }
     });
 
-    // Password visibility toggle
-        // Password visibility toggle
+    // Password visibility toggle (remains unchanged)
     const passwordToggles = document.querySelectorAll('.toggle-password');
-
     passwordToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             const targetId = toggle.getAttribute('data-target');
             const passwordInput = document.getElementById(targetId);
 
-            // Find the eye / eye-slash icons inside this toggle
             const eyeIcon = toggle.querySelector('.eye-icon');
             const eyeSlashIcon = toggle.querySelector('.eye-slash-icon');
 
             if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';   // Show letters
+                passwordInput.type = 'text';   
                 if (eyeIcon && eyeSlashIcon) {
-                    eyeIcon.classList.add('hidden');     // hide eye
-                    eyeSlashIcon.classList.remove('hidden'); // show eye-slash
+                    eyeIcon.classList.add('hidden');     
+                    eyeSlashIcon.classList.remove('hidden'); 
                 }
             } else {
-                passwordInput.type = 'password';  // Hide letters
+                passwordInput.type = 'password';  
                 if (eyeIcon && eyeSlashIcon) {
-                    eyeIcon.classList.remove('hidden');   // show eye
-                    eyeSlashIcon.classList.add('hidden'); // hide eye-slash
+                    eyeIcon.classList.remove('hidden');   
+                    eyeSlashIcon.classList.add('hidden'); 
                 }
             }
         });
     });
 
+	// Removed all client-side validation logic from here.
+	// The form will now simply submit, and Django's server-side
+	// validation (handled in views.py and forms.py) will process it.
+	// Errors will be displayed on the page refresh by Django.
 });
