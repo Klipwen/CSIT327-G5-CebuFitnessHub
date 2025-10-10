@@ -80,15 +80,40 @@ WSGI_APPLICATION = 'cebufitnesshubproject.wsgi.application'
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3",
-        conn_max_age=600,
-        ssl_require=True,
+       default="sqlite:///db.sqlite3",
+       conn_max_age=600,
+       ssl_require=True,
+ #       OPTIONS={'options': '-c search_path=public'} 
     )
 }
 
+#DATABASES = {
+#    'default': {
+        # ----------------------------------------------------
+        # This tells Django to use the SQLite backend
+#        'ENGINE': 'django.db.backends.sqlite3',
+        
+        # This sets the database file path to a file named db.sqlite3 
+        # inside your project's base directory.
+#        'NAME': BASE_DIR / 'db.sqlite3',
+        # ----------------------------------------------------
+#    }
+#}
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': 'cebufitnesshub',
+#        'USER': 'postgres',
+#        'PASSWORD': 'postgres',
+#        'HOST': 'localhost',
+#        'PORT': '5432',
+#    }
+#}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+AUTH_USER_MODEL = 'gymapp.CustomUser' 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -96,6 +121,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8, # Ensure password is at least 8 characters
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
