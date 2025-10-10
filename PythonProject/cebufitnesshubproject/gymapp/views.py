@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.shortcuts import render, redirect
-from .forms import RegistrationForm
+from .forms import CustomUserRegistrationForm
 
 #dashboard imports
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import MemberRegistration
+#from django.contrib.auth.decorators import login_required
+
+#import the form from the forms.py file for registration
+from .forms import CustomUserRegistrationForm #import the form
 
 
 def landing_view(request):
@@ -13,12 +15,20 @@ def landing_view(request):
 
 def register_member(request):
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()  # Save the form data to the database
-            #return redirect('gymapp/landing.html')  # Redirect to a success page after submission
-    else:
-        form = RegistrationForm()
+            user = form.save() # This creates a CustomUser and hashes the password!
+            
+            # Optional: Log the user in immediately after successful registration
+            # login(request, user) 
+            
+            # Redirect to a success page or the landing page
+            return redirect('member_dashboard')  # Consider creating a 'registration_success' page
+        # If the form is NOT valid, it falls through to render the template with errors
+    else: # This is a GET request, display an empty form
+        form = CustomUserRegistrationForm()
+        
+    # Render the registration modal template, passing the form context
     return render(request, 'gymapp/register_modal.html', {'form': form})
 
 
