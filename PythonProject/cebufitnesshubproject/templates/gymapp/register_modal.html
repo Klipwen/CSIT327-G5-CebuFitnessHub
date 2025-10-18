@@ -47,6 +47,16 @@
             opacity: 1 !important;
             visibility: visible !important;
         }
+
+        /* ====================================================================
+           WHAT'S ADDED: CSS for the required asterisk
+           USE: Makes the asterisk red and slightly offsets it for better visual.
+        ==================================================================== */
+        .required-asterisk {
+            color: #dc3545; /* Red color for required fields */
+            margin-left: 4px; /* Small space after the label */
+            font-weight: bold; /* Make it stand out */
+        }
     </style>
 </head>
 <body>
@@ -94,7 +104,10 @@
                 <div class="form-row">
                     {# First Name field #}
                     <div class="form-group {% if form.first_name.errors %}has-error{% endif %}">
-                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                        <label for="{{ form.first_name.id_for_label }}">
+                            First Name
+                            <span class="required-asterisk">*</span>
+                        </label>
                         {{ form.first_name }}
                         {% if form.first_name.errors %}
                             <ul class="errorlist">
@@ -106,7 +119,10 @@
                     </div>
                     {# Last Name field #}
                     <div class="form-group {% if form.last_name.errors %}has-error{% endif %}">
-                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                        <label for="{{ form.last_name.id_for_label }}">
+                            Last Name
+                            <span class="required-asterisk">*</span>
+                        </label>
                         {{ form.last_name }}
                         {% if form.last_name.errors %}
                             <ul class="errorlist">
@@ -120,7 +136,10 @@
 
                 {# Email field #}
                 <div class="form-group {% if form.email.errors %}has-error{% endif %}">
-                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    <label for="{{ form.email.id_for_label }}">
+                        Email
+                        <span class="required-asterisk">*</span>
+                    </label>
                     {{ form.email }}
                     {% if form.email.errors %}
                         <ul class="errorlist">
@@ -133,7 +152,10 @@
 
                 {# Contact Number field #}
                 <div class="form-group {% if form.contact_number.errors %}has-error{% endif %}">
-                    <label for="{{ form.contact_number.id_for_label }}">Contact Number</label>
+                    <label for="{{ form.contact_number.id_for_label }}">
+                        Contact Number
+                        <span class="required-asterisk">*</span>
+                    </label>
                     {{ form.contact_number }}
                     {% if form.contact_number.errors %}
                         <ul class="errorlist">
@@ -146,7 +168,10 @@
 
                 {# Password field #}
                 <div class="form-group {% if form.password.errors %}has-error{% endif %}">
-                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <label for="{{ form.password.id_for_label }}">
+                        Password
+                        <span class="required-asterisk">*</span>
+                    </label>
                     <div class="password-group">
                         {{ form.password }}
                         <span class="toggle-password" data-target="{{ form.password.id_for_label }}" title="Toggle Password Visibility">
@@ -165,7 +190,10 @@
 
                 {# Confirm Password field #}
                 <div class="form-group {% if form.password_confirm.errors %}has-error{% endif %}"> 
-                    <label for="{{ form.password_confirm.id_for_label }}">Confirm Password</label>
+                    <label for="{{ form.password_confirm.id_for_label }}">
+                        Confirm Password
+                        <span class="required-asterisk">*</span>
+                    </label>
                     <div class="password-group">
                         {{ form.password_confirm }}
                         <span class="toggle-password" data-target="{{ form.password_confirm.id_for_label }}" title="Toggle Password Visibility">
@@ -187,7 +215,10 @@
                 <div class="form-row">
                     {# Emergency Contact Name field #}
                     <div class="form-group {% if form.emergency_contact_name.errors %}has-error{% endif %}">
-                        <label for="{{ form.emergency_contact_name.id_for_label }}">Emergency Contact Name</label>
+                        <label for="{{ form.emergency_contact_name.id_for_label }}">
+                            Emergency Contact Name
+                            <span class="required-asterisk">*</span>
+                        </label>
                         {{ form.emergency_contact_name }}
                         {% if form.emergency_contact_name.errors %}
                             <ul class="errorlist">
@@ -199,7 +230,10 @@
                     </div>
                     {# Emergency Contact Number field #}
                     <div class="form-group {% if form.emergency_contact_number.errors %}has-error{% endif %}">
-                        <label for="{{ form.emergency_contact_number.id_for_label }}">Emergency Contact Number</label>
+                        <label for="{{ form.emergency_contact_number.id_for_label }}">
+                            Emergency Contact Number
+                            <span class="required-asterisk">*</span>
+                        </label>
                         {{ form.emergency_contact_number }}
                         {% if form.emergency_contact_number.errors %}
                             <ul class="errorlist">
@@ -211,7 +245,7 @@
                     </div>
                 </div>
                 
-                {# Medical Conditions field #}
+                {# Medical Conditions field (Optional, no asterisk) #}
                 <div class="form-group {% if form.medical_conditions.errors %}has-error{% endif %}">
                     <label for="{{ form.medical_conditions.id_for_label }}">Medical Conditions (Optional)</label>
                     {{ form.medical_conditions }}
@@ -224,7 +258,7 @@
                     {% endif %}
                 </div>
 
-                {# Fitness Goals field #}
+                {# Fitness Goals field (Optional, no asterisk) #}
                 <div class="form-group {% if form.fitness_goals.errors %}has-error{% endif %}">
                     <label for="{{ form.fitness_goals.id_for_label }}">Fitness Goals (Optional)</label>
                     {{ form.fitness_goals }}
