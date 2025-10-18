@@ -84,6 +84,78 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeModal();
   });
+
+  // Handle form submission
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('.login-form');
+    if (!form) return;
+    
+    // Always prevent default first
+    e.preventDefault();
+    
+    var email = document.getElementById('login-email').value;
+    var password = document.getElementById('login-password').value;
+    var activeTab = document.querySelector('.login-tabs .tab-btn.active');
+    var role = activeTab ? activeTab.getAttribute('data-role') : 'member';
+    
+    if (!email || !password) {
+      alert('Please fill in all fields.');
+      return;
+    }
+    
+    // Force staff role if Staff tab is active
+    if (activeTab && activeTab.classList.contains('active') && activeTab.getAttribute('data-role') === 'staff') {
+      role = 'staff';
+    }
+    
+    // Additional check: look for any staff tab that might be active
+    var staffTab = document.querySelector('.login-tabs .tab-btn[data-role="staff"]');
+    if (staffTab && staffTab.classList.contains('active')) {
+      role = 'staff';
+    }
+    
+    // Determine the correct URL based on role
+    var actionUrl;
+    
+    if (role === 'staff') {
+      actionUrl = '/staff_dashboard/';
+    } else {
+      actionUrl = '/dashboard/';
+    }
+    
+    // Create a new form to submit to the correct URL
+    var newForm = document.createElement('form');
+    newForm.method = 'POST';
+    newForm.action = actionUrl;
+    newForm.style.display = 'none';
+    
+    // Add CSRF token
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+      var csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = csrfToken.value;
+      newForm.appendChild(csrfInput);
+    }
+    
+    // Add email and password
+    var emailInput = document.createElement('input');
+    emailInput.type = 'hidden';
+    emailInput.name = 'email';
+    emailInput.value = email;
+    newForm.appendChild(emailInput);
+    
+    var passwordInput = document.createElement('input');
+    passwordInput.type = 'hidden';
+    passwordInput.name = 'password';
+    passwordInput.value = password;
+    newForm.appendChild(passwordInput);
+    
+    // Add form to body and submit
+    document.body.appendChild(newForm);
+    newForm.submit();
+  });
 })();
 
 
