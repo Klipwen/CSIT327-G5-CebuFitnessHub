@@ -82,10 +82,13 @@ DATABASES = {
     "default": dj_database_url.config(
        default="sqlite:///db.sqlite3",
        conn_max_age=600,
-       ssl_require=True,
- #       OPTIONS={'options': '-c search_path=public'} 
+       ssl_require=True
     )
 }
+
+# Add search_path option for PostgreSQL if using Supabase
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {'options': '-c search_path=public'}
 
 #DATABASES = {
 #    'default': {
@@ -113,7 +116,24 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-AUTH_USER_MODEL = 'gymapp.CustomUser' 
+AUTH_USER_MODEL = 'gymapp.CustomUser'
+
+# Disable admin logging to fix foreign key constraint issues with custom user model
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'null': {
+            'class': 'logging.NullHandler',
+        },
+    },
+    'loggers': {
+        'django.contrib.admin': {
+            'handlers': ['null'],
+            'level': 'CRITICAL',
+        },
+    },
+} 
 
 AUTH_PASSWORD_VALIDATORS = [
     {

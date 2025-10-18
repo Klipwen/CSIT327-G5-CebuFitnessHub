@@ -96,3 +96,37 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         Returns the short name for the user.
         """
         return self.first_name
+
+
+# Gym Staff Model
+# This model represents staff members who work at the gym
+# Updated to match the exact ERD specification with only 5 attributes
+class GymStaff(models.Model):
+    # Staff ID (auto-generated)
+    staff_id = models.AutoField(primary_key=True, help_text="Unique staff ID")
+    
+    # First Name
+    first_name = models.CharField(max_length=100)
+    
+    # Last Name
+    last_name = models.CharField(max_length=100)
+    
+    # Email
+    email = models.EmailField(unique=True)
+    
+    # Phone Number
+    phone_number = models.CharField(max_length=20)
+    
+    # Password (hashed)
+    password = models.CharField(max_length=128, help_text="Hashed password")
+    
+    class Meta:
+        verbose_name = 'Gym Staff'
+        verbose_name_plural = 'Gym Staff'
+        ordering = ['last_name', 'first_name']
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} (ID: {self.staff_id})"
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
