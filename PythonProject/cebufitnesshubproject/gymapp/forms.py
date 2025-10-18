@@ -1,8 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import CustomUser  # Import your custom user model
+from .models import CustomUser, GymStaff  # Import your custom user model and GymStaff
 from django.contrib.auth.password_validation import validate_password
-import regex  # We'll use this for all regular expressions
+import re  # Use built-in re module instead of regex
 
 # Custom user registration form
 # Inheriting from forms.ModelForm to leverage model field definitions and validations
@@ -144,7 +144,7 @@ class CustomUserRegistrationForm(forms.ModelForm):
         first_name = self.cleaned_data.get('first_name')
         if first_name:
             # Regex: Allows letters (unicode), spaces, hyphens, and apostrophes
-            if not regex.fullmatch(r"[\p{L} '\-]+", first_name):
+            if not re.match(r"^[a-zA-Z\s\-']+$", first_name):
                 raise ValidationError("First name contains invalid characters. Only letters, spaces, hyphens, and apostrophes are allowed.")
         return first_name
 
@@ -156,7 +156,7 @@ class CustomUserRegistrationForm(forms.ModelForm):
         last_name = self.cleaned_data.get('last_name')
         if last_name:
             # Regex: Allows letters (unicode), spaces, hyphens, and apostrophes
-            if not regex.fullmatch(r"[\p{L} '\-]+", last_name):
+            if not re.match(r"^[a-zA-Z\s\-']+$", last_name):
                 raise ValidationError("Last name contains invalid characters. Only letters, spaces, hyphens, and apostrophes are allowed.")
         return last_name
 
@@ -196,7 +196,7 @@ class CustomUserRegistrationForm(forms.ModelForm):
         emergency_contact_name = self.cleaned_data.get('emergency_contact_name')
         if emergency_contact_name:
             # Regex: Allows letters (unicode) and spaces only
-            if not regex.fullmatch(r"[\p{L} ]+", emergency_contact_name):
+            if not re.match(r"^[a-zA-Z\s]+$", emergency_contact_name):
                 raise ValidationError("Emergency contact name contains invalid characters. Only letters and spaces are allowed.")
         return emergency_contact_name
 
@@ -243,3 +243,6 @@ class CustomUserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+# Staff Registration Form removed - Admin will add staff through Django admin interface only
