@@ -1,29 +1,65 @@
+// landing.js
+
 (function () {
-  function selectTab(role) {
+  // Expose functions globally that need to be called from the Django template
+  window.selectTab = function(role) {
     var buttons = document.querySelectorAll('.login-tabs .tab-btn');
+    var loginForm = document.getElementById('login-form'); // Get the form
+
     buttons.forEach(function (btn) {
       var isActive = btn.getAttribute('data-role') === role;
       btn.classList.toggle('active', isActive);
       btn.setAttribute('aria-selected', String(isActive));
     });
-  }
 
-  function openModal(defaultRole) {
+    // **CRITICAL:** Update the form's action attribute when the tab changes
+    if (loginForm) {
+      if (role === 'staff') {
+        loginForm.action = '/staff-login/'; // Assuming your staff login URL is this
+      } else {
+        loginForm.action = '/login/'; // Your member login URL
+      }
+    }
+  };
+
+  window.openModal = function(defaultRole) {
     var backdrop = document.getElementById('login-backdrop');
     if (!backdrop) return;
-    if (defaultRole) selectTab(defaultRole);
+    if (defaultRole) {
+      window.selectTab(defaultRole); // Use window.selectTab to also set form action
+    } else {
+      // If no defaultRole, ensure the member tab is selected by default
+      window.selectTab('member');
+    }
     backdrop.classList.add('is-open');
     backdrop.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
-  }
+  };
 
-  function closeModal() {
+  window.closeModal = function() {
     var backdrop = document.getElementById('login-backdrop');
     if (!backdrop) return;
     backdrop.classList.remove('is-open');
     backdrop.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-  }
+
+    // Clear any messages when modal closes
+    const messagesContainer = document.getElementById('login-messages-container');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+    }
+    // Clear form inputs
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+
+    // Clear inline errors
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    if (emailError) emailError.textContent = '';
+    if (passwordError) passwordError.textContent = '';
+  };
 
   function togglePasswordVisibility() {
     var input = document.getElementById('login-password');
@@ -35,26 +71,28 @@
     // Tabs
     var tabBtn = e.target.closest('.login-tabs .tab-btn');
     if (tabBtn) {
-      selectTab(tabBtn.getAttribute('data-role'));
+      window.selectTab(tabBtn.getAttribute('data-role'));
       return;
     }
 
     // Openers (within join section cards)
+    // The [data-open-login] handler below now covers these.
+    // Keeping these specific checks for clarity if needed, but the general one is preferred.
     if (e.target.closest('.card.member-card .btn') && !e.target.closest('.btn-outline')) {
       e.preventDefault();
-      openModal('member');
+      window.openModal('member');
       return;
     }
     if (e.target.closest('.card.staff-card .btn-staff')) {
       e.preventDefault();
-      openModal('staff');
+      window.openModal('staff');
       return;
     }
 
     // Close button
     if (e.target.closest('.login-close')) {
       e.preventDefault();
-      closeModal();
+      window.closeModal();
       return;
     }
 
@@ -68,95 +106,26 @@
     // Backdrop click
     var backdrop = document.getElementById('login-backdrop');
     if (backdrop && e.target === backdrop) {
-      closeModal();
+      window.closeModal();
     }
   });
 
+  // General handler for any button with data-open-login
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open-login]');
     if (opener) {
       e.preventDefault();
       var role = opener.getAttribute('data-open-login') || 'member';
-      openModal(role);
+      window.openModal(role);
     }
   });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') window.closeModal();
   });
 
-  // Handle form submission
-  document.addEventListener('submit', function (e) {
-    var form = e.target.closest('.login-form');
-    if (!form) return;
-    
-    // Always prevent default first
-    e.preventDefault();
-    
-    var email = document.getElementById('login-email').value;
-    var password = document.getElementById('login-password').value;
-    var activeTab = document.querySelector('.login-tabs .tab-btn.active');
-    var role = activeTab ? activeTab.getAttribute('data-role') : 'member';
-    
-    if (!email || !password) {
-      alert('Please fill in all fields.');
-      return;
-    }
-    
-    // Force staff role if Staff tab is active
-    if (activeTab && activeTab.classList.contains('active') && activeTab.getAttribute('data-role') === 'staff') {
-      role = 'staff';
-    }
-    
-    // Additional check: look for any staff tab that might be active
-    var staffTab = document.querySelector('.login-tabs .tab-btn[data-role="staff"]');
-    if (staffTab && staffTab.classList.contains('active')) {
-      role = 'staff';
-    }
-    
-    // Determine the correct URL based on role
-    var actionUrl;
-    
-    if (role === 'staff') {
-      actionUrl = '/staff_dashboard/';
-    } else {
-      actionUrl = '/dashboard/';
-    }
-    
-    // Create a new form to submit to the correct URL
-    var newForm = document.createElement('form');
-    newForm.method = 'POST';
-    newForm.action = actionUrl;
-    newForm.style.display = 'none';
-    
-    // Add CSRF token
-    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfToken) {
-      var csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = csrfToken.value;
-      newForm.appendChild(csrfInput);
-    }
-    
-    // Add email and password
-    var emailInput = document.createElement('input');
-    emailInput.type = 'hidden';
-    emailInput.name = 'email';
-    emailInput.value = email;
-    newForm.appendChild(emailInput);
-    
-    var passwordInput = document.createElement('input');
-    passwordInput.type = 'hidden';
-    passwordInput.name = 'password';
-    passwordInput.value = password;
-    newForm.appendChild(passwordInput);
-    
-    // Add form to body and submit
-    document.body.appendChild(newForm);
-    newForm.submit();
-  });
+  // **IMPORTANT: REMOVE THE FOLLOWING BLOCK**
+  // document.addEventListener('submit', function (e) { ... });
+  // This block is no longer needed as the form will submit naturally.
+
 })();
-
-
-
