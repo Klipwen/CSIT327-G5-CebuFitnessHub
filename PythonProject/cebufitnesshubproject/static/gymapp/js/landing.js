@@ -1,17 +1,39 @@
+// landing.js
+
 (function () {
-  function selectTab(role) {
+  // Expose functions globally that need to be called from the Django template
+  window.selectTab = function(role) {
     var buttons = document.querySelectorAll('.login-tabs .tab-btn');
+    var loginForm = document.getElementById('login-form'); // Get the form
+
     buttons.forEach(function (btn) {
       var isActive = btn.getAttribute('data-role') === role;
       btn.classList.toggle('active', isActive);
       btn.setAttribute('aria-selected', String(isActive));
     });
-  }
 
-  function openModal(defaultRole) {
+    // **CRITICAL:** Update the form's action attribute when the tab changes
+    if (loginForm) {
+      if (role === 'staff') {
+        // NOTE: The submit handler logic in this file will override this action,
+        // but it's good practice to keep it for non-JS or if logic changes.
+        // We will rely on the submit handler's AJAX URL.
+        loginForm.action = '/login/'; 
+      } else {
+        loginForm.action = '/login/'; // Your member login URL
+      }
+    }
+  };
+
+  window.openModal = function(defaultRole) {
     var backdrop = document.getElementById('login-backdrop');
     if (!backdrop) return;
-    if (defaultRole) selectTab(defaultRole);
+    if (defaultRole) {
+      window.selectTab(defaultRole); // Use window.selectTab to also set form action
+    } else {
+      // If no defaultRole, ensure the member tab is selected by default
+      window.selectTab('member');
+    }
     backdrop.classList.add('is-open');
     backdrop.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
@@ -20,13 +42,33 @@
     clearValidationErrors();
   }
 
-  function closeModal() {
+  window.closeModal = function() {
     var backdrop = document.getElementById('login-backdrop');
     if (!backdrop) return;
     backdrop.classList.remove('is-open');
     backdrop.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-  }
+
+    // Clear any messages when modal closes
+    const messagesContainer = document.getElementById('login-messages-container');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+    }
+    // Clear form inputs
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+
+    // Clear inline errors
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    if (emailError) emailError.textContent = '';
+    if (passwordError) passwordError.textContent = '';
+    
+    // Also clear validation classes
+    clearValidationErrors();
+  };
 
   function togglePasswordVisibility() {
     var input = document.getElementById('login-password');
@@ -74,10 +116,16 @@
       errorElement.className = 'validation-error';
       errorElement.textContent = message;
       
-      // Insert after the input's parent (form-group)
-      var formGroup = input.closest('.form-group');
-      if (formGroup) {
-        formGroup.appendChild(errorElement);
+      // Insert after the input's parent wrapper (input-wrapper)
+      var inputWrapper = input.closest('.input-wrapper');
+      if (inputWrapper) {
+          inputWrapper.insertAdjacentElement('afterend', errorElement);
+      } else {
+          // Fallback to form-group
+          var formGroup = input.closest('.form-group');
+          if (formGroup) {
+            formGroup.appendChild(errorElement);
+          }
       }
     }
   }
@@ -123,37 +171,40 @@
     if (e.target.id === 'login-password') {
       var password = e.target.value.trim();
       if (password === '') {
-        showValidationError('login-password', 'Password is required.');
+        // Only show error if they blurred without typing
+        // Re-validating on blur for password can be annoying
       } else {
         clearValidationError('login-password');
       }
     }
-  }, true);
+  }, true); // Use capture phase
 
   document.addEventListener('click', function (e) {
     // Tabs
     var tabBtn = e.target.closest('.login-tabs .tab-btn');
     if (tabBtn) {
-      selectTab(tabBtn.getAttribute('data-role'));
+      window.selectTab(tabBtn.getAttribute('data-role'));
       return;
     }
 
     // Openers (within join section cards)
+    // The [data-open-login] handler below now covers these.
+    // Keeping these specific checks for clarity if needed, but the general one is preferred.
     if (e.target.closest('.card.member-card .btn') && !e.target.closest('.btn-outline')) {
       e.preventDefault();
-      openModal('member');
+      window.openModal('member');
       return;
     }
     if (e.target.closest('.card.staff-card .btn-staff')) {
       e.preventDefault();
-      openModal('staff');
+      window.openModal('staff');
       return;
     }
 
     // Close button
     if (e.target.closest('.login-close')) {
       e.preventDefault();
-      closeModal();
+      window.closeModal();
       return;
     }
 
@@ -167,21 +218,22 @@
     // Backdrop click
     var backdrop = document.getElementById('login-backdrop');
     if (backdrop && e.target === backdrop) {
-      closeModal();
+      window.closeModal();
     }
   });
 
+  // General handler for any button with data-open-login
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open-login]');
     if (opener) {
       e.preventDefault();
       var role = opener.getAttribute('data-open-login') || 'member';
-      openModal(role);
+      window.openModal(role);
     }
   });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') window.closeModal();
   });
 
   // Handle form submission
@@ -249,11 +301,15 @@
     if (roleInput) {
       roleInput.value = role;
     }
-    
+
     // Submit the existing form
+    // This will now use the AJAX handler from the other script (if present)
+    // or submit normally to the URL defined in form.action
+    
+    // Re-enabling the default submit behavior as intended by feat/staff-login-validation
+    // The previous python file suggests an AJAX handler.
+    // This script will just submit the form. The AJAX handler will catch it.
+    // If no AJAX handler is present, it will do a full page reload.
     form.submit();
   });
 })();
-
-
-

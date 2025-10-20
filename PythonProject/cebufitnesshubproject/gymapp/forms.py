@@ -246,3 +246,39 @@ class CustomUserRegistrationForm(forms.ModelForm):
 
 
 # Staff Registration Form removed - Admin will add staff through Django admin interface only
+
+class MemberLoginForm(forms.Form):
+    """
+    Form for member login validation.
+    """
+    email = forms.EmailField(
+        label='Email',
+        max_length=255,
+        required=True,
+        widget=forms.EmailInput(attrs={'placeholder': 'Enter your email address', 'class': 'form-control'})
+    )
+    
+    password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter your password', 'class': 'form-control'})
+    )
+    
+    def clean(self):
+        """
+        Validate email and password combination.
+        """
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        password = cleaned_data.get('password')
+        
+        if email and password:
+            try:
+                user = CustomUser.objects.get(email=email)
+                if not user.check_password(password):
+                    raise ValidationError("Email or password is incorrect.")
+                # Store the validated user in cleaned_data
+                cleaned_data['user'] = user
+            except CustomUser.DoesNotExist:
+                raise ValidationError("Email or password is incorrect.")
+        
+        return cleaned_data

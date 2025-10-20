@@ -50,10 +50,21 @@
 
     <!-- Main -->
     <main class="main">
+      <!-- Django Messages -->
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
       <!-- Header Section -->
       <section class="header-section">
         <div class="welcome-left">
-          <h2 class="welcome-text">Welcome back,<br> {{ userName|default:"Naruto Uzumaki" }}!</h2>
+          <h2 class="welcome-text">Welcome back,<br> {{ user.first_name }}!</h2>
         </div>
         <div class="overview-right">
           <h1 class="overview-title">OVERVIEW</h1>
@@ -114,7 +125,7 @@
           <div class="member-left">
             <div class="member-item">
               <span class="member-label">Member Since</span>
-              <span class="member-value blue">{{ memberSince|default:"6/15/2023" }}</span>
+              <span class="member-value blue">{{ date_joined }}</span>
             </div>
             <div class="member-item">
               <span class="member-label">Days Attended</span>
@@ -227,6 +238,39 @@
   </div>
 
   <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle Django Messages: Fade out success messages
+        const messagesContainer = document.querySelector('.messages');
+        if (messagesContainer) {
+            const successMessages = messagesContainer.querySelectorAll('.alert-success');
+            successMessages.forEach(messageDiv => {
+                messageDiv.style.opacity = '1'; // Ensure it's visible initially
+                setTimeout(() => {
+                    messageDiv.style.transition = 'opacity 0.5s ease-out';
+                    messageDiv.style.opacity = '0'; // Start fading out
+                    setTimeout(() => {
+                        messageDiv.remove(); // Remove from DOM after fade completes
+                    }, 500); // Duration of fade-out transition
+                }, 2000); // Display for 2 seconds before fading
+            });
+
+            // Keep error messages visible (or fade out after longer period if desired)
+            const errorMessages = messagesContainer.querySelectorAll('.alert-error');
+            errorMessages.forEach(messageDiv => {
+                messageDiv.style.opacity = '1'; // Ensure it's visible
+                // Optional: Make error messages disappear after a longer period (e.g., 5 seconds)
+                // setTimeout(() => {
+                //     messageDiv.style.transition = 'opacity 0.5s ease-out';
+                //     messageDiv.style.opacity = '0';
+                //     setTimeout(() => {
+                //         messageDiv.remove();
+                //     }, 500);
+                // }, 5000); // Display for 5 seconds
+            });
+        }
+    });
+  </script>
 </body>
 </html>
 <!--/-->

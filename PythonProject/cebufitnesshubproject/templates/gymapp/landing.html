@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="{% static 'gymapp/css/landing.css' %}">
 </head>
 <body>
-  <!-- Header -->
   <header class="site-header">
     <div class="brand">
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -23,14 +22,12 @@
     </nav>
   </header>
 
-  <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
       <h1>Cebu Fitness Hub</h1>
     </div>
   </section>
 
-  <!-- Welcome Section -->
   <section class="welcome">
     <h2>Welcome to <span class="highlight">Cebu Fitness Hub</span></h2>
     <p class="welcome-text">
@@ -40,11 +37,9 @@
     </p>
   </section>
 
-  <!-- Why Us Section -->
   <section id="why" class="features">
     <h2 class="section-title">Why Cebu Fitness Hub?</h2>
     <div class="features-grid">
-      <!-- Feature Item -->
       <div class="feature-item">
         <div class="feature-icon">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -76,7 +71,6 @@
         <p>Workout whenever it suits your schedule</p>
       </div>
 
-      <!-- Amenities -->
       <div class="amenities-box">
         <div class="amenities-header">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -103,7 +97,6 @@
     </div>
   </section>
 
-  <!-- Join Section -->
   <section id="join" class="join-section">
     <h2 class="join-title">Join <span class="highlight">Cebu Fitness Hub</span> Now!</h2>
     <p class="join-text">
@@ -113,7 +106,6 @@
     <p class="join-subtext">Already part of our team? Log in below to access your staff dashboard.</p>
 
     <div class="cards">
-      <!-- Member Portal -->
       <div class="card member-card">
         <div class="card-icon">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -129,11 +121,10 @@
           <li>Track check-in/check-out history</li>
           <li>Freeze/unfreeze account as needed</li>
         </ul>
-        <a class="btn" href="#">Login</a>
+        <a class="btn" href="#" data-open-login="member">Login</a> {# Changed to use data-open-login for consistent JS handling #}
         <a class="btn btn-outline" href="{% url 'register_submission' %}">Register</a>
       </div>
 
-      <!-- Staff Portal -->
       <div class="card staff-card">
         <div class="card-icon staff-icon">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -148,12 +139,11 @@
           <li>Manual member check-in/check-out</li>
           <li>View gym statistics</li>
         </ul>
-        <a class="btn btn-staff" href="#">Staff Login</a>
+        <a class="btn btn-staff" href="#" data-open-login="staff">Staff Login</a> {# Changed to use data-open-login for consistent JS handling #}
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer id="contact" class="site-footer">
     <div class="footer-content">
       <div class="footer-brand">
@@ -189,7 +179,6 @@
     <p class="copyright">©2025 Cebu Fitness Hub - All rights reserved</p>
   </footer>
 
-  <!-- Login Modal -->
   <div id="login-backdrop" class="login-backdrop" aria-hidden="true">
     <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
       <button type="button" class="login-close" aria-label="Close modal">✕</button>
@@ -216,12 +205,21 @@
           Staff
         </button>
       </div>
-      <form class="login-form" method="post" action="{% url 'staff_dashboard' %}" novalidate>
+      <form id="login-form" class="login-form" method="post" action="{% url 'member_login' %}" novalidate>
         {% csrf_token %}
+        
+        <div id="login-messages-container" class="messages">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+        
         <div class="form-group">
           <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" placeholder="Enter your email" required aria-describedby="login-email-error">
-          <!-- Validation error will be inserted here by JavaScript -->
+          <input id="login-email" name="email" type="email" placeholder="Enter your email" required value="{{ request.POST.email|default:'' }}">
+          <div id="email-error" class="input-error-message"></div>
         </div>
         <div class="form-group">
           <label for="login-password">Password</label>
@@ -233,7 +231,7 @@
               </svg>
             </button>
           </div>
-          <!-- Validation error will be inserted here by JavaScript -->
+          <div id="password-error" class="input-error-message"></div>
         </div>
         <input type="hidden" name="role" id="login-role" value="member">
         <button type="submit" class="login-submit">Log in</button>
@@ -245,6 +243,138 @@
   </div>
 
   <script src="{% static 'gymapp/js/landing.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+        const messagesContainer = document.getElementById('login-messages-container');
+        const loginTabs = document.querySelector('.login-tabs');
+
+        // Function to show inline error message
+        function showInlineError(element, message) {
+            element.textContent = message;
+            element.style.color = '#dc3545'; // Red color
+            element.style.fontSize = '0.875em';
+            element.style.marginTop = '5px';
+            element.style.display = 'block';
+        }
+
+        // Function to clear inline error message
+        function clearInlineError(element) {
+            element.textContent = '';
+            element.style.display = 'none';
+        }
+
+        // Basic email format validation function
+        function isValidEmail(email) {
+            // A more robust regex for email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Client-side validation before submission
+        loginForm.addEventListener('submit', function(event) {
+            let isValid = true;
+            let activeTab = loginTabs.querySelector('.tab-btn.active');
+            let role = activeTab ? activeTab.getAttribute('data-role') : 'member'; // Default to 'member'
+
+            // **CRITICAL:** Set the form action dynamically based on the active tab
+            // This ensures the form submits to the correct Django view
+            if (role === 'staff') {
+                loginForm.action = '{% url "staff_login" %}';
+            } else {
+                loginForm.action = '{% url "member_login" %}';
+            }
+
+            // Validate Email
+            const emailValue = emailInput.value.trim();
+            if (emailValue === '') {
+                showInlineError(emailError, 'Please fill in this field.');
+                isValid = false;
+            } else if (!isValidEmail(emailValue)) { // New email format validation
+                showInlineError(emailError, 'Invalid email format. Please try again.');
+                isValid = false;
+            } else {
+                clearInlineError(emailError);
+            }
+
+            // Validate Password
+            if (passwordInput.value.trim() === '') {
+                showInlineError(passwordError, 'Please fill in this field.');
+                isValid = false;
+            } else {
+                clearInlineError(passwordError);
+            }
+
+            if (!isValid) {
+                event.preventDefault(); // Prevent form submission if client-side validation fails
+            }
+        });
+
+        // Event listeners to clear errors on input
+        emailInput.addEventListener('input', function() {
+            clearInlineError(emailError);
+        });
+        passwordInput.addEventListener('input', function() {
+            clearInlineError(passwordError);
+        });
+
+        // Handle Django messages with delays
+        const messages = messagesContainer.querySelectorAll('.alert');
+        if (messages.length > 0) {
+            // Determine the role for modal opening - we assume 'member' on an error unless specified
+            let defaultRoleForModal = 'member';
+            // You might pass a 'login_type' in the messages context or URL parameters
+            // to re-open the correct tab. For now, we default to 'member'.
+
+            window.openModal(defaultRoleForModal); // Ensure modal is open if there are messages
+
+            messages.forEach(messageDiv => {
+                const isSuccess = messageDiv.classList.contains('alert-success');
+                const isError = messageDiv.classList.contains('alert-error');
+
+                if (isSuccess) {
+                    messageDiv.style.opacity = '1';
+                    setTimeout(() => {
+                        messageDiv.style.transition = 'opacity 0.5s ease-out';
+                        messageDiv.style.opacity = '0';
+                        setTimeout(() => {
+                            messageDiv.remove();
+                        }, 500);
+                    }, 2000);
+                } else if (isError) {
+                    messageDiv.style.opacity = '1';
+                    // Error messages stay for 3 seconds before disappearing
+                    setTimeout(() => {
+                        messageDiv.style.transition = 'opacity 0.5s ease-out';
+                        messageDiv.style.opacity = '0';
+                        setTimeout(() => {
+                            messageDiv.remove();
+                        }, 500);
+                    }, 3000); // Show for 3 seconds
+                }
+            });
+        }
+    });
+
+    // The logic to open the modal on page load if 'open_login_modal' context is true
+    document.addEventListener('DOMContentLoaded', function() {
+      {% if open_login_modal %}
+        let defaultTab = 'member';
+        // Check for specific messages to infer which tab to open, if applicable
+        // This is a basic example; for more robust inference, you might pass a specific
+        // context variable from the view when redirecting with an error.
+        {% for message in messages %}
+          {% if "staff" in message.message|lower or "staff account" in message.message|lower %}
+            defaultTab = 'staff';
+          {% endif %}
+        {% endfor %}
+        window.openModal(defaultTab);
+      {% endif %}
+    });
+  </script>
 </body>
 </html>
-<!--/-->

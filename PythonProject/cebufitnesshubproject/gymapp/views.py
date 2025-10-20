@@ -1,40 +1,54 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
-from django.http import JsonResponse
-from .forms import CustomUserRegistrationForm
+from django.http import JsonResponse # Kept from feat/staff-login-validation
+from .forms import CustomUserRegistrationForm, MemberLoginForm # Kept both forms from both branches
 from .models import CustomUser, GymStaff
 
 
 def landing_view(request):
-	return render(request, 'gymapp/landing.html')
+    open_login_modal = False
+    
+    # Check if there are messages (from a redirect, e.g., failed login, successful registration)
+    # This ensures the modal opens to show the message.
+    if messages.get_messages(request): 
+        open_login_modal = True
+    
+    # If the URL path is '/login/', explicitly open the login modal
+    if request.path == '/login/':
+        open_login_modal = True
+
+    context = {
+        'open_login_modal': open_login_modal,
+    }
+    return render(request, 'gymapp/landing.html', context)
+
 
 def register_member(request):
     if request.method == 'POST':
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save() # This creates a CustomUser and hashes the password!
-            
+            user = form.save()
             # Log the user in immediately after successful registration
             login(request, user)
             messages.success(request, 'Registration successful! Welcome to Cebu Fitness Hub!')
-            
-            # Redirect to member dashboard
-            return redirect('member_dashboard')
-        # If the form is NOT valid, it falls through to render the template with errors
-    else: # This is a GET request, display an empty form
+            return redirect('member_dashboard') # Redirect to dashboard after login
+        else:
+            # If form is invalid, render the modal with errors
+            return render(request, 'gymapp/register_modal.html', {'form': form})
+    else:
         form = CustomUserRegistrationForm()
         
-    # Render the registration modal template, passing the form context
     return render(request, 'gymapp/register_modal.html', {'form': form})
 
 
-def login_view(request):
+def member_login(request):
     """
     Handle user login with automatic redirect based on user type.
     Support both regular form submission and AJAX requests.
+    This view now handles both member and staff logins.
     """
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -62,14 +76,15 @@ def login_view(request):
                     else:
                         return redirect(redirect_url)
                 else:
+                    error_message = 'Your account is inactive.'
                     if is_ajax:
                         return JsonResponse({
                             'success': False,
                             'error_type': 'email',
-                            'message': 'Your account is inactive.'
+                            'message': error_message
                         })
                     else:
-                        messages.error(request, 'Your account is inactive.')
+                        messages.error(request, error_message)
             else:
                 # Try to determine if the email exists to provide more specific error
                 try:
@@ -105,19 +120,28 @@ def login_view(request):
             else:
                 messages.error(request, error_message)
     
-    # For GET requests, just render the login page
-    return render(request, 'gymapp/login.html')
+    # For GET requests, just render the login page, or redirect to landing if this view is mapped to a path that's not meant to be accessed via GET directly.
+    # Assuming this view is only posted to via AJAX or a form, redirect to landing for safety on GET.
+    return redirect('landing')
 
 
-#dashboard view
+def staff_login(request):
+    """
+    Placeholder for a dedicated staff login page/logic. 
+    If member_login is used for all logins, this can be removed or redirect there.
+    For now, it redirects to the landing page.
+    """
+    # If member_login is serving all purposes, this might be redundant in your final routing.
+    return redirect('landing')
+
+
 @login_required
 def member_dashboard(request):
     """
-    Renders the member dashboard with dynamic and hardcoded data.
-    Only accessible to regular members (not staff).
+    Renders the member dashboard with dynamic data.
+    Only accessible to regular members (not staff) who are logged in.
     """
-    # Additional check to ensure user is authenticated
-    if not request.user.is_authenticated:
+    if not request.user.is_authenticated: # Redundant with @login_required but kept for clarity
         messages.error(request, 'Please log in to access the member dashboard.')
         return redirect('landing')
     
@@ -127,92 +151,43 @@ def member_dashboard(request):
     
     context = {
         'user': request.user,
-        'member_name': request.user.get_full_name(),
+        'first_name': request.user.first_name,
+        'last_name': request.user.last_name,
+        'email': request.user.email,
+        'date_joined': request.user.date_joined.strftime('%m/%d/%Y'),
+        'member_name': request.user.get_full_name(), 
     }
     return render(request, 'gymapp/dashboard.html', context)
 
 
+@login_required
 def staff_dashboard_view(request):
     """
-    Staff dashboard view - handles both login and dashboard display.
+    Renders the staff dashboard with dynamic data.
+    Only accessible to staff members who are logged in via Django's auth.
     """
-    # Handle POST request (login attempt)
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        if email and password:
-            try:
-                # Find staff member by email
-                staff = GymStaff.objects.get(email=email)
-                
-                # Check password using Django's password hasher
-                if check_password(password, staff.password):
-                    # Create a session for the staff member
-                    request.session['staff_id'] = staff.staff_id
-                    request.session['staff_email'] = staff.email
-                    request.session['staff_name'] = staff.get_full_name()
-                    
-                    # Force session save
-                    request.session.save()
-                    
-                    messages.success(request, f'Welcome back, {staff.first_name}!')
-                    # Continue to show dashboard
-                else:
-                    messages.error(request, 'Invalid email or password.')
-                    from django.http import HttpResponseRedirect
-                    return HttpResponseRedirect('/')
-            except GymStaff.DoesNotExist:
-                messages.error(request, 'Invalid email or password.')
-                from django.http import HttpResponseRedirect
-                return HttpResponseRedirect('/')
-        else:
-            messages.error(request, 'Please fill in all fields.')
-            from django.http import HttpResponseRedirect
-            return HttpResponseRedirect('/')
-    
-    # Check if staff is logged in via session
-    if 'staff_id' not in request.session:
-        messages.error(request, 'Please log in to access the staff dashboard.')
-        from django.http import HttpResponseRedirect
-        return HttpResponseRedirect('/')
-    
-    # Get staff information from session
-    staff_id = request.session.get('staff_id')
-    staff_name = request.session.get('staff_name', 'Staff Member')
-    
-    # Get additional staff information from database
+    if not request.user.is_authenticated or not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access the staff dashboard.')
+        return redirect('landing')
+
+    # Assuming CustomUser has relevant staff attributes or can be linked to GymStaff
+    # If GymStaff is a separate model with additional fields, fetch them.
+    staff_record = None
     try:
-        staff_record = GymStaff.objects.get(staff_id=staff_id)
-        staff_email = staff_record.email
-        staff_phone = staff_record.phone_number
+        staff_record = GymStaff.objects.get(custom_user=request.user) # Assuming a one-to-one link
     except GymStaff.DoesNotExist:
-        messages.error(request, 'Staff record not found.')
-        from django.http import HttpResponseRedirect
-        return HttpResponseRedirect('/')
-    
+        # Handle cases where a staff CustomUser doesn't have a linked GymStaff profile
+        # Or if GymStaff model is deprecated/not used for direct login.
+        pass
+
     context = {
-        'staff_id': staff_id,
-        'staff_name': staff_name,
-        'staff_email': staff_email,
-        'staff_phone': staff_phone,
+        'staff_id': request.user.id, 
+        'staff_name': request.user.get_full_name(),
+        'staff_email': request.user.email,
+        'staff_phone': staff_record.phone_number if staff_record else 'N/A', # Example
+        # Add other staff-specific data from CustomUser or GymStaff
     }
     return render(request, 'gymapp/staff_dashboard.html', context)
-
-
-def logout_confirm_view(request):
-    """
-    Simple page shown after confirming logout (no backend logic yet).
-    """
-    return render(request, 'gymapp/logout_confirm.html')
-
-
-def logout_prompt_view(request):
-    """
-    Page that asks for logout confirmation (fallback when JS modal is not used).
-    """
-    return render(request, 'gymapp/logout_prompt.html')
-
 
 def staff_logout_view(request):
     """
@@ -229,3 +204,18 @@ def staff_logout_view(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('landing')
 
+def logout_confirm_view(request):
+    return render(request, 'gymapp/logout_confirm.html')
+
+
+def logout_prompt_view(request):
+    return render(request, 'gymapp/logout_prompt.html')
+
+
+def general_logout_view(request):
+    """
+    Handles logging out both members and staff by using Django's built-in logout.
+    """
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('landing')
