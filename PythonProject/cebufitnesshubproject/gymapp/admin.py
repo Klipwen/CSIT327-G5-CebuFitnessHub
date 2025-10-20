@@ -3,8 +3,6 @@ from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, GymStaff
 # from .forms import StaffRegistrationForm  # Commented out - form needs to be updated for new model structure
 
-# Register your models here.
-
 # Custom User Admin
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -25,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'password1', 'password2'),
+            'fields': ('email', 'first_name', 'last_name', 'password1', 'password2', 'is_staff', 'is_superuser', 'is_active'),
         }),
     )
 
