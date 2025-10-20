@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
+from django.http import JsonResponse
 from .forms import CustomUserRegistrationForm
 from .models import CustomUser, GymStaff
 
@@ -33,10 +34,14 @@ def register_member(request):
 def login_view(request):
     """
     Handle user login with automatic redirect based on user type.
+    Support both regular form submission and AJAX requests.
     """
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        
+        # Check if this is an AJAX request
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
         if email and password:
             user = authenticate(request, email=email, password=password)
@@ -45,18 +50,62 @@ def login_view(request):
                     login(request, user)
                     messages.success(request, f'Welcome back, {user.first_name}!')
                     
-                    # Redirect based on user type
-                    if user.is_staff:
-                        return redirect('staff_dashboard')
+                    # Determine redirect URL based on user type
+                    redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
+                    
+                    if is_ajax:
+                        from django.urls import reverse
+                        return JsonResponse({
+                            'success': True,
+                            'redirect_url': reverse(redirect_url)
+                        })
                     else:
-                        return redirect('member_dashboard')
+                        return redirect(redirect_url)
                 else:
-                    messages.error(request, 'Your account is inactive.')
+                    if is_ajax:
+                        return JsonResponse({
+                            'success': False,
+                            'error_type': 'email',
+                            'message': 'Your account is inactive.'
+                        })
+                    else:
+                        messages.error(request, 'Your account is inactive.')
             else:
-                messages.error(request, 'Invalid email or password.')
+                # Try to determine if the email exists to provide more specific error
+                try:
+                    user_exists = CustomUser.objects.filter(email=email).exists()
+                    if user_exists:
+                        error_type = 'password'
+                        error_message = 'Invalid password.'
+                    else:
+                        error_type = 'email'
+                        error_message = 'Invalid account.'
+                except:
+                    error_type = 'general'
+                    error_message = 'Invalid email or password.'
+                
+                if is_ajax:
+                    return JsonResponse({
+                        'success': False,
+                        'error_type': error_type,
+                        'message': error_message
+                    })
+                else:
+                    messages.error(request, error_message)
         else:
-            messages.error(request, 'Please fill in all fields.')
+            missing_field = 'email' if not email else 'password'
+            error_message = 'Please fill in all fields.'
+            
+            if is_ajax:
+                return JsonResponse({
+                    'success': False,
+                    'error_type': missing_field,
+                    'message': error_message
+                })
+            else:
+                messages.error(request, error_message)
     
+    # For GET requests, just render the login page
     return render(request, 'gymapp/login.html')
 
 

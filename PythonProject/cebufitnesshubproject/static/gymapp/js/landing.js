@@ -15,6 +15,9 @@
     backdrop.classList.add('is-open');
     backdrop.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
+    
+    // Clear any previous validation errors when opening modal
+    clearValidationErrors();
   }
 
   function closeModal() {
@@ -30,6 +33,102 @@
     if (!input) return;
     input.type = input.type === 'password' ? 'text' : 'password';
   }
+  
+  // Validation functions
+  function validateEmail(email) {
+    // Regular expression for email validation
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  function sanitizeInput(input) {
+    // Basic sanitization to prevent script injection
+    return input.replace(/[<>&"']/g, function(c) {
+      return {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c];
+    });
+  }
+  
+  function showValidationError(inputId, message) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Add error class to input
+    input.classList.add('input-error');
+    
+    // Check if error message element already exists
+    var errorId = inputId + '-error';
+    var existingError = document.getElementById(errorId);
+    
+    if (existingError) {
+      existingError.textContent = message;
+    } else {
+      // Create error message element
+      var errorElement = document.createElement('div');
+      errorElement.id = errorId;
+      errorElement.className = 'validation-error';
+      errorElement.textContent = message;
+      
+      // Insert after the input's parent (form-group)
+      var formGroup = input.closest('.form-group');
+      if (formGroup) {
+        formGroup.appendChild(errorElement);
+      }
+    }
+  }
+  
+  function clearValidationError(inputId) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Remove error class
+    input.classList.remove('input-error');
+    
+    // Remove error message if it exists
+    var errorId = inputId + '-error';
+    var errorElement = document.getElementById(errorId);
+    if (errorElement) {
+      errorElement.remove();
+    }
+  }
+  
+  function clearValidationErrors() {
+    // Clear all validation errors
+    document.querySelectorAll('.validation-error').forEach(function(el) {
+      el.remove();
+    });
+    document.querySelectorAll('.input-error').forEach(function(el) {
+      el.classList.remove('input-error');
+    });
+  }
+  
+  // Add input validation on blur
+  document.addEventListener('blur', function(e) {
+    if (e.target.id === 'login-email') {
+      var email = e.target.value.trim();
+      if (email === '') {
+        clearValidationError('login-email');
+      } else if (!validateEmail(email)) {
+        showValidationError('login-email', 'Please enter a valid email.');
+      } else {
+        clearValidationError('login-email');
+      }
+    }
+    
+    if (e.target.id === 'login-password') {
+      var password = e.target.value.trim();
+      if (password === '') {
+        showValidationError('login-password', 'Password is required.');
+      } else {
+        clearValidationError('login-password');
+      }
+    }
+  }, true);
 
   document.addEventListener('click', function (e) {
     // Tabs
@@ -93,15 +192,40 @@
     // Always prevent default first
     e.preventDefault();
     
-    var email = document.getElementById('login-email').value;
-    var password = document.getElementById('login-password').value;
+    // Clear previous validation errors
+    clearValidationErrors();
+    
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value.trim();
     var activeTab = document.querySelector('.login-tabs .tab-btn.active');
     var role = activeTab ? activeTab.getAttribute('data-role') : 'member';
     
-    if (!email || !password) {
-      alert('Please fill in all fields.');
+    // Validate and sanitize inputs
+    var isValid = true;
+    
+    // Email validation
+    if (!email) {
+      showValidationError('login-email', 'Email is required.');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showValidationError('login-email', 'Please enter a valid email.');
+      isValid = false;
+    }
+    
+    // Password validation
+    if (!password) {
+      showValidationError('login-password', 'Password is required.');
+      isValid = false;
+    }
+    
+    // If validation fails, stop form submission
+    if (!isValid) {
       return;
     }
+    
+    // Sanitize inputs
+    email = sanitizeInput(email);
+    password = sanitizeInput(password);
     
     // Force staff role if Staff tab is active
     if (activeTab && activeTab.classList.contains('active') && activeTab.getAttribute('data-role') === 'staff') {
@@ -114,47 +238,20 @@
       role = 'staff';
     }
     
-    // Determine the correct URL based on role
-    var actionUrl;
+    // Show loading state on button
+    var submitButton = form.querySelector('.login-submit');
+    var originalButtonText = submitButton.textContent;
+    submitButton.textContent = 'Logging in...';
+    submitButton.disabled = true;
     
-    if (role === 'staff') {
-      actionUrl = '/staff_dashboard/';
-    } else {
-      actionUrl = '/dashboard/';
+    // Update the role input value
+    var roleInput = document.getElementById('login-role');
+    if (roleInput) {
+      roleInput.value = role;
     }
     
-    // Create a new form to submit to the correct URL
-    var newForm = document.createElement('form');
-    newForm.method = 'POST';
-    newForm.action = actionUrl;
-    newForm.style.display = 'none';
-    
-    // Add CSRF token
-    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfToken) {
-      var csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = csrfToken.value;
-      newForm.appendChild(csrfInput);
-    }
-    
-    // Add email and password
-    var emailInput = document.createElement('input');
-    emailInput.type = 'hidden';
-    emailInput.name = 'email';
-    emailInput.value = email;
-    newForm.appendChild(emailInput);
-    
-    var passwordInput = document.createElement('input');
-    passwordInput.type = 'hidden';
-    passwordInput.name = 'password';
-    passwordInput.value = password;
-    newForm.appendChild(passwordInput);
-    
-    // Add form to body and submit
-    document.body.appendChild(newForm);
-    newForm.submit();
+    // Submit the existing form
+    form.submit();
   });
 })();
 

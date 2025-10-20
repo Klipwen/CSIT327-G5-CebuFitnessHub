@@ -602,4 +602,24 @@
   
 /* END ORIGINAL CONTENT */
 
+/* Form Validation Styles */
+.input-error {
+  border-color: #e74c3c !important;
+  background-color: #fff8f8 !important;
+}
+
+.validation-error {
+  color: #e74c3c;
+  font-size: 13px;
+  margin-top: 5px;
+  font-weight: 500;
+  text-align: left;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
