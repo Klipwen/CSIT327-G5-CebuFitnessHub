@@ -3,7 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
-from .forms import CustomUserRegistrationForm, MemberLoginForm
+from django.http import JsonResponse # Kept from feat/staff-login-validation
+from .forms import CustomUserRegistrationForm, MemberLoginForm # Kept both forms from both branches
 from .models import CustomUser, GymStaff
 
 
@@ -45,46 +46,93 @@ def register_member(request):
 
 def member_login(request):
     """
-    Handle member login with email and password validation using the MemberLoginForm.
-    Redirects to member_dashboard on success, or back to landing with an error message.
+    Handle user login with automatic redirect based on user type.
+    Support both regular form submission and AJAX requests.
+    This view now handles both member and staff logins.
     """
     if request.method == 'POST':
-        form = MemberLoginForm(request.POST)
-        if form.is_valid():
-            user = form.cleaned_data['user']
-            login(request, user)
-            messages.success(request, 'Login Successful!')
-            return redirect('member_dashboard') 
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        # Check if this is an AJAX request
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        if email and password:
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.first_name}!')
+                    
+                    # Determine redirect URL based on user type
+                    redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
+                    
+                    if is_ajax:
+                        from django.urls import reverse
+                        return JsonResponse({
+                            'success': True,
+                            'redirect_url': reverse(redirect_url)
+                        })
+                    else:
+                        return redirect(redirect_url)
+                else:
+                    error_message = 'Your account is inactive.'
+                    if is_ajax:
+                        return JsonResponse({
+                            'success': False,
+                            'error_type': 'email',
+                            'message': error_message
+                        })
+                    else:
+                        messages.error(request, error_message)
+            else:
+                # Try to determine if the email exists to provide more specific error
+                try:
+                    user_exists = CustomUser.objects.filter(email=email).exists()
+                    if user_exists:
+                        error_type = 'password'
+                        error_message = 'Invalid password.'
+                    else:
+                        error_type = 'email'
+                        error_message = 'Invalid account.'
+                except:
+                    error_type = 'general'
+                    error_message = 'Invalid email or password.'
+                
+                if is_ajax:
+                    return JsonResponse({
+                        'success': False,
+                        'error_type': error_type,
+                        'message': error_message
+                    })
+                else:
+                    messages.error(request, error_message)
         else:
-            messages.error(request, "Email or password is incorrect. Please try again.")
-            return redirect('landing')
+            missing_field = 'email' if not email else 'password'
+            error_message = 'Please fill in all fields.'
+            
+            if is_ajax:
+                return JsonResponse({
+                    'success': False,
+                    'error_type': missing_field,
+                    'message': error_message
+                })
+            else:
+                messages.error(request, error_message)
+    
+    # For GET requests, just render the login page, or redirect to landing if this view is mapped to a path that's not meant to be accessed via GET directly.
+    # Assuming this view is only posted to via AJAX or a form, redirect to landing for safety on GET.
     return redirect('landing')
 
 
 def staff_login(request):
     """
-    Handle staff login with email and password validation.
-    Authenticates against CustomUser (who has is_staff=True) or GymStaff if separate.
-    Redirects to staff_dashboard on success, or back to landing with an error message.
+    Placeholder for a dedicated staff login page/logic. 
+    If member_login is used for all logins, this can be removed or redirect there.
+    For now, it redirects to the landing page.
     """
-    # if request.method == 'POST':
-    #     email = request.POST.get('email')
-    #     password = request.POST.get('password')
-
-    #     if email and password:
-    #         user = authenticate(request, email=email, password=password)
-    #         if user is not None and user.is_active and user.is_staff:
-    #             login(request, user)
-    #             messages.success(request, f'Welcome back, {user.first_name}!')
-    #             return redirect('staff_dashboard')
-    #         else:
-    #             messages.error(request, 'Invalid email or password for staff account.')
-    #     else:
-    #         messages.error(request, 'Please fill in all fields.')
-        
-    #     return redirect('landing') # Redirect to landing to reopen modal and display error
-    
-    return redirect('landing') # For GET request, just redirect to landing
+    # If member_login is serving all purposes, this might be redundant in your final routing.
+    return redirect('landing')
 
 
 @login_required

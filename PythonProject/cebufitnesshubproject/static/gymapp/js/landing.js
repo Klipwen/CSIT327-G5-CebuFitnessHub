@@ -15,7 +15,10 @@
     // **CRITICAL:** Update the form's action attribute when the tab changes
     if (loginForm) {
       if (role === 'staff') {
-        loginForm.action = '/staff-login/'; // Assuming your staff login URL is this
+        // NOTE: The submit handler logic in this file will override this action,
+        // but it's good practice to keep it for non-JS or if logic changes.
+        // We will rely on the submit handler's AJAX URL.
+        loginForm.action = '/login/'; 
       } else {
         loginForm.action = '/login/'; // Your member login URL
       }
@@ -34,7 +37,10 @@
     backdrop.classList.add('is-open');
     backdrop.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
-  };
+    
+    // Clear any previous validation errors when opening modal
+    clearValidationErrors();
+  }
 
   window.closeModal = function() {
     var backdrop = document.getElementById('login-backdrop');
@@ -59,6 +65,9 @@
     const passwordError = document.getElementById('password-error');
     if (emailError) emailError.textContent = '';
     if (passwordError) passwordError.textContent = '';
+    
+    // Also clear validation classes
+    clearValidationErrors();
   };
 
   function togglePasswordVisibility() {
@@ -66,6 +75,109 @@
     if (!input) return;
     input.type = input.type === 'password' ? 'text' : 'password';
   }
+  
+  // Validation functions
+  function validateEmail(email) {
+    // Regular expression for email validation
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  function sanitizeInput(input) {
+    // Basic sanitization to prevent script injection
+    return input.replace(/[<>&"']/g, function(c) {
+      return {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c];
+    });
+  }
+  
+  function showValidationError(inputId, message) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Add error class to input
+    input.classList.add('input-error');
+    
+    // Check if error message element already exists
+    var errorId = inputId + '-error';
+    var existingError = document.getElementById(errorId);
+    
+    if (existingError) {
+      existingError.textContent = message;
+    } else {
+      // Create error message element
+      var errorElement = document.createElement('div');
+      errorElement.id = errorId;
+      errorElement.className = 'validation-error';
+      errorElement.textContent = message;
+      
+      // Insert after the input's parent wrapper (input-wrapper)
+      var inputWrapper = input.closest('.input-wrapper');
+      if (inputWrapper) {
+          inputWrapper.insertAdjacentElement('afterend', errorElement);
+      } else {
+          // Fallback to form-group
+          var formGroup = input.closest('.form-group');
+          if (formGroup) {
+            formGroup.appendChild(errorElement);
+          }
+      }
+    }
+  }
+  
+  function clearValidationError(inputId) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Remove error class
+    input.classList.remove('input-error');
+    
+    // Remove error message if it exists
+    var errorId = inputId + '-error';
+    var errorElement = document.getElementById(errorId);
+    if (errorElement) {
+      errorElement.remove();
+    }
+  }
+  
+  function clearValidationErrors() {
+    // Clear all validation errors
+    document.querySelectorAll('.validation-error').forEach(function(el) {
+      el.remove();
+    });
+    document.querySelectorAll('.input-error').forEach(function(el) {
+      el.classList.remove('input-error');
+    });
+  }
+  
+  // Add input validation on blur
+  document.addEventListener('blur', function(e) {
+    if (e.target.id === 'login-email') {
+      var email = e.target.value.trim();
+      if (email === '') {
+        clearValidationError('login-email');
+      } else if (!validateEmail(email)) {
+        showValidationError('login-email', 'Please enter a valid email.');
+      } else {
+        clearValidationError('login-email');
+      }
+    }
+    
+    if (e.target.id === 'login-password') {
+      var password = e.target.value.trim();
+      if (password === '') {
+        // Only show error if they blurred without typing
+        // Re-validating on blur for password can be annoying
+      } else {
+        clearValidationError('login-password');
+      }
+    }
+  }, true); // Use capture phase
 
   document.addEventListener('click', function (e) {
     // Tabs
@@ -124,8 +236,80 @@
     if (e.key === 'Escape') window.closeModal();
   });
 
-  // **IMPORTANT: REMOVE THE FOLLOWING BLOCK**
-  // document.addEventListener('submit', function (e) { ... });
-  // This block is no longer needed as the form will submit naturally.
+  // Handle form submission
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('.login-form');
+    if (!form) return;
+    
+    // Always prevent default first
+    e.preventDefault();
+    
+    // Clear previous validation errors
+    clearValidationErrors();
+    
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value.trim();
+    var activeTab = document.querySelector('.login-tabs .tab-btn.active');
+    var role = activeTab ? activeTab.getAttribute('data-role') : 'member';
+    
+    // Validate and sanitize inputs
+    var isValid = true;
+    
+    // Email validation
+    if (!email) {
+      showValidationError('login-email', 'Email is required.');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showValidationError('login-email', 'Please enter a valid email.');
+      isValid = false;
+    }
+    
+    // Password validation
+    if (!password) {
+      showValidationError('login-password', 'Password is required.');
+      isValid = false;
+    }
+    
+    // If validation fails, stop form submission
+    if (!isValid) {
+      return;
+    }
+    
+    // Sanitize inputs
+    email = sanitizeInput(email);
+    password = sanitizeInput(password);
+    
+    // Force staff role if Staff tab is active
+    if (activeTab && activeTab.classList.contains('active') && activeTab.getAttribute('data-role') === 'staff') {
+      role = 'staff';
+    }
+    
+    // Additional check: look for any staff tab that might be active
+    var staffTab = document.querySelector('.login-tabs .tab-btn[data-role="staff"]');
+    if (staffTab && staffTab.classList.contains('active')) {
+      role = 'staff';
+    }
+    
+    // Show loading state on button
+    var submitButton = form.querySelector('.login-submit');
+    var originalButtonText = submitButton.textContent;
+    submitButton.textContent = 'Logging in...';
+    submitButton.disabled = true;
+    
+    // Update the role input value
+    var roleInput = document.getElementById('login-role');
+    if (roleInput) {
+      roleInput.value = role;
+    }
 
+    // Submit the existing form
+    // This will now use the AJAX handler from the other script (if present)
+    // or submit normally to the URL defined in form.action
+    
+    // Re-enabling the default submit behavior as intended by feat/staff-login-validation
+    // The previous python file suggests an AJAX handler.
+    // This script will just submit the form. The AJAX handler will catch it.
+    // If no AJAX handler is present, it will do a full page reload.
+    form.submit();
+  });
 })();
