@@ -281,13 +281,8 @@
             let activeTab = loginTabs.querySelector('.tab-btn.active');
             let role = activeTab ? activeTab.getAttribute('data-role') : 'member'; // Default to 'member'
 
-            // **CRITICAL:** Set the form action dynamically based on the active tab
-            // This ensures the form submits to the correct Django view
-            if (role === 'staff') {
-                loginForm.action = '{% url "staff_login" %}';
-            } else {
-                loginForm.action = '{% url "member_login" %}';
-            }
+            // Always use member_login view since it handles both staff and member logins
+            loginForm.action = '{% url "member_login" %}';
 
             // Validate Email
             const emailValue = emailInput.value.trim();

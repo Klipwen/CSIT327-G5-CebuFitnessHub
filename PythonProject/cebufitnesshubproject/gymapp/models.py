@@ -77,8 +77,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['first_name', 'last_name'] # Fields required for creating a superuser
 
     class Meta:
-        verbose_name = 'Member' # More user-friendly name for admin
-        verbose_name_plural = 'Members'
+        verbose_name = 'CustomUser'
+        verbose_name_plural = 'CustomUsers'
         #db_table = 'my_gym_members' # Your custom table name
 
     def __str__(self):
@@ -119,7 +119,7 @@ class GymStaff(models.Model):
     
     # Password (hashed)
     password = models.CharField(max_length=128, help_text="Hashed password")
-    
+    custom_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     class Meta:
         verbose_name = 'Gym Staff'
         verbose_name_plural = 'Gym Staff'

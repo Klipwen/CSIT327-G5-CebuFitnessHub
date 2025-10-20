@@ -125,16 +125,6 @@ def member_login(request):
     return redirect('landing')
 
 
-def staff_login(request):
-    """
-    Placeholder for a dedicated staff login page/logic. 
-    If member_login is used for all logins, this can be removed or redirect there.
-    For now, it redirects to the landing page.
-    """
-    # If member_login is serving all purposes, this might be redundant in your final routing.
-    return redirect('landing')
-
-
 @login_required
 def member_dashboard(request):
     """
@@ -219,3 +209,4 @@ def general_logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('landing')
+
