@@ -27,6 +27,16 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
+    # Disable admin log entries to avoid FK constraint pointing at auth_user
+    def log_addition(self, request, object, message):
+        return
+
+    def log_change(self, request, object, message):
+        return
+
+    def log_deletion(self, request, object, object_repr):
+        return
+
 # Gym Staff Admin - Updated to match exact ERD specification
 @admin.register(GymStaff)
 class GymStaffAdmin(admin.ModelAdmin):
