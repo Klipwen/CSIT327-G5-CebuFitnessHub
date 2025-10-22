@@ -23,6 +23,12 @@
         loginForm.action = '/login/'; // Your member login URL
       }
     }
+
+    // Hide register CTA when Staff tab is active; show for Member
+    var registerCta = document.querySelector('.register-cta');
+    if (registerCta) {
+      registerCta.style.display = (role === 'staff') ? 'none' : '';
+    }
   };
 
   window.openModal = function(defaultRole) {
