@@ -346,3 +346,136 @@
   });
 
 })();
+
+// Utility helpers
+function byId(id) { return document.getElementById(id); }
+function qs(sel, root = document) { return root.querySelector(sel); }
+function qsa(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
+
+// Modal open function (assumed existing elsewhere)
+window.openModal = window.openModal || function(defaultTab = 'member') {
+  const modal = byId('loginModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  selectTab(defaultTab);
+};
+
+// Tab selection logic
+function selectTab(role) {
+  const tabs = qsa('.tab');
+  const forms = qsa('.login-form');
+  const hiddenRoleInput = qs('input[name="login-role"]');
+  const registerCTA = qs('.register-cta');
+
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.role === role));
+  forms.forEach(f => f.classList.toggle('active', f.dataset.role === role));
+
+  if (hiddenRoleInput) hiddenRoleInput.value = role;
+
+  // Hide register CTA for staff; show for member
+  if (registerCTA) {
+    registerCTA.style.display = role === 'staff' ? 'none' : '';
+  }
+}
+
+// Initialize default tab on modal open based on active tab or hidden input
+function initModalState() {
+  const activeTab = qs('.tab.active');
+  const hiddenRoleInput = qs('input[name="login-role"]');
+  const role = activeTab ? activeTab.dataset.role : (hiddenRoleInput ? hiddenRoleInput.value : 'member');
+  selectTab(role || 'member');
+}
+
+// Prevent hash-only navigation used to open modals
+// This stops `/#` jumps due to anchors like href="#"
+document.addEventListener('click', function(e) {
+  const anchor = e.target.closest('a[href="#"]');
+  if (anchor) {
+    e.preventDefault();
+  }
+});
+
+// Refresh only on BFCache restores to avoid stale "Logging in..." state
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
+
+// On initial load, if URL hash is #join, open login modal
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    if (window.location.hash === '#join') {
+      // Default to member tab when deep-linking to login modal
+      window.openModal('member');
+    }
+  } catch (err) {
+    // Swallow errors to avoid breaking landing page
+    console.error('Error opening modal from hash:', err);
+  }
+});
+
+// Form validation and submission handling
+(function() {
+  const loginForm = byId('loginForm');
+  if (!loginForm) return;
+
+  const emailInput = byId('login-email');
+  const passwordInput = byId('login-password');
+  const submitBtn = byId('login-submit');
+
+  function setLoading(isLoading) {
+    if (!submitBtn) return;
+    submitBtn.disabled = isLoading;
+    submitBtn.textContent = isLoading ? 'Logging in...' : 'Login';
+  }
+
+  function showInlineError(message) {
+    const errorEl = byId('login-error');
+    if (!errorEl) return;
+    errorEl.textContent = message || '';
+    errorEl.style.display = message ? 'block' : 'none';
+  }
+
+  function sanitize(value) {
+    return String(value || '').trim();
+  }
+
+  function getActiveRole() {
+    const activeTab = qs('.tab.active');
+    return activeTab ? activeTab.dataset.role : 'member';
+  }
+
+  function isValidEmail(email) {
+    return /\S+@\S+\.\S+/.test(email);
+  }
+
+  loginForm.addEventListener('submit', function(e) {
+    showInlineError('');
+
+    const email = sanitize(emailInput && emailInput.value);
+    const password = sanitize(passwordInput && passwordInput.value);
+
+    // Client-side validation
+    if (!email || !isValidEmail(email)) {
+      e.preventDefault();
+      showInlineError('Please enter a valid email address.');
+      return;
+    }
+    if (!password) {
+      e.preventDefault();
+      showInlineError('Please enter your password.');
+      return;
+    }
+
+    // Update hidden role input before submission
+    const hiddenRoleInput = qs('input[name="login-role"]');
+    const role = getActiveRole();
+    if (hiddenRoleInput) hiddenRoleInput.value = role;
+
+    // Show loading state; allow default form submit
+    setLoading(true);
+    // Expect server-side (views.member_login) to validate role and return JSON errors or redirect
+  }, false);
+})();
