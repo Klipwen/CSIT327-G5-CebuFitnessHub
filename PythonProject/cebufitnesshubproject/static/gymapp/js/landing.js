@@ -31,6 +31,14 @@
     }
   };
 
+  // Prevent hash-only navigation for anchors like href="#"
+  document.addEventListener('click', function (e) {
+    var hashAnchor = e.target.closest('a[href="#"]');
+    if (hashAnchor) {
+      e.preventDefault();
+    }
+  });
+
   window.openModal = function(defaultRole) {
     var backdrop = document.getElementById('login-backdrop');
     if (!backdrop) return;
@@ -313,9 +321,28 @@
     // or submit normally to the URL defined in form.action
     
     // Re-enabling the default submit behavior as intended by feat/staff-login-validation
-    // The previous python file suggests an AJAX handler.
-    // This script will just submit the form. The AJAX handler will catch it.
-    // If no AJAX handler is present, it will do a full page reload.
     form.submit();
   });
+  
+  // Refresh landing page only when restored from BFCache
+  var hasReloadedOnBFCache = false;
+  window.addEventListener('pageshow', function (event) {
+    try {
+      var isLanding = window.location.pathname === '/';
+      if (event.persisted && isLanding && !hasReloadedOnBFCache) {
+        hasReloadedOnBFCache = true;
+        window.location.reload();
+        return;
+      }
+      // Reset login button state defensively
+      var submitButton = document.querySelector('.login-form .login-submit');
+      if (submitButton) {
+        submitButton.textContent = 'Log in';
+        submitButton.disabled = false;
+      }
+    } catch (e) {
+      // No-op
+    }
+  });
+
 })();

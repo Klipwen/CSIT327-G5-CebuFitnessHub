@@ -61,6 +61,32 @@ def member_login(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 if user.is_active:
+                    # Enforce role chosen in the modal
+                    role = request.POST.get('role', 'member')
+                    if role == 'staff' and not user.is_staff:
+                        error_message = 'Invalid account.'
+                        if is_ajax:
+                            return JsonResponse({
+                                'success': False,
+                                'error_type': 'role_mismatch',
+                                'message': error_message
+                            })
+                        else:
+                            messages.error(request, error_message)
+                            return redirect('landing')
+                    if role == 'member' and user.is_staff:
+                        error_message = 'Invalid account.'
+                        if is_ajax:
+                            return JsonResponse({
+                                'success': False,
+                                'error_type': 'role_mismatch',
+                                'message': error_message
+                            })
+                        else:
+                            messages.error(request, error_message)
+                            return redirect('landing')
+
+                    # Proceed with login since role matches
                     login(request, user)
                     messages.success(request, f'Welcome back, {user.first_name}!')
                     
