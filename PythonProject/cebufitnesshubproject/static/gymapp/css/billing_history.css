@@ -1,0 +1,110 @@
+/* ====================================================================
+   BILLING HISTORY COMPONENT
+   ==================================================================== */
+
+/* Main component block using BEM naming */
+.billing {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  padding: 24px 32px;
+  margin-top: 20px;
+}
+
+.billing__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+}
+
+/* 
+  TABLE WRAPPER - This is key for responsive horizontal scrolling.
+  It allows the table to be wider than the container on small screens
+  without breaking the overall page layout.
+*/
+.billing__table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Provides smoother scrolling on iOS devices */
+}
+
+/* Main table element */
+.billing__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 700px; /* A minimum width ensures columns don't get too crushed before scrolling begins */
+}
+
+/* Header row specific styling */
+.billing__table-header {
+  background-color: #f5f5f5;
+}
+
+/* Base styles for all cells (header and data) */
+.billing__cell {
+  padding: 12px 16px;
+  text-align: left;
+  white-space: nowrap; /* Prevents text like "October Membership Fee" from wrapping */
+  border-bottom: 1px solid #f0f0f0; /* Subtle row separator */
+}
+
+/* Modifier for header cells */
+.billing__cell--header {
+  font-weight: 700;
+  color: var(--text-dark);
+}
+/* Applying rounded corners to the first and last header cells */
+.billing__table-header .billing__row:first-child .billing__cell:first-child {
+  border-top-left-radius: 8px;
+}
+.billing__table-header .billing__row:first-child .billing__cell:last-child {
+  border-top-right-radius: 8px;
+}
+
+/* Modifier for positive amounts (income) */
+.billing__cell--positive {
+  color: #17BB05;
+  font-weight: 600;
+}
+
+/* Modifier for negative amounts (payments) */
+.billing__cell--negative {
+  color: #DE0909;
+  font-weight: 600;
+}
+
+/* Remove bottom border on the last data row */
+.billing__table-body .billing__row:last-child .billing__cell {
+  border-bottom: none;
+}
+/* Apply rounded corners to the first and last cells of the final data row */
+.billing__table-body .billing__row:last-child .billing__cell:first-child {
+  border-bottom-left-radius: 8px;
+}
+.billing__table-body .billing__row:last-child .billing__cell:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+
+/* ====================================================================
+   RESPONSIVE ADJUSTMENTS
+   ==================================================================== */
+
+@media (max-width: 768px) {
+  .billing {
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .billing__title {
+    font-size: 20px;
+  }
+
+  .billing__cell {
+    padding: 10px 12px;
+  }
+
+  /* The table will scroll horizontally on smaller screens, so stacking is not required.
+     The `min-width` on the table and `overflow-x: auto` on the wrapper handle this. */
+}
