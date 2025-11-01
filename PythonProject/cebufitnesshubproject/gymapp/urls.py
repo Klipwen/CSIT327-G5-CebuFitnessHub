@@ -12,6 +12,7 @@ from .views import (
     change_password,
     request_account_unfreeze,
     request_account_freeze,
+    member_details_view,
 )
 
 urlpatterns = [
@@ -27,5 +28,6 @@ urlpatterns = [
     path('account/change-password/', change_password, name='change_password'),
     path('account/request-unfreeze/', request_account_unfreeze, name='request_account_unfreeze'),
     path('account/request-freeze/', request_account_freeze, name='request_account_freeze'),
+    path('member_details/', member_details_view, name='member_details'),
 ]
  

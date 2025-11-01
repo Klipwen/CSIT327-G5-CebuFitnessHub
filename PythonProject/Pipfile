@@ -7,8 +7,8 @@ name = "pypi"
 django = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
-dj-database-url = "*"
 regex = "*"
+dj-database-url = "*"
 
 [dev-packages]
 

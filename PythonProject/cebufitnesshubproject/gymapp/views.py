@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse # Kept from feat/staff-login-validation
 from .forms import CustomUserRegistrationForm, MemberLoginForm, PasswordChangeForm # Kept both forms from both branches
 from .models import CustomUser, GymStaff
+from django.views.decorators.http import require_http_methods
 
 
 def landing_view(request):
@@ -27,6 +28,7 @@ def landing_view(request):
 
 
 def register_member(request):
+    just_updated = False
     if request.method == 'POST':
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
@@ -313,3 +315,32 @@ def request_account_freeze(request):
         return redirect('account_settings')
     return redirect('account_settings')
 
+@login_required
+@require_http_methods(["GET", "POST"])
+def member_details_view(request):
+    user: CustomUser = request.user  
+    just_updated = False  
+
+    if request.method == 'POST':
+        # Update only editable fields
+        user.contact_number = request.POST.get('contact_number', user.contact_number)
+        user.fitness_goals = request.POST.get('fitness_goals', user.fitness_goals)
+        user.emergency_contact_name = request.POST.get('emergency_contact_name', user.emergency_contact_name)
+        user.emergency_contact_number = request.POST.get('emergency_contact_number', user.emergency_contact_number)
+
+        user.save()
+        messages.success(request, 'Details updated successfully!')
+        just_updated = True  
+
+    context = {
+        'user': user,
+        'full_name': user.get_full_name(),
+        'email': user.email,
+        'contact_number': user.contact_number or '',
+        'fitness_goals': user.fitness_goals or '',
+        'emergency_contact_name': user.emergency_contact_name or '',
+        'emergency_contact_number': user.emergency_contact_number or '',
+        'date_joined': user.date_joined,
+        'just_updated': just_updated, 
+    }
+    return render(request, 'gymapp/member_details.html', context)
