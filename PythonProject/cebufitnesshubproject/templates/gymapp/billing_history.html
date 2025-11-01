@@ -1,0 +1,121 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Billing History - Cebu Fitness Hub</title>
+  
+  <!-- FIX: Corrected path from 'firstapp' to 'gymapp' -->
+  <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'gymapp/css/billing_history.css' %}">
+</head>
+<body>
+  
+  <header class="site-header">
+    <div class="brand">
+      <!-- FIX: Corrected path from 'firstapp' to 'gymapp' -->
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+        <div class="cebu-reg">CEBU</div>
+        <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
+        </span>
+        <span class="user-name">{{ user.get_full_name|default:"Member" }}</span>
+      </div>
+      <nav class="navbar">
+        <ul>
+          <li><a href="#">Homepage</a></li>
+          <li><a href="#">Schedule</a></li>
+          <li><a href="#">Occupancy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="sidebar-bg-fix"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="sidebar-title">DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="{% url 'member_dashboard' %}" class="nav-item">Home / Overview</a>
+        <a href="{% url 'member_details' %}" class="nav-item">My Details</a>
+        <a href="{% url 'check_in' %}" class="nav-item">Check-in History</a>
+        <a href="{% url 'billing_history' %}" class="nav-item active">Billing History</a>
+        <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
+        <a href="#Logout" class="nav-item">Logout</a>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <!-- Main Content: Billing History -->
+      <section class="billing">
+        <h2 class="billing__title">Transaction History</h2>
+      
+        <div class="billing__table-wrapper">
+          <table class="billing__table">
+            <thead class="billing__table-header">
+              <tr class="billing__row">
+                <th class="billing__cell billing__cell--header" scope="col">Date</th>
+                <th class="billing__cell billing__cell--header" scope="col">Description</th>
+                <th class="billing__cell billing__cell--header" scope="col">Type</th>
+                <th class="billing__cell billing__cell--header" scope="col">Amount</th>
+                <th class="billing__cell billing__cell--header" scope="col">Balance</th>
+              </tr>
+            </thead>
+            
+            <!-- ====================================================================
+                 API INTEGRATION PLACEHOLDER
+                 Backend data from Django views or a frontend API fetch
+                 will populate the rows inside this tbody element.
+                 ==================================================================== -->
+            <tbody id="billing-data" class="billing__table-body">
+              
+              <!-- Placeholder Row 1 -->
+              <tr class="billing__row">
+                <td class="billing__cell" data-label="Date">Oct 25, 2025</td>
+                <td class="billing__cell" data-label="Description">October Membership Fee</td>
+                <td class="billing__cell" data-label="Type">MEMBERSHIP FEE</td>
+                <td class="billing__cell billing__cell--positive" data-label="Amount">₊₱2000.00</td>
+                <td class="billing__cell" data-label="Balance">₱2000.00</td>
+              </tr>
+      
+              <!-- Placeholder Row 2 -->
+              <tr class="billing__row">
+                <td class="billing__cell" data-label="Date">Oct 25, 2025</td>
+                <td class="billing__cell" data-label="Description">Cash Payment Received</td>
+                <td class="billing__cell" data-label="Type">PAYMENT</td>
+                <td class="billing__cell billing__cell--negative" data-label="Amount">–₱500.00</td>
+                <td class="billing__cell" data-label="Balance">₱1500.00</td>
+              </tr>
+              
+              <!-- Placeholder Row 3 -->
+              <tr class="billing__row">
+                <td class="billing__cell" data-label="Date">Oct 30, 2025</td>
+                <td class="billing__cell" data-label="Description">Cash Payment Received</td>
+                <td class="billing__cell" data-label="Type">PAYMENT</td>
+                <td class="billing__cell billing__cell--negative" data-label="Amount">–₱1500.00</td>
+                <td class="billing__cell" data-label="Balance">₱0.00</td>
+              </tr>
+              
+              <!-- Placeholder Row 4 -->
+              <tr class="billing__row">
+                <td class="billing__cell" data-label="Date">Nov 25, 2025</td>
+                <td class="billing__cell" data-label="Description">November Membership Fee</td>
+                <td class="billing__cell" data-label="Type">MEMBERSHIP FEE</td>
+                <td class="billing__cell billing__cell--positive" data-label="Amount">₊₱2000.00</td>
+                <td class="billing__cell" data-label="Balance">₱2000.00</td>
+              </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <!-- End of Main Content -->
+    </main>
+</body>
+</html>
