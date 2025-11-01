@@ -1,0 +1,119 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check-in - Cebu Fitness Hub</title>
+  
+  <!-- FIX: Changed path from 'firstapp' to 'gymapp' to match your app name -->
+  <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'gymapp/css/check_in.css' %}">
+</head>
+<body>
+  
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+        <div class="cebu-reg">CEBU</div>
+        <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
+        </span>
+        <span class="user-name">{{ user.get_full_name|default:"Member" }}</span>
+      </div>
+      <nav class="navbar">
+        <ul>
+          <li><a href="#">Homepage</a></li>
+          <li><a href="#">Schedule</a></li>
+          <li><a href="#">Occupancy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="sidebar-bg-fix"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="sidebar-title">DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="{% url 'member_dashboard' %}" class="nav-item">Home / Overview</a>
+        <a href="{% url 'member_details' %}" class="nav-item">My Details</a>
+        
+        <!-- FIX: Added 'active' class here for the current page -->
+        <a href="{% url 'check_in' %}" class="nav-item active">Check-in History</a>
+
+        <a href="{% url 'billing_history' %}" class="nav-item">Billing History</a>
+        <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
+        <a href="#Logout" class="nav-item">Logout</a>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <!-- Main Content: Attendance History -->
+      <section class="attendance">
+        <h2 class="attendance__title">Attendance History</h2>
+
+        <div class="attendance__table-wrapper">
+          <table class="attendance__table">
+            <thead class="attendance__table-header">
+              <tr class="attendance__row">
+                <th class="attendance__cell attendance__cell--header" scope="col">Date</th>
+                <th class="attendance__cell attendance__cell--header" scope="col">Check-In</th>
+                <th class="attendance__cell attendance__cell--header" scope="col">Check-Out</th>
+                <th class="attendance__cell attendance__cell--header" scope="col">Duration</th>
+              </tr>
+            </thead>
+            
+            <!-- ====================================================================
+                API INTEGRATION PLACEHOLDER
+                Backend data from Django views or a frontend API fetch
+                will populate the rows inside this tbody element.
+                ==================================================================== -->
+            <tbody id="attendance-data" class="attendance__table-body">
+              
+              <!-- Placeholder Row 1 -->
+              <tr class="attendance__row">
+                <td class="attendance__cell" data-label="Date">Monday, Oct 27, 2025</td>
+                <td class="attendance__cell" data-label="Check-In">06:15 AM</td>
+                <td class="attendance__cell" data-label="Check-Out">07:45 AM</td>
+                <td class="attendance__cell" data-label="Duration">1 hr 30 mins</td>
+              </tr>
+
+              <!-- Placeholder Row 2 -->
+              <tr class="attendance__row">
+                <td class="attendance__cell" data-label="Date">Saturday, Oct 25, 2025</td>
+                <td class="attendance__cell" data-label="Check-In">10:00 AM</td>
+                <td class="attendance__cell" data-label="Check-Out">12:30 PM</td>
+                <td class="attendance__cell" data-label="Duration">2 hrs 30 mins</td>
+              </tr>
+              
+              <!-- Placeholder Row 3 -->
+              <tr class="attendance__row">
+                <td class="attendance__cell" data-label="Date">Wednesday, Oct 22, 2025</td>
+                <td class="attendance__cell" data-label="Check-In">08:30 AM</td>
+                <td class="attendance__cell" data-label="Check-Out">09:45 AM</td>
+                <td class="attendance__cell" data-label="Duration">1 hr 15 mins</td>
+              </tr>
+              
+              <!-- Placeholder Row 4 (Checked In Status) -->
+              <tr class="attendance__row">
+                <td class="attendance__cell" data-label="Date">Monday, Oct 20, 2025</td>
+                <td class="attendance__cell" data-label="Check-In">06:05 PM</td>
+                <td class="attendance__cell attendance__cell--status" data-label="Check-Out">Checked In</td>
+                <td class="attendance__cell attendance__cell--status" data-label="Duration">Checked In</td>
+              </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <!-- End of Main Content -->
+    </main>
+
+</body>
+</html>
