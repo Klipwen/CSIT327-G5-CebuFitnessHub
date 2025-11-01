@@ -282,3 +282,37 @@ class MemberLoginForm(forms.Form):
                 raise ValidationError("Email or password is incorrect.")
         
         return cleaned_data
+
+
+class PasswordChangeForm(forms.Form):
+    current_password = forms.CharField(
+        label='Current Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter current password', 'class': 'form-control'})
+    )
+    new_password = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password', 'class': 'form-control'})
+    )
+    confirm_password = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password', 'class': 'form-control'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+        if new_password and confirm_password and new_password != confirm_password:
+            raise ValidationError("New passwords do not match.")
+        if new_password:
+            validate_password(new_password)
+        return cleaned_data
+
+
+class FreezeRequestForm(forms.Form):
+    reason = forms.CharField(
+        label='Reason',
+        widget=forms.Textarea(attrs={'placeholder': 'Please provide a brief reason for your request...', 'class': 'form-control'}),
+        min_length=10,
+        required=True,
+    )

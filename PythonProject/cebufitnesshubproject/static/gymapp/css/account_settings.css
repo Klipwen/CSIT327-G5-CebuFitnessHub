@@ -1,0 +1,451 @@
+:root {
+    --green: #6BCB3D;
+    --dark: #000000;
+    --light-bg: #F5F5F5;
+    --text-dark: #1a1a1a;
+    --text-muted: #666666;
+    --white: #ffffff;
+    --sidebar-width: 260px;
+    --header-height: 80px;
+    --sidebar-color: #3a3a3a;
+    --danger: #dc3545; /* For Freeze button & red asterisk */
+    --pending: #ffc107; 
+    --primary-green: #6cc04a; 
+}
+
+/* --- Global Reset and Body Styles --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/* --- HEADER and NAVIGATION --- */
+
+/* Top header (global) */
+.site-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  padding: 16px 40px;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.site-header .navbar ul { display: flex; gap: 16px; list-style: none; }
+.site-header .navbar a { color: #fff; text-decoration: none; }
+.site-header .navbar a:hover { color: #6BCB3D; }
+.user-info { color: #fff; display: flex; align-items: center; gap: 7px; }
+.user-icon { color: #6BCB3D; font-size: 12px; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand .logo {
+  width: 50px;
+  height: 50px;
+}
+
+.logo-text .cebu-reg {
+  color: #7fb33e;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: -10px;
+  padding: 0;
+  text-indent: 0;
+}
+.logo-text .fitness-hub-reg {
+  color: #888;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-left: px;
+}
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 40px;
+    background: #000;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-height);
+}
+
+.header-left .logo-img {
+    width: 50px;
+    height: 50px;
+}
+
+
+.nav-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 5px 0;
+}
+.nav-link:hover { color: var(--green); }
+
+.nav-user {
+    color: #fff;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+/* --- LAYOUT AND SIDEBAR --- */
+
+.container {
+    display: flex;
+    min-height: calc(100vh - var(--header-height));
+}
+
+.sidebar {
+    background: var(--sidebar-color);
+    color: var(--white);
+    padding: 20px 16px;
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+}
+
+.side-title {
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    color: #e6e6e6;
+}
+
+.side-nav {
+    display: block;
+    padding: 10px 12px;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    transition: background .2s, color .2s;
+    position: relative;
+    padding-left: 16px;
+}
+.side-nav:hover { background: #1e1e1e; color: #fff; }
+
+.side-nav.active {
+    background: #b9fe81e8;
+    color: #000000;
+}
+.side-nav.active::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    background: #43d300;
+    border-radius: 3px;
+}
+
+/* --- MAIN CONTENT: SETTINGS --- */
+
+.main-content {
+    flex-grow: 1;
+    padding: 24px 28px;
+    background-color: var(--light-bg);
+}
+
+.settings-box {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 500px; 
+}
+
+/* SETTINGS HEADER (Mimics Dashboard OVERVIEW title) */
+.settings-header {
+    display: flex;
+    justify-content: flex-end; 
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(201, 216, 201, 0.608) 0%,
+        rgba(201, 216, 201, 0.608) 100%
+    );
+    margin: -24px -24px 24px -24px; 
+    padding: 24px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.settings-title {
+    font-size: 64px;
+    font-weight: 800;
+    background: #f8f8f8;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 3px;
+    margin: 0;
+    text-align: right;
+    opacity: 0.5; 
+}
+
+/* SETTINGS SECTIONS */
+.settings-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.settings-subtitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+}
+
+/* --- BUTTON STYLES --- */
+
+.btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-green {
+    background-color: var(--primary-green);
+    color: var(--white);
+}
+
+.btn-green:hover {
+    background-color: #5aa13c;
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-pending {
+    background-color: var(--pending); 
+    color: var(--text-dark);
+    cursor: default;
+    opacity: 0.8;
+}
+
+/* --- MODAL STYLES --- */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal.show {
+    display: flex; 
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s ease-out;
+    position: relative; /* Needed for positioning the close button */
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+/* Updated modal header for close button positioning */
+.modal-header {
+    display: flex;
+    justify-content: flex-start; /* Aligns logo and title to the left */
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    /* Ensure space for the absolutely positioned close button */
+    padding-right: 40px; 
+    position: relative; /* Needed for absolute positioning of modal-close */
+}
+
+.modal-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.modal-logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+}
+
+/* Updated modal close button positioning */
+.modal-close {
+    cursor: pointer;
+    font-size: 30px; /* Slightly larger for better visibility */
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1;
+    position: absolute;
+    top: 15px; /* Adjust as needed */
+    right: 15px; /* Position in the top right of modal-content */
+    transition: color 0.2s;
+}
+.modal-close:hover {
+    color: var(--danger); /* Optional: Hover effect for "X" */
+}
+
+.modal-form label {
+    display: block;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+/* New style for red asterisk */
+.required-asterisk {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.modal-form input[type="password"],
+.modal-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.modal-form input[type="password"]:focus,
+.modal-form textarea:focus {
+    border-color: var(--primary-green);
+    outline: none;
+}
+
+.modal-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+/* --- MODAL specific styles for advisory text --- */
+
+.modal-info-text {
+    color: var(--text-dark); 
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.modal-info-text strong {
+    font-weight: 600; 
+}
+
+.modal-info-text .alert-text {
+    color: var(--danger); 
+    font-weight: 700;
+}
+
+
+/* --- Responsive Adjustments --- */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 16px 20px;
+    }
+    .header-right {
+        gap: 10px;
+    }
+    .nav-link {
+        font-size: 14px;
+    }
+    .container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 15px;
+        flex-direction: row; 
+        justify-content: space-around;
+        display: flex;
+    }
+    .side-title { display: none; } 
+
+    .side-nav {
+        padding: 8px 10px;
+        margin-bottom: 0;
+        text-align: center;
+        flex-grow: 1; 
+        border-radius: 4px;
+    }
+    .side-nav.active::before { content: none; } 
+
+    .main-content {
+        padding: 20px 15px;
+    }
+    .settings-title {
+        font-size: 40px;
+    }
+}
