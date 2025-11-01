@@ -33,10 +33,10 @@ def register_member(request):
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Log the user in immediately after successful registration
-            login(request, user)
-            messages.success(request, 'Registration successful! Welcome to Cebu Fitness Hub!')
-            return redirect('member_dashboard') # Redirect to dashboard after login
+            # Log the user in immediately after successful registration commented out for now
+            #login(request, user)
+            messages.success(request, 'Registration successful! You can now log in.')
+            return redirect('landing') # Redirect to landing page after registration
         else:
             # If form is invalid, render the modal with errors
             return render(request, 'gymapp/register_modal.html', {'form': form})
