@@ -1,0 +1,139 @@
+.main-content {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* Card-like wrapper */
+.details-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 32px 40px;
+  width: 100%;
+  max-width: 900px;
+  border: 1px solid #e5e5e5;
+}
+
+/* Profile header section */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 16px;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  object-fit: cover;
+}
+
+.profile-text h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.profile-text p {
+  color: #666;
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  background: #74BE02;
+  color: #fff;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* Edit button */
+.edit-btn {
+  background: #74BE02;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #157347;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* Section headings */
+.section-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  margin: 30px 0 10px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 4px;
+}
+
+/* Two-column form layout */
+.member-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 30px;
+}
+
+.member-form label {
+  display: block;
+  margin-bottom: 6px;
+  color: #555;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.member-form input,
+.member-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: none;
+}
+
+.member-form input:focus,
+.member-form textarea:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 3px rgba(25,135,84,0.1);
+  outline: none;
+}
+
+/* Single-column sections */
+.member-form.full {
+  grid-template-columns: 1fr;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .member-form {
+    grid-template-columns: 1fr;
+  }
+}
