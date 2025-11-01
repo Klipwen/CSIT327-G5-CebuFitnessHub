@@ -71,6 +71,32 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
+    # Account freeze management
+    is_frozen = models.BooleanField(default=False)
+    # Freeze request tracking
+    freeze_request_status = models.CharField(
+        max_length=20,
+        default='none',
+        choices=(
+            ('none', 'None'),
+            ('pending', 'Pending'),
+            ('approved', 'Approved'),
+            ('denied', 'Denied'),
+        ),
+    )
+    freeze_requested_at = models.DateTimeField(null=True, blank=True)
+    unfreeze_request_status = models.CharField(
+        max_length=20,
+        default='none',
+        choices=(
+            ('none', 'None'),
+            ('pending', 'Pending'),
+            ('approved', 'Approved'),
+            ('denied', 'Denied'),
+        ),
+    )
+    unfreeze_requested_at = models.DateTimeField(null=True, blank=True)
+
     objects = CustomUserManager() # Use our custom manager
 
     USERNAME_FIELD = 'email' # Use email as the unique identifier for login

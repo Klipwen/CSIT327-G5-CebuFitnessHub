@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse # Kept from feat/staff-login-validation
-from .forms import CustomUserRegistrationForm, MemberLoginForm # Kept both forms from both branches
+from .forms import CustomUserRegistrationForm, MemberLoginForm, PasswordChangeForm # Kept both forms from both branches
 from .models import CustomUser, GymStaff
 
 
@@ -177,6 +177,19 @@ def member_dashboard(request):
 
 
 @login_required
+def account_settings_view(request):
+    """Standalone Account Settings page using the same layout as dashboard."""
+    if request.user.is_staff:
+        messages.warning(request, 'Staff members should use the staff dashboard.')
+        return redirect('staff_dashboard')
+    # Provide member_name so the header shows the real user's name
+    context = {
+        'member_name': request.user.get_full_name(),
+    }
+    return render(request, 'gymapp/account_settings.html', context)
+
+
+@login_required
 def staff_dashboard_view(request):
     """
     Renders the staff dashboard with dynamic data.
@@ -235,4 +248,68 @@ def general_logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('landing')
+
+
+@login_required
+def change_password(request):
+    """Handle member password change."""
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            current_password = form.cleaned_data['current_password']
+            if not request.user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+                return redirect('account_settings')
+
+            new_password = form.cleaned_data['new_password']
+            request.user.set_password(new_password)
+            request.user.save()
+            messages.success(request, 'Password changed successfully.')
+            # Re-authenticate after password change
+            user = authenticate(request, email=request.user.email, password=new_password)
+            if user:
+                login(request, user)
+            return redirect('account_settings')
+        else:
+            messages.error(request, 'Please fix the errors in the form.')
+            return redirect('account_settings')
+    return redirect('account_settings')
+
+
+@login_required
+def request_account_unfreeze(request):
+    """Allow a member to request account unfreeze."""
+    if request.method == 'POST':
+        user = request.user
+        # Only allow one pending request
+        if user.unfreeze_request_status == 'pending':
+            messages.info(request, 'Unfreeze request is already pending.')
+            return redirect('account_settings')
+
+        from django.utils import timezone
+        user.unfreeze_request_status = 'pending'
+        user.unfreeze_requested_at = timezone.now()
+        user.save()
+        messages.success(request, 'Unfreeze request submitted. We will review it shortly.')
+        return redirect('account_settings')
+    return redirect('account_settings')
+
+
+@login_required
+def request_account_freeze(request):
+    """Allow a member to request account freeze."""
+    if request.method == 'POST':
+        user = request.user
+        # Only allow one pending request
+        if user.freeze_request_status == 'pending':
+            messages.info(request, 'Freeze request is already pending.')
+            return redirect('account_settings')
+
+        from django.utils import timezone
+        user.freeze_request_status = 'pending'
+        user.freeze_requested_at = timezone.now()
+        user.save()
+        messages.success(request, 'Freeze request submitted. We will review it shortly.')
+        return redirect('account_settings')
+    return redirect('account_settings')
 

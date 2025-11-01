@@ -76,19 +76,40 @@ WSGI_APPLICATION = 'cebufitnesshubproject.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Use Supabase directly (bypass pgBouncer pooler) by rewriting port/path if needed.
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    if ':6543' in db_url:
+        db_url = db_url.replace(':6543', ':5432')
+    if '/pooler' in db_url:
+        db_url = db_url.replace('/pooler', '')
+    # Ensure we use PgBouncer transaction mode (port 6543) to avoid session limits
+    if 'pooler.supabase.com' in db_url and ':5432' in db_url:
+        db_url = db_url.replace(':5432', ':6543')
+    DATABASES = {
+        'default': dj_database_url.parse(
+            db_url,
+            conn_max_age=0,  # avoid long-lived connections
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=0,
+            ssl_require=True,
+        )
+    }
 
-DATABASES = {
-    "default": dj_database_url.config(
-       default="sqlite:///db.sqlite3",
-       conn_max_age=600,
-       ssl_require=True
-    )
-}
-
-# Add search_path option for PostgreSQL if using Supabase
-if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
-    DATABASES['default']['OPTIONS'] = {'options': '-c search_path=public'}
+# Add search_path/ssl options when using PostgreSQL
+if DATABASES['default'].get('ENGINE') == 'django.db.backends.postgresql':
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].update({
+        'options': '-c search_path=public',
+        'sslmode': 'require',
+    })
+    # Recommended for PgBouncer transaction pooling
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 #DATABASES = {
 #    'default': {
