@@ -1,0 +1,114 @@
+/* ====================================================================
+   ATTENDANCE HISTORY COMPONENT
+   ==================================================================== */
+
+/* Main component block using BEM naming */
+.attendance {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 4px_20px rgba(0, 0, 0, 0.07);
+  padding: 24px 32px;
+}
+
+.attendance__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+}
+
+/* 
+  TABLE WRAPPER - CRUCIAL FOR RESPONSIVE SCROLLING
+  This wrapper allows the table to overflow horizontally without
+  breaking the main page layout on smaller screens.
+*/
+.attendance__table-wrapper {
+  overflow-x: auto; /* Enables horizontal scroll */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Main table element */
+.attendance__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  /* Ensures table doesn't get too cramped before scrolling starts */
+  min-width: 600px; 
+}
+
+/* Header row styling */
+.attendance__table-header {
+  background-color: #f5f5f5;
+}
+
+/* Styling for all cells (header and data) */
+.attendance__cell {
+  padding: 14px 16px;
+  text-align: left;
+  white-space: nowrap; /* Prevents text from wrapping */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Specific styling for header cells */
+.attendance__cell--header {
+  font-weight: 700;
+  color: var(--text-dark);
+  /* Apply rounded corners to the first and last header cells */
+}
+.attendance__table-header .attendance__row:first-child .attendance__cell:first-child {
+  border-top-left-radius: 8px;
+}
+.attendance__table-header .attendance__row:first-child .attendance__cell:last-child {
+  border-top-right-radius: 8px;
+}
+
+/* Styling for data rows */
+.attendance__table-body .attendance__row {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.attendance__table-body .attendance__row:hover {
+  background-color: #fafafa;
+}
+
+/* Remove bottom border on the last data row for a clean finish */
+.attendance__table-body .attendance__row:last-child .attendance__cell {
+  border-bottom: none;
+}
+/* Apply rounded corners to the first and last cells of the final row */
+.attendance__table-body .attendance__row:last-child .attendance__cell:first-child {
+  border-bottom-left-radius: 8px;
+}
+.attendance__table-body .attendance__row:last-child .attendance__cell:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Modifier for special status cells like "Checked In" */
+.attendance__cell--status {
+  color: var(--green);
+  font-weight: 600;
+}
+
+
+/* ====================================================================
+   RESPONSIVE ADJUSTMENTS
+   ==================================================================== */
+
+@media (max-width: 768px) {
+  .attendance {
+    padding: 16px;
+  }
+
+  .attendance__title {
+    font-size: 20px;
+  }
+
+  /* Reduce padding on cells for smaller screens */
+  .attendance__cell {
+    padding: 12px 14px;
+  }
+
+  /* The table will now scroll horizontally, so no need to stack rows.
+     The data-label attributes are kept as a fallback in case you ever
+     switch back to the stacking card layout. */
+}
