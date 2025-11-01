@@ -344,3 +344,13 @@ def member_details_view(request):
         'just_updated': just_updated, 
     }
     return render(request, 'gymapp/member_details.html', context)
+
+# Check-in History
+@login_required
+def check_in_view(request):
+    return render(request, 'gymapp/check_in.html')
+
+# Billing History
+@login_required
+def billing_history_view(request):
+    return render(request, 'gymapp/billing_history.html')
