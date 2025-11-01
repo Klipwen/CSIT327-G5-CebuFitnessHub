@@ -44,7 +44,7 @@
         <a href="#" class="nav-item active">Home / Overview</a>
         <a href="#details" class="nav-item">My Details</a>
         <a href="#checkins" class="nav-item">Check-in History</a>
-        <a href="#settings" class="nav-item">Account Settings</a>
+        <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
       </nav>
     </aside>
 
@@ -234,6 +234,58 @@
           </div>
         </div>
       </section>
+
+      <!-- Account Settings Box -->
+      <section id="settings" class="settings-box">
+        <div class="settings-header">
+          <h1 class="settings-title">SETTINGS</h1>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-subtitle">Security Management</h3>
+          <button type="button" class="btn btn-green" id="openChangePassword">Change Password</button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-subtitle">Membership Management</h3>
+          {% if user.unfreeze_request_status == 'pending' %}
+            <button class="btn btn-pending" type="button" disabled>Request Pending</button>
+          {% else %}
+            <form action="{% url 'request_account_unfreeze' %}" method="post" class="inline-form">
+              {% csrf_token %}
+              <button class="btn btn-danger" type="submit">Request Account Unfreeze</button>
+            </form>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Change Password Modal -->
+      <div class="modal" id="changePasswordModal" aria-hidden="true" role="dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Change Password</h3>
+            <button type="button" class="modal-close" id="closeChangePassword">×</button>
+          </div>
+          <form action="{% url 'change_password' %}" method="post" class="modal-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="current_password">Current Password</label>
+              <input type="password" id="current_password" name="current_password" required>
+            </div>
+            <div class="form-group">
+              <label for="new_password">New Password</label>
+              <input type="password" id="new_password" name="new_password" required>
+            </div>
+            <div class="form-group">
+              <label for="confirm_password">Confirm New Password</label>
+              <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-green">Update Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -269,8 +321,28 @@
                 // }, 5000); // Display for 5 seconds
             });
         }
+
+        // Change Password modal controls
+        const openBtn = document.getElementById('openChangePassword');
+        const modal = document.getElementById('changePasswordModal');
+        const closeBtn = document.getElementById('closeChangePassword');
+        if (openBtn && modal && closeBtn) {
+            openBtn.addEventListener('click', () => {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.classList.add('show');
+            });
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        }
     });
   </script>
 </body>
-</html>
-<!--/-->
+</html><!--/-->
