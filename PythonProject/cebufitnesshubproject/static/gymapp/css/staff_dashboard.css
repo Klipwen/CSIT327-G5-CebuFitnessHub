@@ -391,17 +391,22 @@ body {
 
 .badge.success {
   background: rgba(39, 174, 96, 0.12);
-  color: var(--success);
+  color: #27ae60;
 }
 
 .badge.warning {
   background: rgba(241, 196, 15, 0.15);
-  color: #b88700;
+  color: #f39c12;
 }
 
 .badge.neutral {
   background: rgba(127, 140, 141, 0.15);
   color: var(--neutral);
+}
+
+.badge.frozen {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
 }
 
 .fallback {
@@ -653,5 +658,256 @@ body {
 
   .info-cards {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Approval Queue Styles */
+.approval-table {
+  margin-bottom: 0;
+}
+
+.approval-table th,
+.approval-table td {
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.approval-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.request-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f0f0f0;
+  color: #555;
+}
+
+.approval-table .action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.approval-table .action-btn:hover {
+  background: #5ba734;
+  border-color: #5ba734;
+}
+
+.approval-table .action-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+}
+
+.approval-table .action-btn:hover svg {
+  fill: #fff;
+}
+
+.approval-empty-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin: 16px;
+}
+
+/* Member Management Styles */
+.member-management-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.member-search-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.member-search-input {
+  flex: 1;
+  max-width: 300px;
+}
+
+.member-search-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.member-filter-group {
+  min-width: 200px;
+}
+
+.member-filter-dropdown {
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.member-table .action-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  gap: 3px;
+  flex-direction: row;
+}
+
+.member-table .action-menu-btn:hover {
+  background: #f5f5f5;
+  border-color: var(--green);
+}
+
+.member-table .action-menu-btn .dot {
+  width: 4px;
+  height: 4px;
+  background: #555;
+  border-radius: 50%;
+  display: block;
+}
+
+.member-table .action-menu-btn:hover .dot {
+  background: var(--green);
+}
+
+.member-empty-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin: 16px;
+}
+
+/* Activate Member Button */
+.activate-member-btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.activate-member-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Action Cell */
+.action-cell {
+  position: relative;
+}
+
+/* Frozen Accounts Popup */
+.action-menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.frozen-menu-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popup-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.unfreeze-btn {
+  color: #e74c3c;
+}
+
+.unfreeze-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #c0392b;
+}
+
+.view-details-btn {
+  color: var(--green);
+}
+
+.view-details-btn:hover {
+  background: rgba(107, 203, 61, 0.1);
+  color: #5ba734;
+}
+
+/* Responsive adjustments for Member Management and Approval Queue */
+@media (max-width: 768px) {
+  .member-management-controls {
+    flex-direction: column;
+  }
+
+  .member-search-group {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .member-search-input {
+    max-width: none;
+  }
+
+  .member-filter-group {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 600px;
   }
 }

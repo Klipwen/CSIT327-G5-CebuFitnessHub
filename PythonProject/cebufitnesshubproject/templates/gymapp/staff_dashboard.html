@@ -100,52 +100,70 @@
           <h2 class="box-title">Approval Queue</h2>
           <div class="title-divider"></div>
         </div>
-        <div class="table-actions">
-          <input type="search" class="input" placeholder="[Search Placeholder]" aria-label="Search approval requests">
-          <div class="actions-right">
-            <button class="btn btn-outline" type="button">Refresh</button>
-            <button class="btn" type="button">Bulk Approve</button>
-          </div>
-        </div>
         <div class="table-wrap" role="region" aria-live="polite">
-          <table class="table">
+          <table class="table approval-table">
             <thead>
               <tr>
-                <th><input type="checkbox" aria-label="Select all"></th>
-                <th>Applicant</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Submitted</th>
-                <th>Actions</th>
+                <th>Request Type</th>
+                <th>Member Name</th>
+                <th>Submitted Date</th>
+                <th>Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="approval-queue-tbody">
               <tr>
-                <td><input type="checkbox" aria-label="Select row"></td>
-                <td>[Applicant Name Placeholder]</td>
-                <td>[email@example.com]</td>
-                <td>[Plan Placeholder]</td>
-                <td>[Date Placeholder]</td>
-                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+                <td><span class="request-type-badge">FREEZE</span></td>
+                <td>Naruto Uzumaki</td>
+                <td>2025-10-27</td>
+                <td>
+                  <button class="action-btn" type="button" aria-label="View details">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                    </svg>
+                  </button>
+                </td>
               </tr>
               <tr>
-                <td><input type="checkbox" aria-label="Select row"></td>
-                <td>[Applicant Name Placeholder]</td>
-                <td>[email@example.com]</td>
-                <td>[Plan Placeholder]</td>
-                <td>[Date Placeholder]</td>
-                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+                <td><span class="request-type-badge">UNFREEZE</span></td>
+                <td>Sakura Haruno</td>
+                <td>2025-10-27</td>
+                <td>
+                  <button class="action-btn" type="button" aria-label="View details">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                    </svg>
+                  </button>
+                </td>
               </tr>
               <tr>
-                <td><input type="checkbox" aria-label="Select row"></td>
-                <td>[Applicant Name Placeholder]</td>
-                <td>[email@example.com]</td>
-                <td>[Plan Placeholder]</td>
-                <td>[Date Placeholder]</td>
-                <td class="row-actions"><button class="link success">[Approve]</button><button class="link danger">[Deny]</button></td>
+                <td><span class="request-type-badge">FREEZE</span></td>
+                <td>Monday</td>
+                <td>2025-10-27</td>
+                <td>
+                  <button class="action-btn" type="button" aria-label="View details">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="request-type-badge">FREEZE</span></td>
+                <td>Monday</td>
+                <td>2025-10-27</td>
+                <td>
+                  <button class="action-btn" type="button" aria-label="View details">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                    </svg>
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
+          <div class="approval-empty-message" id="approval-empty" style="display: none;">
+            No pending approval requests.
+          </div>
           <div class="fallback" aria-hidden="true">Section unavailable</div>
         </div>
       </section>
@@ -227,15 +245,21 @@
           <h2 class="box-title">Member Management</h2>
           <div class="title-divider"></div>
         </div>
-        <div class="table-actions">
-          <input type="search" class="input" placeholder="[Search Placeholder]" aria-label="Search members">
-          <div class="actions-right">
-            <button class="btn btn-outline" type="button">Export</button>
-            <button class="btn" type="button">Add Member</button>
+        <div class="member-management-controls">
+          <div class="member-search-group" id="member-search-group" style="display: none;">
+            <input type="search" class="input member-search-input" id="member-search-input" placeholder="Find Member by ID" aria-label="Find Member by ID">
+            <button class="btn member-search-btn" type="button" id="member-search-btn">Search</button>
+          </div>
+          <div class="member-filter-group">
+            <select class="input member-filter-dropdown" id="member-filter-dropdown" aria-label="Filter members">
+              <option value="active">Active Members</option>
+              <option value="pending">Pending Activation</option>
+              <option value="frozen">Frozen Accounts</option>
+            </select>
           </div>
         </div>
         <div class="table-wrap">
-          <table class="table">
+          <table class="table member-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -246,42 +270,54 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="member-management-tbody">
               <tr>
-                <td>[Member Name Placeholder]</td>
-                <td><span class="badge success">[Status Placeholder]</span></td>
-                <td>[Plan Placeholder]</td>
-                <td>[Time Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td class="row-actions">
-                  <button class="link">[Action Placeholder]</button>
-                  <button class="link">[Action Placeholder]</button>
+                <td>Naruto Uzumaki</td>
+                <td><span class="badge success">Active</span></td>
+                <td>Premium</td>
+                <td>2025-10-28 14:30</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="action-menu-btn" type="button" aria-label="More options">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </button>
                 </td>
               </tr>
               <tr>
-                <td>[Member Name Placeholder]</td>
-                <td><span class="badge warning">[Status Placeholder]</span></td>
-                <td>[Plan Placeholder]</td>
-                <td>[Time Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td class="row-actions">
-                  <button class="link">[Action Placeholder]</button>
-                  <button class="link">[Action Placeholder]</button>
+                <td>Sakura Haruno</td>
+                <td><span class="badge success">Active</span></td>
+                <td>Standard</td>
+                <td>2025-10-28 10:15</td>
+                <td>₱500.00</td>
+                <td class="action-cell">
+                  <button class="action-menu-btn" type="button" aria-label="More options">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </button>
                 </td>
               </tr>
               <tr>
-                <td>[Member Name Placeholder]</td>
-                <td><span class="badge neutral">[Status Placeholder]</span></td>
-                <td>[Plan Placeholder]</td>
-                <td>[Time Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td class="row-actions">
-                  <button class="link">[Action Placeholder]</button>
-                  <button class="link">[Action Placeholder]</button>
+                <td>Hinata Hyuga</td>
+                <td><span class="badge success">Active</span></td>
+                <td>Premium</td>
+                <td>2025-10-27 16:45</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="action-menu-btn" type="button" aria-label="More options">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
+          <div class="member-empty-message" id="member-empty" style="display: none;">
+            No members found.
+          </div>
           <div class="fallback" aria-hidden="true">Section unavailable</div>
         </div>
       </section>
