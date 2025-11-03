@@ -1,10 +1,11 @@
+from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse # Kept from feat/staff-login-validation
-from .forms import CustomUserRegistrationForm, MemberLoginForm, PasswordChangeForm # Kept both forms from both branches
+from .forms import CustomUserRegistrationForm, FreezeRequestForm, MemberLoginForm, PasswordChangeForm, UnfreezeRequestForm # Kept both forms from both branches
 from .models import CustomUser, GymStaff
 from django.views.decorators.http import require_http_methods
 
@@ -180,13 +181,82 @@ def member_dashboard(request):
 
 @login_required
 def account_settings_view(request):
-    """Standalone Account Settings page using the same layout as dashboard."""
-    if request.user.is_staff:
-        messages.warning(request, 'Staff members should use the staff dashboard.')
-        return redirect('staff_dashboard')
-    # Provide member_name so the header shows the real user's name
+    """
+    Handles both displaying the settings page (GET) and processing all
+    form submissions (POST) for this page.
+    """
+    user = request.user
+    
+    # This variable will hold the name of the modal to open on page load, if any.
+    modal_to_open = None
+    
+    # Initialize forms with unique prefixes for the GET request
+    password_form = PasswordChangeForm(request=request, prefix='pw')
+    freeze_form = FreezeRequestForm(prefix='freeze')
+    unfreeze_form = UnfreezeRequestForm(prefix='unfreeze')
+
+    if request.method == 'POST':
+        if 'change_password' in request.POST:
+            password_form = PasswordChangeForm(request.POST, request=request, prefix='pw')
+            if password_form.is_valid():
+                new_password = password_form.cleaned_data['new_password']
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, 'Password changed successfully.')
+                
+                updated_user = authenticate(request, email=user.email, password=new_password)
+                if updated_user:
+                    login(request, updated_user)
+                
+                return redirect('account_settings')
+            else:
+                # If form is invalid, set the flag and prepare to re-render
+                modal_to_open = 'password'
+                #messages.error(request, 'Please fix the password errors below.')
+
+        elif 'request_freeze' in request.POST:
+            freeze_form = FreezeRequestForm(request.POST, prefix='freeze')
+            if freeze_form.is_valid():
+                if user.freeze_request_status == 'pending':
+                    messages.info(request, 'Freeze request is already pending.')
+                else:
+                    user.freeze_request_status = 'pending'
+                    user.freeze_requested_at = timezone.now()
+                    user.save()
+                    messages.success(request, 'Freeze request submitted successfully.')
+                return redirect('account_settings')
+            else:
+                # If form is invalid, set the flag and prepare to re-render
+                modal_to_open = 'freeze'
+                messages.error(request, 'Please provide a valid reason for the freeze request.')
+
+        elif 'request_unfreeze' in request.POST:
+            unfreeze_form = UnfreezeRequestForm(request.POST, prefix='unfreeze')
+            if unfreeze_form.is_valid():
+                if user.unfreeze_request_status == 'pending':
+                    messages.info(request, 'Unfreeze request is already pending.')
+                else:
+                    user.unfreeze_request_status = 'pending'
+                    user.unfreeze_requested_at = timezone.now()
+                    user.save()
+                    messages.success(request, 'Unfreeze request submitted successfully.')
+                return redirect('account_settings')
+            else:
+                # If form is invalid, set the flag and prepare to re-render
+                modal_to_open = 'unfreeze'
+                messages.error(request, 'There was an error with your unfreeze request.')
+
+    # ====================================================================
+    # This context is used for BOTH the initial GET request AND for re-rendering
+    # the page when a POST request fails validation. It correctly includes
+    # the form instances (which will contain errors if validation failed).
+    # ====================================================================
     context = {
-        'member_name': request.user.get_full_name(),
+        'member_name': user.get_full_name(),
+        'password_form': password_form,
+        'freeze_form': freeze_form,
+        'unfreeze_form': unfreeze_form,
+        'modal_to_open': modal_to_open, # This single variable controls which modal opens
     }
     return render(request, 'gymapp/account_settings.html', context)
 
@@ -273,7 +343,7 @@ def change_password(request):
                 login(request, user)
             return redirect('account_settings')
         else:
-            messages.error(request, 'Please fix the errors in the form.')
+            #messages.error(request, 'Please fix the errors in the form.')
             return redirect('account_settings')
     return redirect('account_settings')
 
