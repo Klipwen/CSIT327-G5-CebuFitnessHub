@@ -1,177 +1,17 @@
-:root {
-    --green: #6BCB3D;
-    --dark: #000000;
-    --light-bg: #F5F5F5;
-    --text-dark: #1a1a1a;
-    --text-muted: #666666;
-    --white: #ffffff;
-    --sidebar-width: 260px;
-    --header-height: 80px;
-    --sidebar-color: #3a3a3a;
-    --danger: #dc3545; /* For Freeze button & red asterisk */
+/* ====================================================================
+   ACCOUNT SETTINGS - PAGE-SPECIFIC STYLES
+   ==================================================================== */
+
+   :root {
+    --danger: #dc3545;
     --pending: #ffc107; 
     --primary-green: #6cc04a; 
+    --enhanced-green: #9FD84A;
+    --brand-text-gray: #6E6E6E;
+    --input-border-gray: #D1D1D1;
 }
 
-/* --- Global Reset and Body Styles --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--white);
-    color: var(--text-dark);
-    line-height: 1.6;
-}
-
-/* --- HEADER and NAVIGATION --- */
-
-/* Top header (global) */
-.site-header {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  padding: 16px 40px;
-  background: #000;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.site-header .navbar ul { display: flex; gap: 16px; list-style: none; }
-.site-header .navbar a { color: #fff; text-decoration: none; }
-.site-header .navbar a:hover { color: #6BCB3D; }
-.user-info { color: #fff; display: flex; align-items: center; gap: 7px; }
-.user-icon { color: #6BCB3D; font-size: 12px; }
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand .logo {
-  width: 50px;
-  height: 50px;
-}
-
-.logo-text .cebu-reg {
-  color: #7fb33e;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: -10px;
-  padding: 0;
-  text-indent: 0;
-}
-.logo-text .fitness-hub-reg {
-  color: #888;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
-}
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-left: px;
-}
-
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 40px;
-    background: #000;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    height: var(--header-height);
-}
-
-.header-left .logo-img {
-    width: 50px;
-    height: 50px;
-}
-
-
-.nav-link {
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-    padding: 5px 0;
-}
-.nav-link:hover { color: var(--green); }
-
-.nav-user {
-    color: #fff;
-    font-weight: 600;
-    margin-left: 10px;
-}
-
-/* --- LAYOUT AND SIDEBAR --- */
-
-.container {
-    display: flex;
-    min-height: calc(100vh - var(--header-height));
-}
-
-.sidebar {
-    background: var(--sidebar-color);
-    color: var(--white);
-    padding: 20px 16px;
-    width: var(--sidebar-width);
-    flex-shrink: 0;
-}
-
-.side-title {
-    font-size: 18px;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-    color: #e6e6e6;
-}
-
-.side-nav {
-    display: block;
-    padding: 10px 12px;
-    color: #ffffff;
-    text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    transition: background .2s, color .2s;
-    position: relative;
-    padding-left: 16px;
-}
-.side-nav:hover { background: #1e1e1e; color: #fff; }
-
-.side-nav.active {
-    background: #b9fe81e8;
-    color: #000000;
-}
-.side-nav.active::before {
-    content: "";
-    position: absolute;
-    left: 4px;
-    top: 8px;
-    bottom: 8px;
-    width: 6px;
-    background: #43d300;
-    border-radius: 3px;
-}
-
-/* --- MAIN CONTENT: SETTINGS --- */
-
-.main-content {
-    flex-grow: 1;
-    padding: 24px 28px;
-    background-color: var(--light-bg);
-}
-
+/* Main settings card styling */
 .settings-box {
     background: var(--white);
     border-radius: 12px;
@@ -180,13 +20,11 @@ body {
     min-height: 500px; 
 }
 
-/* SETTINGS HEADER (Mimics Dashboard OVERVIEW title) */
+/* Header within the settings card */
 .settings-header {
     display: flex;
     justify-content: flex-end; 
     align-items: center;
-    margin-bottom: 32px;
-    padding-bottom: 16px;
     background-image: linear-gradient(
         to bottom,
         rgba(201, 216, 201, 0.608) 0%,
@@ -211,11 +49,15 @@ body {
     opacity: 0.5; 
 }
 
-/* SETTINGS SECTIONS */
+/* Sections for grouping settings */
 .settings-section {
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 1px solid #eeeeee;
+}
+.settings-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .settings-subtitle {
@@ -225,7 +67,9 @@ body {
     margin-bottom: 15px;
 }
 
-/* --- BUTTON STYLES --- */
+/* ====================================================================
+   BUTTON STYLES
+   ==================================================================== */
 
 .btn {
     padding: 8px 15px;
@@ -235,43 +79,22 @@ body {
     font-size: 14px;
     font-weight: 600;
     transition: background-color 0.2s;
-    text-decoration: none;
-    display: inline-block;
 }
 
-.btn-green {
-    background-color: var(--primary-green);
-    color: var(--white);
-}
+.btn-green { background-color: var(--primary-green); color: var(--white); }
+.btn-green:hover { background-color: #5aa13c; }
+.btn-danger { background-color: var(--danger); color: var(--white); }
+.btn-danger:hover { background-color: #c82333; }
+.btn-pending { background-color: var(--pending); color: var(--text-dark); cursor: default; opacity: 0.8; }
 
-.btn-green:hover {
-    background-color: #5aa13c;
-}
-
-.btn-danger {
-    background-color: var(--danger);
-    color: var(--white);
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-}
-
-.btn-pending {
-    background-color: var(--pending); 
-    color: var(--text-dark);
-    cursor: default;
-    opacity: 0.8;
-}
-
-/* --- MODAL STYLES --- */
+/* ====================================================================
+   UNIFIED ENHANCED MODAL STYLES
+   ==================================================================== */
 
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
     display: none; 
     align-items: center;
@@ -288,164 +111,210 @@ body {
     visibility: visible;
 }
 
-.modal-content {
-    background-color: var(--white);
-    padding: 30px;
-    border-radius: 10px;
+.modal-content--enhanced {
+    background: var(--white);
+    padding: 24px 32px 32px;
+    text-align: center;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    max-width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
     transform: scale(0.95);
     transition: transform 0.3s ease-out;
-    position: relative; /* Needed for positioning the close button */
 }
 
-.modal.show .modal-content {
+.modal.show .modal-content--enhanced {
     transform: scale(1);
 }
 
-/* Updated modal header for close button positioning */
-.modal-header {
+/* Brand Header */
+.modal-brand-header {
     display: flex;
-    justify-content: flex-start; /* Aligns logo and title to the left */
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    /* Ensure space for the absolutely positioned close button */
-    padding-right: 40px; 
-    position: relative; /* Needed for absolute positioning of modal-close */
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
 }
+.modal-brand-header__logo { width: 40px; height: 40px; }
+.modal-brand-header__text { display: flex; flex-direction: column; text-align: left; }
+.modal-brand-header__line-1 { color: var(--enhanced-green); font-size: 16px; font-weight: 600; line-height: 1; }
+.modal-brand-header__line-2 { color: var(--brand-text-gray); font-size: 16px; font-weight: 600; line-height: 1.1; letter-spacing: 0.5px; }
 
-.modal-header h3 {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin: 0;
-}
-
-.modal-logo {
-    width: 40px;
-    height: 40px;
-    margin-right: 15px;
-}
-
-/* Updated modal close button positioning */
-.modal-close {
-    cursor: pointer;
-    font-size: 30px; /* Slightly larger for better visibility */
-    font-weight: 300;
-    color: var(--text-muted);
-    line-height: 1;
+/* Close Icon */
+.modal-close-icon {
     position: absolute;
-    top: 15px; /* Adjust as needed */
-    right: 15px; /* Position in the top right of modal-content */
-    transition: color 0.2s;
+    top: 16px; right: 16px;
+    background: none; border: none;
+    font-size: 24px; color: var(--enhanced-green);
+    cursor: pointer; line-height: 1;
+    padding: 5px;
+    transition: transform 0.2s;
 }
-.modal-close:hover {
-    color: var(--danger); /* Optional: Hover effect for "X" */
-}
+.modal-close-icon:hover { transform: scale(1.2); }
 
-.modal-form label {
+/* Modal Title & Body Text */
+.modal-title--enhanced { font-size: 22px; font-weight: 700; color: var(--text-dark); margin: 0 0 16px 0; }
+.modal-title-highlight { color: var(--enhanced-green); }
+.modal-instruction { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 0px; }
+.modal-note { font-size: 14px; font-weight: 500; color: var(--danger); margin-bottom: 24px; }
+
+/* Enhanced Form Styles */
+/* Enhanced Form Styles */
+.modal-form--enhanced { text-align: left; }
+.modal-form--enhanced .form-group { margin-bottom: 0; }
+.modal-form--enhanced label { display: block; font-weight: 600; padding-top: 10px; margin-bottom: 8px; font-size: 14px; }
+.required-asterisk { color: var(--danger); font-weight: bold; }
+
+/* FIX: Unified selector for all form inputs to ensure visibility and consistent styling */
+.modal-form--enhanced textarea,
+.modal-form--enhanced input[type="password"],
+.modal-form--enhanced input[type="text"] {
+    -webkit-appearance: none;
+    appearance: none;
     display: block;
-    font-weight: 600;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    font-size: 14px;
-}
-
-/* New style for red asterisk */
-.required-asterisk {
-    color: var(--danger);
-    font-weight: bold;
-}
-
-.modal-form input[type="password"],
-.modal-form textarea {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid var(--input-border-gray);
+    border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.2s;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+.modal-form--enhanced textarea { min-height: 100px; resize: vertical; }
 
-.modal-form input[type="password"]:focus,
-.modal-form textarea:focus {
-    border-color: var(--primary-green);
+.modal-form--enhanced textarea:focus,
+.modal-form--enhanced input[type="text"]:focus,
+.modal-form--enhanced input[type="password"]:focus {
     outline: none;
+    border-color: var(--enhanced-green);
+    box-shadow: 0 0 0 3px rgba(159, 216, 74, 0.3);
 }
 
-.modal-form textarea {
-    resize: vertical;
-    min-height: 80px;
+.modal-submit-btn {
+    width: 100%;
+    background-color: var(--enhanced-green);
+    color: var(--white);
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 24px;
 }
+.modal-submit-btn:hover { background-color: #8cc63f; }
 
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 10px;
+/* ====================================================================
+   FORM ERROR STYLING
+   ==================================================================== */
+
+.errorlist {
+    color: var(--danger);
+    font-size: 0.85em;
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 4px;
+    margin-bottom: 16px;
 }
+.errorlist li { margin-bottom: 2px; }
 
-/* --- MODAL specific styles for advisory text --- */
-
-.modal-info-text {
-    color: var(--text-dark); 
-    font-size: 14px;
-    margin-top: -10px;
+.form-errors {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 10px 15px;
     margin-bottom: 20px;
+    font-size: 14px;
+}
+.form-errors .error-message { margin: 0; }
+
+.form-group.has-error label { color: var(--danger); }
+
+.form-group.has-error input[type="password"],
+.form-group.has-error textarea {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
 }
 
-.modal-info-text strong {
-    font-weight: 600; 
+/* ====================================================================
+   NEW: PASSWORD VISIBILITY TOGGLE STYLES
+   (Reused from the registration modal for consistency)
+   ==================================================================== */
+
+/* A container for the password input and its toggle icon */
+.password-group {
+    position: relative;
 }
 
-.modal-info-text .alert-text {
-    color: var(--danger); 
-    font-weight: 700;
+/* Add padding to the right of the input to make space for the icon */
+.modal-form--enhanced .password-group input[type="password"] {
+    padding-right: 45px;
 }
 
+/* Positioning and styling for the clickable toggle area */
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-green);
+    width: 24px;
+    height: 24px;
+    transition: color 0.2s ease;
+}
 
-/* --- Responsive Adjustments --- */
+.toggle-password:hover {
+    color: var(--enhanced-green); /* Use the modal's green for hover consistency */
+}
+
+/* Styling for the eye icons */
+.eye-icon,
+.eye-slash-icon {
+    width: 22px;
+    height: 22px;
+    pointer-events: none; /* Allows clicks to pass through to the parent span */
+    transition: opacity 0.2s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Utility class to hide an element */
+.hidden {
+    display: none;
+}
+
+.password-group {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-green);
+    width: 24px;
+    height: 24px;
+    transition: color 0.2s ease;
+}
+/* ====================================================================
+   RESPONSIVE ADJUSTMENTS
+   ==================================================================== */
 
 @media (max-width: 768px) {
-    .header {
-        padding: 16px 20px;
-    }
-    .header-right {
-        gap: 10px;
-    }
-    .nav-link {
-        font-size: 14px;
-    }
-    .container {
-        flex-direction: column;
-    }
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        padding: 15px;
-        flex-direction: row; 
-        justify-content: space-around;
-        display: flex;
-    }
-    .side-title { display: none; } 
-
-    .side-nav {
-        padding: 8px 10px;
-        margin-bottom: 0;
-        text-align: center;
-        flex-grow: 1; 
-        border-radius: 4px;
-    }
-    .side-nav.active::before { content: none; } 
-
-    .main-content {
-        padding: 20px 15px;
-    }
-    .settings-title {
-        font-size: 40px;
-    }
+    .settings-title { font-size: 40px; }
+    .modal-content--enhanced { padding: 24px; }
 }
