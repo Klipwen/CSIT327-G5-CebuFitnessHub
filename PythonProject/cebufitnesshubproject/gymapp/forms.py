@@ -287,32 +287,75 @@ class MemberLoginForm(forms.Form):
 class PasswordChangeForm(forms.Form):
     current_password = forms.CharField(
         label='Current Password',
-        widget=forms.PasswordInput(attrs={'placeholder': 'Enter current password', 'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter current password'})
     )
     new_password = forms.CharField(
         label='New Password',
-        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password', 'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter a new password'})
     )
     confirm_password = forms.CharField(
         label='Confirm New Password',
-        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password', 'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'})
     )
+
+    # ====================================================================
+    # FIX: The form now accepts the 'request' object upon initialization.
+    # ====================================================================
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(PasswordChangeForm, self).__init__(*args, **kwargs)
+
+    def clean_current_password(self):
+        """
+        FIX: Added a specific clean method for the current_password field.
+        USE: This validates that the entered current password matches the
+             user's actual password stored in the database.
+        """
+        current_password = self.cleaned_data.get('current_password')
+        user = self.request.user
+        if not user.check_password(current_password):
+            raise ValidationError("Current password is incorrect.")
+        return current_password
 
     def clean(self):
         cleaned_data = super().clean()
         new_password = cleaned_data.get('new_password')
         confirm_password = cleaned_data.get('confirm_password')
+
+        # ====================================================================
+        # FIX: Instead of raising a non-field error, we attach the error
+        #      directly to the 'confirm_password' field.
+        # ====================================================================
         if new_password and confirm_password and new_password != confirm_password:
-            raise ValidationError("New passwords do not match.")
+            self.add_error('confirm_password', "New passwords do not match.")
+        
         if new_password:
-            validate_password(new_password)
+            try:
+                validate_password(new_password, user=self.request.user)
+            except ValidationError as e:
+                self.add_error('new_password', e)
+                
         return cleaned_data
 
 
 class FreezeRequestForm(forms.Form):
     reason = forms.CharField(
         label='Reason',
-        widget=forms.Textarea(attrs={'placeholder': 'Please provide a brief reason for your request...', 'class': 'form-control'}),
+        widget=forms.Textarea(attrs={'placeholder': 'Please provide a brief reason for your request...'}),
         min_length=10,
         required=True,
+    )
+
+# ====================================================================
+# FIX: Create a separate form for the Unfreeze modal.
+# USE: This allows Django to generate unique IDs for its fields,
+#      preventing the "non-unique id" error.
+# ====================================================================
+
+class UnfreezeRequestForm(forms.Form):
+    # FIX: Add the 'reason' field here.
+    reason = forms.CharField(
+        label='Reason (Optional)',
+        widget=forms.Textarea(attrs={'placeholder': 'You can provide a brief reason for your request...'}),
+        required=False  # Make it optional
     )
