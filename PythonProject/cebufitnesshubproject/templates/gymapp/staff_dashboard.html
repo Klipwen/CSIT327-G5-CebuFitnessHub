@@ -270,12 +270,12 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="member-management-tbody">
+            <tbody id="member-management-tbody" data-filter="active">
               <tr>
                 <td>Naruto Uzumaki</td>
                 <td><span class="badge success">Active</span></td>
-                <td>Premium</td>
-                <td>2025-10-28 14:30</td>
+                <td>₱2,000.00</td>
+                <td>Today, 09:15 AM</td>
                 <td>₱0.00</td>
                 <td class="action-cell">
                   <button class="action-menu-btn" type="button" aria-label="More options">
@@ -288,8 +288,8 @@
               <tr>
                 <td>Sakura Haruno</td>
                 <td><span class="badge success">Active</span></td>
-                <td>Standard</td>
-                <td>2025-10-28 10:15</td>
+                <td>₱2,000.00</td>
+                <td>Yesterday, 05:30 PM</td>
                 <td>₱500.00</td>
                 <td class="action-cell">
                   <button class="action-menu-btn" type="button" aria-label="More options">
@@ -302,8 +302,8 @@
               <tr>
                 <td>Hinata Hyuga</td>
                 <td><span class="badge success">Active</span></td>
-                <td>Premium</td>
-                <td>2025-10-27 16:45</td>
+                <td>₱2,000.00</td>
+                <td>Today, 10:30 PM</td>
                 <td>₱0.00</td>
                 <td class="action-cell">
                   <button class="action-menu-btn" type="button" aria-label="More options">
@@ -311,6 +311,90 @@
                     <span class="dot"></span>
                     <span class="dot"></span>
                   </button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody id="member-management-tbody-pending" data-filter="pending" style="display: none;">
+              <tr>
+                <td>Naruto Uzumaki</td>
+                <td><span class="badge warning">Pending</span></td>
+                <td>₱2,000.00</td>
+                <td>N/A</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Sasuke Uchiha</td>
+                <td><span class="badge warning">Pending</span></td>
+                <td>₱2,000.00</td>
+                <td>N/A</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Hinata Hyuga</td>
+                <td><span class="badge warning">Pending</span></td>
+                <td>₱2,000.00</td>
+                <td>N/A</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Roronoa Zoro</td>
+                <td><span class="badge warning">Pending</span></td>
+                <td>₱2,000.00</td>
+                <td>N/A</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody id="member-management-tbody-frozen" data-filter="frozen" style="display: none;">
+              <tr>
+                <td>David Brown</td>
+                <td><span class="badge frozen">Frozen</span></td>
+                <td>₱2,000.00</td>
+                <td>2025-10-10</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <div class="action-menu-wrapper">
+                    <button class="action-menu-btn frozen-menu-btn" type="button" aria-label="More options" data-member-index="0">
+                      <span class="dot"></span>
+                      <span class="dot"></span>
+                      <span class="dot"></span>
+                    </button>
+                    <div class="frozen-menu-popup" id="frozen-popup-0" style="display: none;">
+                      <button class="popup-btn unfreeze-btn" type="button">Unfreeze</button>
+                      <button class="popup-btn view-details-btn" type="button">View Details</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Michael Chen</td>
+                <td><span class="badge frozen">Frozen</span></td>
+                <td>₱2000.00</td>
+                <td>2025-10-05</td>
+                <td>₱0.00</td>
+                <td class="action-cell">
+                  <div class="action-menu-wrapper">
+                    <button class="action-menu-btn frozen-menu-btn" type="button" aria-label="More options" data-member-index="1">
+                      <span class="dot"></span>
+                      <span class="dot"></span>
+                      <span class="dot"></span>
+                    </button>
+                    <div class="frozen-menu-popup" id="frozen-popup-1" style="display: none;">
+                      <button class="popup-btn unfreeze-btn" type="button">Unfreeze</button>
+                      <button class="popup-btn view-details-btn" type="button">View Details</button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
