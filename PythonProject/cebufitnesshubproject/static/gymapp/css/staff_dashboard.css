@@ -689,8 +689,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid var(--green);
-  background: var(--green);
+  border: none;
+  background: #7CC013;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -700,8 +700,11 @@ body {
 }
 
 .approval-table .action-btn:hover {
-  background: #5ba734;
-  border-color: #5ba734;
+  background: #6ba010;
+}
+
+.approval-table .action-btn:active {
+  background: #5a8f0e;
 }
 
 .approval-table .action-btn svg {
@@ -768,8 +771,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid #ddd;
-  background: #fff;
+  border: none;
+  background: #7CC013;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -781,20 +784,23 @@ body {
 }
 
 .member-table .action-menu-btn:hover {
-  background: #f5f5f5;
-  border-color: var(--green);
+  background: #6ba010;
+}
+
+.member-table .action-menu-btn:active {
+  background: #5a8f0e;
 }
 
 .member-table .action-menu-btn .dot {
   width: 4px;
   height: 4px;
-  background: #555;
+  background: #fff;
   border-radius: 50%;
   display: block;
 }
 
 .member-table .action-menu-btn:hover .dot {
-  background: var(--green);
+  background: #fff;
 }
 
 .member-empty-message {
@@ -809,7 +815,7 @@ body {
 
 /* Activate Member Button */
 .activate-member-btn {
-  background: var(--green);
+  background: #7CC013;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -822,7 +828,11 @@ body {
 }
 
 .activate-member-btn:hover {
-  filter: brightness(0.95);
+  background: #6ba010;
+}
+
+.activate-member-btn:active {
+  background: #5a8f0e;
 }
 
 /* Action Cell */
@@ -875,12 +885,12 @@ body {
 }
 
 .view-details-btn {
-  color: var(--green);
+  color: #7CC013;
 }
 
 .view-details-btn:hover {
-  background: rgba(107, 203, 61, 0.1);
-  color: #5ba734;
+  background: rgba(124, 192, 19, 0.1);
+  color: #6ba010;
 }
 
 /* Responsive adjustments for Member Management and Approval Queue */
