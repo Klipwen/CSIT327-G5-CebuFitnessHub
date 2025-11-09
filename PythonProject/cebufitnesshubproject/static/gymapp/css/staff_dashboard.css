@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:wght@400;700&display=swap');
+
 :root {
   --green: #6BCB3D;
   --dark: #000000;
@@ -14,6 +16,7 @@
   --danger: #e74c3c;
   --warning: #f1c40f;
   --neutral: #7f8c8d;
+  --dropdown-bg: #ffffff;
 }
 
 * {
@@ -302,13 +305,15 @@ body {
 }
 
 .btn {
-  background: var(--green);
+  background: #7CC013;
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 10px 16px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 550;
+  font-size: 17.5px;
+  font-family: "Quattrocento Sans", sans-serif;
 }
 
 .btn:hover {
@@ -390,13 +395,13 @@ body {
 }
 
 .badge.success {
-  background: rgba(39, 174, 96, 0.12);
-  color: #27ae60;
+  background: #7CC013;
+  color: #FFFFFF;
 }
 
 .badge.warning {
-  background: rgba(241, 196, 15, 0.15);
-  color: #f39c12;
+  background: #E48706;
+  color: #ffffff;
 }
 
 .badge.neutral {
@@ -405,8 +410,8 @@ body {
 }
 
 .badge.frozen {
-  background: rgba(52, 152, 219, 0.15);
-  color: #3498db;
+  background: #2994FF;
+  color: #fbfbfb;
 }
 
 .fallback {
@@ -707,10 +712,11 @@ body {
   background: #5a8f0e;
 }
 
-.approval-table .action-btn svg {
-  width: 16px;
-  height: 16px;
+.approval-table .action-btn svg { /*Here you can edit the size of the Arrow used in the button of approval queue*/
+  width: 25px;
+  height: 25px;
   fill: #fff;
+  padding-left: 1.5px;
 }
 
 .approval-table .action-btn:hover svg {
@@ -731,9 +737,10 @@ body {
 .member-management-controls {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: stretch;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  flex-direction: column; /* <-- ADD THIS LINE TO MAKE THE FILTER_MEMBER_GROUP BELOW THE SEARCH BAR */
 }
 
 .member-search-group {
@@ -741,6 +748,7 @@ body {
   gap: 8px;
   flex: 1;
   min-width: 280px;
+  width: 100%;
 }
 
 .member-search-input {
@@ -757,15 +765,123 @@ body {
   min-width: 200px;
 }
 
-.member-filter-dropdown {
-  width: 100%;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
+/* ====================================================================
+   CUSTOM MEMBER FILTER DROPDOWN (Replaces <select>)
+   ==================================================================== */
+
+/* 1. Wrapper
+   - This is the parent container, needed for positioning.
+*/
+.member-filter-group {
+  position: relative; /* This is the anchor */
+  display: inline-block; /* Make it wrap the button */
+  min-width: 200px; /* Match old <select> width */
+  align-self: flex-start;
 }
+
+/* 2. Trigger Button
+   - This replaces the <select> and is styled to look
+     just like the old <select> (which looked like a button).
+*/
+.member-filter-trigger {
+  /* --- Core Appearance --- */
+  background-color: #7CC013; /* Using your existing green */
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 10px 40px 10px 16px; /* Extra right padding for arrow */
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  /* --- Layout & Sizing --- */
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left; /* Ensure label is left-aligned */
+}
+
+.member-filter-trigger:hover {
+  filter: brightness(0.95);
+}
+
+.member-filter-trigger:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 192, 19, 0.4);
+}
+
+/* 3. Arrow Icon
+   - This is the white '▼' icon.
+*/
+.member-filter-trigger .filter-arrow {
+  color: #FFFFFF;
+  font-size: 12px;
+  pointer-events: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 4. Dropdown Panel
+   - Styled like the requirement list: white, rounded, shadow.
+   - Based on your .action-dropdown styles.
+*/
+.filter-dropdown-panel {
+  display: none; /* Hidden by default */
+  position: absolute;
+  z-index: 10;
+  width: 100%; /* Match the trigger width */
+  background: var(--dropdown-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Position it *below* the trigger */
+  top: calc(100% + 8px); /* 8px gap */
+  left: 0;
+}
+
+.filter-dropdown-panel.is-open {
+  display: block; /* Show the dropdown */
+}
+
+
+/* 6. Action Buttons
+   - These styles are copied from your .action-dropdown
+     so the buttons look identical.
+*/
+.filter-dropdown-panel .dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-dropdown-panel .dropdown-btn {
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 6px;
+  font-family: "Quattrocento Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #FFFFFF;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Re-using your color styles */
+.filter-dropdown-panel .dropdown-btn.btn-danger { background-color: #FF3838; }
+.filter-dropdown-panel .dropdown-btn.btn-danger:hover { background-color: #b50000; }
+
+.filter-dropdown-panel .dropdown-btn.btn-positive { background-color: #7CC013; }
+.filter-dropdown-panel .dropdown-btn.btn-positive:hover { background-color: #0d8500; }
+/*new dropdown for members*/
 
 .member-table .action-menu-btn {
   width: 32px;
@@ -840,59 +956,6 @@ body {
   position: relative;
 }
 
-/* Frozen Accounts Popup */
-.action-menu-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.frozen-menu-popup {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 140px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.popup-btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-  background: transparent;
-}
-
-.unfreeze-btn {
-  color: #e74c3c;
-}
-
-.unfreeze-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  color: #c0392b;
-}
-
-.view-details-btn {
-  color: #7CC013;
-}
-
-.view-details-btn:hover {
-  background: rgba(124, 192, 19, 0.1);
-  color: #6ba010;
-}
-
 /* Responsive adjustments for Member Management and Approval Queue */
 @media (max-width: 768px) {
   .member-management-controls {
@@ -921,3 +984,647 @@ body {
     min-width: 600px;
   }
 }
+
+
+/* gymapp/css/staff_dashboard.css */
+
+/* ====================================================================
+   MEMBER ACTION DROPDOWN STYLES
+   ==================================================================== */
+
+/* 1. Wrapper & Positioning
+   - The wrapper is the positioning anchor for the absolute dropdown.
+*/
+.action-menu-wrapper {
+  position: relative;
+  display: inline-block; /* Ensures wrapper is only as wide as its content */
+}
+
+/* 2. Dropdown Container
+   - Hidden by default, shown with the .is-open class (added by JS).
+   - Positioned absolutely to overlay the table content.
+*/
+.action-dropdown {
+  display: none; /* Hidden by default */
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 2px); /* Position above button with 12px gap */
+  right: 50%;
+  transform: translateX(50%);
+  width: 180px; /* Set a consistent width */
+  background: var(--dropdown-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.action-dropdown.is-open {
+  display: block; /* Show the dropdown */
+}
+
+/* 3. Dropdown Connector (Green Circle + White Pointer)
+   - The connector is positioned to bridge the gap between the button and menu.
+*/
+/* PARENT WRAPPER */
+/* 3. Dropdown Connector (Triangle matches dropdown background) */
+.dropdown-connector {
+  position: absolute;
+  top: 100%; /* Adjust to connect neatly to dropdown */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  z-index: -1;
+}
+
+/* The Triangular Pointer - Matches Dropdown Background */
+.dropdown-connector::after {
+  content: '';
+  position: absolute;
+  top: -11px; /* Touches the dropdown */
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid var(--dropdown-bg); /* Matches .action-dropdown background */
+}
+/*New Connector*/ 
+
+/* 4. Action Buttons Container & Individual Buttons */
+.dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* Space between buttons */
+  position: relative;
+  z-index: 1;
+}
+
+.dropdown-btn {
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 6px;
+  font-family: "Quattrocento Sans", sans-serif;
+  font-weight: 500; /* Medium weight */
+  font-size: 18px;
+  color: #FFFFFF;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Color variations */
+.dropdown-btn.btn-danger { background-color: #FF3838; }
+.dropdown-btn.btn-danger:hover { background-color: #b50000; }
+
+.dropdown-btn.btn-positive { background-color: #7CC013; }
+.dropdown-btn.btn-positive:hover { background-color: #0d8500; }
+
+/* Add this new block to your CSS file */
+.action-dropdown.is-portaled {
+  position: absolute;      /* Escape the table's overflow */
+  bottom: auto;         /* Reset relative styles */
+  right: auto;
+  transform: none;      /* Reset any inherited transform */
+  z-index: 2010;        /* Ensure it's above the logout modal (z-index: 2000) */
+}
+
+/* ====================================================================
+   APPROVAL MODAL STYLES (NEW)
+   ==================================================================== */
+
+/* ------------------------------
+   Read-only reason display
+   ------------------------------ */
+   .approval-reason-group {
+    text-align: left;
+    margin-bottom: 24px;
+  }
+  
+  .approval-reason-group label {
+    display: block;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .approval-reason-group textarea[readonly] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    background-color: #f9f9f9; /* Slightly off-white */
+    border: 1px solid #C0C0C0; /* Per requirement */
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: default;
+  }
+  
+  /* ------------------------------
+     Action buttons container
+     ------------------------------ */
+    .modal-action-buttons {
+      display: flex;
+      flex-direction: column; /* <-- CHANGED from 'row' */
+      align-items: stretch;   /* <-- ADDED for full-width buttons */
+      gap: 12px;
+      margin-top: 16px;
+    }
+  
+  /* ------------------------------
+     Base button styles
+     ------------------------------ */
+  .modal-action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .modal-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* ------------------------------
+     Color variations
+     ------------------------------ */
+  .modal-btn-reject {
+    background-color: #FF3838; /* Per requirement */
+  }
+  
+  .modal-btn-reject:hover {
+    background-color: #b90707;
+  }
+  
+  .modal-btn-approve {
+    background-color: #7CC013; /* Per requirement */
+  }
+  
+  .modal-btn-approve:hover {
+    background-color: #6ba010;
+  }
+  
+  /* ====================================================================
+   UNIFIED ENHANCED MODAL STYLES (Base Framework)
+   ==================================================================== */
+
+  /* --------------------------------------------------------------------
+    1. Modal Container
+    -------------------------------------------------------------------- */
+  .modal {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+
+  .modal.show {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* --------------------------------------------------------------------
+    2. Modal Content
+    -------------------------------------------------------------------- */
+  .modal-content--enhanced {
+    background: var(--white);
+    padding: 24px 32px 32px;
+    text-align: center;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease-out;
+  }
+
+  .modal.show .modal-content--enhanced {
+    transform: scale(1);
+  }
+
+  /* --------------------------------------------------------------------
+    3. Brand Header
+    -------------------------------------------------------------------- */
+  .modal-brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .modal-brand-header__logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .modal-brand-header__text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .modal-brand-header__line-1 {
+    color: #7CC013;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .modal-brand-header__line-2 {
+    color: #707070;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+  }
+
+  /* --------------------------------------------------------------------
+    4. Close Icon
+    -------------------------------------------------------------------- */
+  .modal-close-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #7CC013;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+    transition: transform 0.2s;
+  }
+
+  .modal-close-icon:hover {
+    transform: scale(1.2);
+  }
+
+  /* --------------------------------------------------------------------
+    5. Modal Titles & Text
+    -------------------------------------------------------------------- */
+  .modal-title--enhanced {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 4px 0;
+  }
+
+  .modal-title-highlight {
+    color: #7CC013;
+  }
+
+  .modal-instruction {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 2px; /*margin bottom*/
+  }
+
+  /* --- NEW RULE FOR YOUR RED TEXT --- */
+  .modal-note-reject {
+    font-size: 14px;
+    font-weight: 500;
+    color: #FF3838; /* <-- NEW RED */
+    margin-bottom: 10px; /* Matches old .modal-note */
+    margin-top: -3px;
+  }
+  /* --- END NEW RULE --- */
+
+  .modal-note {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--danger);
+    margin-bottom: 24px;
+  }
+
+  /* --------------------------------------------------------------------
+    6. Enhanced Form Styles
+    -------------------------------------------------------------------- */
+  .modal-form--enhanced {
+    text-align: left;
+    margin-top: -10px;
+  }
+
+  .modal-form--enhanced .form-group {
+    margin-bottom: 0;
+  }
+
+  .modal-form--enhanced label {
+    display: block;
+    font-weight: 600;
+    padding-top: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .required-asterisk {
+    color: var(--danger);
+    font-weight: bold;
+  }
+
+  .modal-form--enhanced textarea,
+  .modal-form--enhanced input[type="password"],
+  .modal-form--enhanced input[type="text"],
+  .modal-form--enhanced input[type="email"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .modal-form--enhanced textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .modal-form--enhanced textarea:focus,
+  .modal-form--enhanced input[type="text"]:focus,
+  .modal-form--enhanced input[type="password"]:focus,
+  .modal-form--enhanced input[type="email"]:focus {
+    outline: none;
+    border-color: #7CC013;
+    /* Recalculated RGBA from #7CC013 */
+    box-shadow: 0 0 0 3px rgba(124, 192, 19, 0.3); /* <-- CHANGED */
+  }
+
+  /* --------------------------------------------------------------------
+    7. Submit Button
+    -------------------------------------------------------------------- */
+  .modal-submit-btn {
+    width: 100%;
+    background-color: #7CC013;
+    color: var(--white);
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 24px;
+  }
+
+  .modal-submit-btn:hover {
+    background-color: #6ba010;
+  }
+
+
+  /* ------------------------------
+     Responsive (Mobile)
+     ------------------------------ */
+  /* @media (max-width: 480px) {
+    .modal-action-buttons {
+      flex-direction: column-reverse; 
+    }
+  }
+  */
+
+  /* ====================================================================
+   INPUT WITH CURRENCY SYMBOL
+   ==================================================================== */
+
+/* 1. The wrapper holds the symbol and input */
+.input-with-symbol {
+  position: relative;
+}
+
+/* 2. The "₱" symbol */
+.input-with-symbol .currency-symbol {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  /* This 'left' value should match your default input padding */
+  left: 12px;
+  font-size: 14px; /* Should match your input's font-size */
+  font-weight: 700;
+  color: #FF3838; /* Red, as you requested */
+  /* Lets the user click "through" the symbol to focus the input */
+  pointer-events: none;
+}
+
+/* 3. The input field */
+/* This rule pushes the input's text to the right 
+   to make space for the symbol */
+  .input-with-symbol #log-payment-amount,
+  .input-with-symbol #activate-amount {
+    padding-left: 26px; 
+  }
+
+
+/* ====================================================================
+   VIEW/EDIT MODAL STYLES (Compact 2-Column Version)
+   ==================================================================== */
+
+/* 1. Widen the modal for the 2-column grid */
+.modal-content--large {
+  max-width: 800px;
+}
+
+/* 2. Tab Navigation Bar */
+.modal-tab-nav {
+  display: flex;
+  border-bottom: 2px solid var(--border, #e6e6e6);
+  margin-bottom: 24px;
+  margin-top: 8px; /* Space below title */
+}
+
+.modal-tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted, #666);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.modal-tab-btn:hover {
+  color: var(--text-dark, #333);
+}
+
+.modal-tab-btn.is-active {
+  color: #7CC013;
+  border-bottom-color: #7CC013;
+}
+
+/* 3. Tab Panel Content */
+.modal-tab-pane {
+  display: none; /* Hide all panels by default */
+}
+
+.modal-tab-pane.is-active {
+  display: block; /* Show only the active one */
+}
+
+/* 4. Grid Layout */
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px; /* 0px row, 16px column */
+  margin-bottom: 8px;
+}
+
+.modal-grid .grid-span-2 {
+  grid-column: 1 / -1;
+}
+
+/* 5. Read-Only View Field Styling */
+.form-view-field {
+  background-color: #F5F5F5;
+  color: var(--text-dark, #333);
+  border: 1px solid var(--border, #e6e6e6);
+  border-radius: 8px;
+  word-wrap: break-word;
+}
+
+.form-view-field.is-textarea {
+  resize: none;
+}
+
+/* 6. Disabled Field Styling */
+.modal-form--enhanced input:disabled,
+.modal-form--enhanced textarea:disabled {
+  background-color: #F5F5F5;
+  color: var(--text-muted, #666);
+  cursor: not-allowed;
+  border-color: var(--border, #e6e6e6);
+}
+
+/* 7. Required Asterisk */
+.required-asterisk {
+  color: #FF3838;
+  font-weight: bold;
+}
+
+/* 8. State Toggling Logic */
+.modal:not(.is-editing) .form-edit-field,
+.modal:not(.is-editing) .modal-title-edit,
+.modal:not(.is-editing) .modal-actions-edit,
+.modal:not(.is-editing) .required-asterisk {
+  display: none;
+}
+
+.modal.is-editing .form-view-field,
+.modal.is-editing .modal-title-view,
+.modal.is-editing .modal-actions-view {
+  display: none;
+}
+
+.modal.is-editing .form-edit-field {
+  display: block;
+}
+
+/* ====================================================================
+   NEW COMPACT STYLES
+   This targets *only* the View/Edit modal to shrink its contents
+==================================================================== */
+
+#modalViewDetails .form-group {
+  /* Reduce space between form groups */
+  margin-bottom: 8px; 
+}
+
+#modalViewDetails .modal-form--enhanced label {
+  /* Make labels smaller */
+  font-size: 13px; 
+  margin-bottom: 4px;
+  padding-top: 0;
+}
+
+/* Make all inputs, textareas, and view fields smaller */
+#modalViewDetails .modal-form--enhanced input,
+#modalViewDetails .modal-form--enhanced textarea,
+#modalViewDetails .form-view-field {
+  padding: 8px 10px; /* Was 12px */
+  font-size: 14px;
+}
+
+#modalViewDetails .form-view-field {
+  min-height: 0; /* Let height be set by padding */
+  line-height: 1.4;
+}
+
+/* Make textareas shorter */
+#modalViewDetails .modal-form--enhanced textarea,
+#modalViewDetails .form-view-field.is-textarea {
+  min-height: 80px; /* Was 100px */
+}
+
+/* --- Responsive Grid --- */
+@media (max-width: 820px) {
+  .modal-content--large {
+    max-width: 90vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+/* ====================================================================
+   NEW STYLES FOR CHECK-IN/OUT MODAL
+   ==================================================================== */
+
+/* * Adds the red highlight style for the modal title,
+ * matching your #FF3838 color requirement.
+ */
+ .modal-title-highlight--red {
+    color: #FF3838;
+  }
+
+  /* ====================================================================
+    NEW CUSTOM MODAL WIDTH (e.g., for Unfreeze)
+    ==================================================================== */
+
+  .modal-content--medium {
+    max-width: 450px;
+  }
+
+  /* Optional: Add responsive breakpoint */
+  @media (max-width: 620px) {
+    .modal-content--medium {
+      max-width: 90vw;
+    }
+  }
+
