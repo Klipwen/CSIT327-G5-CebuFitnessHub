@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
 </head>
 <body>
+  {% csrf_token %}
   <header class="site-header">
     <div class="brand">
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -38,7 +39,7 @@
         <a href="#revenue" class="nav-item">Revenue Tracker</a>
         <a href="#notifications" class="nav-item">Notifications</a>
         <a href="#settings" class="nav-item">Settings</a>
-        <a href="{% url 'logout_confirm' %}" class="nav-item" aria-label="Logout">Logout</a>
+        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout">Logout</a>
       </nav>
     </aside>
 
@@ -117,7 +118,7 @@
                 <td>2025-10-27</td>
                 <td>
                   <button class="action-btn" type="button" aria-label="View details">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor"> <!--button for approval queue-->
                       <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
                     </svg>
                   </button>
@@ -245,19 +246,77 @@
           <h2 class="box-title">Member Management</h2>
           <div class="title-divider"></div>
         </div>
+        <!--Start of the new drop-->
         <div class="member-management-controls">
+          <!-- Member Search Group -->
           <div class="member-search-group" id="member-search-group" style="display: none;">
-            <input type="search" class="input member-search-input" id="member-search-input" placeholder="Find Member by ID" aria-label="Find Member by ID">
-            <button class="btn member-search-btn" type="button" id="member-search-btn">Search</button>
+            <input
+              type="search"
+              class="input member-search-input"
+              id="member-search-input"
+              placeholder="Find Member by ID"
+              aria-label="Find Member by ID"
+            />
+            <button
+              class="btn member-search-btn"
+              type="button"
+              id="member-search-btn"
+            >
+              Search
+            </button>
           </div>
-          <div class="member-filter-group">
-            <select class="input member-filter-dropdown" id="member-filter-dropdown" aria-label="Filter members">
-              <option value="active">Active Members</option>
-              <option value="pending">Pending Activation</option>
-              <option value="frozen">Frozen Accounts</option>
-            </select>
+        
+          <!-- Member Filter Group -->
+          <div class="member-filter-group" id="member-filter-component">
+            <button
+              class="member-filter-trigger"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="member-filter-panel"
+            >
+              <span id="member-filter-label">Active Members</span>
+              <span class="filter-arrow" aria-hidden="true">▼</span>
+            </button>
+        
+            <div
+              class="filter-dropdown-panel"
+              id="member-filter-panel"
+              role="menu"
+            >
+              <div class="dropdown-actions">
+                <button
+                  type="button"
+                  class="dropdown-btn btn-positive"
+                  role="menuitem"
+                  data-value="active"
+                  data-label="Active Members"
+                >
+                  Active Members
+                </button>
+                <button
+                  type="button"
+                  class="dropdown-btn btn-positive"
+                  role="menuitem"
+                  data-value="pending"
+                  data-label="Pending Activation"
+                >
+                  Pending Activation
+                </button>
+                <button
+                  type="button"
+                  class="dropdown-btn btn-positive"
+                  role="menuitem"
+                  data-value="frozen"
+                  data-label="Frozen Accounts"
+                >
+                  Frozen Accounts
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </div>        
+        <!-- END: NEW FILTER COMPONENT -->
         <div class="table-wrap">
           <table class="table member-table">
             <thead>
@@ -270,50 +329,53 @@
                 <th>Actions</th>
               </tr>
             </thead>
+
+            <!--start of the Active Members-->
+
             <tbody id="member-management-tbody" data-filter="active">
-              <tr>
-                <td>Naruto Uzumaki</td>
-                <td><span class="badge success">Active</span></td>
-                <td>₱2,000.00</td>
-                <td>Today, 09:15 AM</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="action-menu-btn" type="button" aria-label="More options">
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>Sakura Haruno</td>
-                <td><span class="badge success">Active</span></td>
-                <td>₱2,000.00</td>
-                <td>Yesterday, 05:30 PM</td>
-                <td>₱500.00</td>
-                <td class="action-cell">
-                  <button class="action-menu-btn" type="button" aria-label="More options">
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>Hinata Hyuga</td>
-                <td><span class="badge success">Active</span></td>
-                <td>₱2,000.00</td>
-                <td>Today, 10:30 PM</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="action-menu-btn" type="button" aria-label="More options">
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                  </button>
-                </td>
-              </tr>
+              {% for data in member_list %}
+                  <tr data-member-id="{{ data.member.user.pk }}" data-checkin-status="{% if data.is_checked_in %}checked-in{% else %}checked-out{% endif %}">
+                  
+                  <td>{{ data.member.user.get_full_name }}</td>
+                  <td>
+                    <span class="badge success">Active</span>
+                  </td>
+                  
+                  <td>₱{{ data.member.monthly_fee|floatformat:2 }}</td>
+                  <td>{{ data.last_checkin_time|date:"M. d, g:i A"|default:"N/A" }}</td>
+                  <td>₱{{ data.member.balance|floatformat:2 }}</td>
+                  
+                  <td class="action-cell">
+                    <div class="action-menu-wrapper">
+                      <button
+                        class="action-menu-btn"
+                        type="button"
+                        aria-label="More options"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                      </button>
+
+                      <div class="action-dropdown" role="menu">
+                        <div class="dropdown-connector" aria-hidden="true"></div>
+                        <div class="dropdown-actions">
+                          <button type="button" class="dropdown-btn btn-danger" role="menuitem">Log Payment</button>
+                          <button type="button" class="dropdown-btn btn-positive" role="menuitem">View Details</button>
+                          <button type="button" class="dropdown-btn btn-positive" role="menuitem">Freeze</button>
+                          <button type="button" class="dropdown-btn btn-positive" role="menuitem">Check-in/out</button>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
             </tbody>
+
+            <!--End of the Active Members filtering-->
+
             <tbody id="member-management-tbody-pending" data-filter="pending" style="display: none;">
               <tr>
                 <td>Naruto Uzumaki</td>
@@ -356,6 +418,7 @@
                 </td>
               </tr>
             </tbody>
+            <!--FOR FROZEN-->
             <tbody id="member-management-tbody-frozen" data-filter="frozen" style="display: none;">
               <tr>
                 <td>David Brown</td>
@@ -365,39 +428,86 @@
                 <td>₱0.00</td>
                 <td class="action-cell">
                   <div class="action-menu-wrapper">
-                    <button class="action-menu-btn frozen-menu-btn" type="button" aria-label="More options" data-member-index="0">
+                    <button
+                      class="action-menu-btn"
+                      type="button"
+                      aria-label="More options"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                    >
                       <span class="dot"></span>
                       <span class="dot"></span>
                       <span class="dot"></span>
                     </button>
-                    <div class="frozen-menu-popup" id="frozen-popup-0" style="display: none;">
-                      <button class="popup-btn unfreeze-btn" type="button">Unfreeze</button>
-                      <button class="popup-btn view-details-btn" type="button">View Details</button>
+                
+                    <div class="action-dropdown" role="menu">
+                      <div class="dropdown-connector" aria-hidden="true"></div>
+                
+                      <div class="dropdown-actions">
+                        <button
+                          type="button"
+                          class="dropdown-btn btn-danger"
+                          role="menuitem"
+                        >
+                          Unfreeze
+                        </button>
+                        <button
+                          type="button"
+                          class="dropdown-btn btn-positive"
+                          role="menuitem"
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </td>
+                </td>                
               </tr>
+            
               <tr>
                 <td>Michael Chen</td>
                 <td><span class="badge frozen">Frozen</span></td>
-                <td>₱2000.00</td>
+                <td>₱2,000.00</td>
                 <td>2025-10-05</td>
                 <td>₱0.00</td>
                 <td class="action-cell">
                   <div class="action-menu-wrapper">
-                    <button class="action-menu-btn frozen-menu-btn" type="button" aria-label="More options" data-member-index="1">
+                    <button
+                      class="action-menu-btn"
+                      type="button"
+                      aria-label="More options"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                    >
                       <span class="dot"></span>
                       <span class="dot"></span>
                       <span class="dot"></span>
                     </button>
-                    <div class="frozen-menu-popup" id="frozen-popup-1" style="display: none;">
-                      <button class="popup-btn unfreeze-btn" type="button">Unfreeze</button>
-                      <button class="popup-btn view-details-btn" type="button">View Details</button>
+                
+                    <div class="action-dropdown" role="menu">
+                      <div class="dropdown-connector" aria-hidden="true"></div>
+                
+                      <div class="dropdown-actions">
+                        <button
+                          type="button"
+                          class="dropdown-btn btn-danger"
+                          role="menuitem"
+                        >
+                          Unfreeze
+                        </button>
+                        <button
+                          type="button"
+                          class="dropdown-btn btn-positive"
+                          role="menuitem"
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </td>
+                </td>                
               </tr>
-            </tbody>
+            </tbody>            
           </table>
           <div class="member-empty-message" id="member-empty" style="display: none;">
             No members found.
@@ -444,11 +554,539 @@
         <p id="logout-desc" class="logout-desc">You can log back in anytime.</p>
       </div>
       <div class="logout-actions">
-        <a href="{% url 'logout_confirm' %}" class="btn btn-danger" id="logout-yes" aria-label="Confirm logout">Yes</a>
+        <a href="{% url 'logout' %}" class="btn btn-danger" id="logout-yes" aria-label="Confirm logout">Yes</a>
         <button type="button" class="btn btn-outline" id="logout-cancel" aria-label="Cancel logout">Cancel</button>
       </div>
     </div>
   </div>
+
+  <!--Modals-->
+
+  <div id="modalApproval" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <!-- Close Button -->
+      <button class="modal-close-icon" data-close>&times;</button>
+  
+      <!-- Brand Header -->
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <!-- Modal Title -->
+      <h3 class="modal-title--enhanced">
+        Request Account <span class="modal-title-highlight">Freeze</span>
+      </h3>
+  
+      <!-- Modal Body -->
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">Reviewing request from member.</p>
+        <p class="modal-note-reject">Please approve or reject.</p>
+  
+        <!-- Reason Section -->
+        <div class="approval-reason-group">
+          <label for="approval-reason-text">Reason</label>
+          <textarea id="approval-reason-text" readonly>
+            I'm going to Japan for vacation.</textarea>
+        </div>
+  
+        <!-- Action Buttons -->
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-reject"
+            id="btnReject"
+            data-close
+          >
+            Reject Request
+          </button>
+  
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-approve"
+            id="btnApprove"
+            data-close
+          >
+            Approve Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal Log Payment-->
+
+  <div id="modalLogPayment" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced">
+        Log <span class="modal-title-highlight">Payment</span>
+      </h3>
+      
+      <div class="modal-body--enhanced">
+        <form class="modal-form--enhanced">
+          <div class="form-group">
+            <label for="log-member-name">Member</label>
+            <input type="text" id="log-member-name" readonly />
+          </div>
+          <!--Editted the currency-->
+          <div class="form-group">
+            <label for="log-payment-amount">Amount</label>
+            <div class="input-with-symbol">
+              <span class="currency-symbol">₱</span>
+          
+              <input
+                type="text"
+                inputmode="decimal" /* Better for mobile keyboards */
+                id="log-payment-amount"
+                placeholder="0.00" /* Updated placeholder */
+              />
+            </div>
+          </div>
+          <!--End Tag-->
+          <div class="form-group">
+            <label for="log-payment-description">Description</label>
+            <textarea
+              id="log-payment-description"
+              placeholder="e.g., Cash Payment - November Dues"
+              rows="3"
+            ></textarea>
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-approve"
+            id="btnConfirmPayment"
+            data-close
+          >
+            Confirm Payment
+          </button>
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-reject"
+            id="btnCancelPayment"
+            data-close
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+   
+  <!--View Profile Modal-->
+  <div id="modalViewDetails" class="modal" aria-hidden="true">
+    <div
+      class="modal-content modal-content--enhanced modal-content--large"
+      id="modalViewDetailsContent"
+      data-active-tab="member"
+    >
+      <button class="modal-close-icon" data-close>&times;</button>
+  
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced modal-title-view">
+        Member <span class="modal-title-highlight">Details</span>
+      </h3>
+      <h3 class="modal-title--enhanced modal-title-edit">
+        Edit <span class="modal-title-highlight">Details</span>
+      </h3>
+  
+      <nav class="modal-tab-nav">
+        <button
+          type="button"
+          class="modal-tab-btn is-active"
+          data-tab="member"
+          role="tab"
+          aria-selected="true"
+        >
+          Member & Account
+        </button>
+        <button
+          type="button"
+          class="modal-tab-btn"
+          data-tab="profile"
+          role="tab"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Profile & Emergency
+        </button>
+      </nav>
+  
+      <div class="modal-body--enhanced">
+        <form class="modal-form--enhanced" id="member-details-form">
+  
+          <div class="modal-tab-pane is-active" id="tab-member" role="tabpanel">
+            <div class="modal-grid">
+              <div class="form-group">
+                <label for="edit-first-name">First Name <span class="required-asterisk">*</span></label>
+                <p class="form-view-field" id="view-first-name"></p>
+                <input type="text" class="form-edit-field" id="edit-first-name" />
+              </div>
+              <div class="form-group">
+                <label for="edit-last-name">Last Name <span class="required-asterisk">*</span></label>
+                <p class="form-view-field" id="view-last-name"></p>
+                <input type="text" class="form-edit-field" id="edit-last-name" />
+              </div>
+              <div class="form-group">
+                <label for="edit-email">Email</label>
+                <p class="form-view-field" id="view-email"></p>
+                <input type="email" class="form-edit-field" id="edit-email" disabled />
+              </div>
+              <div class="form-group">
+                <label for="edit-member-id">Member ID</label>
+                <input type="text" id="edit-member-id" disabled />
+              </div>
+              <div class="form-group">
+                <label for="edit-contact">Contact Number <span class="required-asterisk">*</span></label>
+                <p class="form-view-field" id="view-contact"></p>
+                <input type="text" class="form-edit-field" id="edit-contact" />
+              </div>
+              <div class="form-group">
+                <label for="edit-date-joined">Date Joined</label>
+                <input type="text" id="edit-date-joined" disabled />
+              </div>
+            </div>
+  
+            <div class="modal-grid">
+              <div class="form-group">
+                <label for="edit-status">Current Status</label>
+                <input type="text" id="edit-status" disabled />
+              </div>
+              <div class="form-group">
+                <label for="edit-balance">Balance</label>
+                <input type="text" id="edit-balance" disabled />
+              </div>
+            </div>
+          </div>
+  
+          <div class="modal-tab-pane" id="tab-profile" role="tabpanel">
+            <div class="modal-grid">
+              <div class="form-group">
+                <label for="edit-e-name">Emergency Contact Name <span class="required-asterisk">*</span></label>
+                <p class="form-view-field" id="view-e-name"></p>
+                <input type="text" class="form-edit-field" id="edit-e-name" />
+              </div>
+              <div class="form-group">
+                <label for="edit-e-contact">Emergency Contact No. <span class="required-asterisk">*</span></label>
+                <p class="form-view-field" id="view-e-contact"></p>
+                <input type="text" class="form-edit-field" id="edit-e-contact" />
+              </div>
+            </div>
+  
+            <div class="modal-grid">
+              <div class="form-group grid-span-2">
+                <label for="edit-medical">Medical Conditions</label>
+                <p class="form-view-field is-textarea" id="view-medical"></p>
+                <textarea class="form-edit-field" id="edit-medical" rows="3"></textarea>
+              </div>
+              <div class="form-group grid-span-2">
+                <label for="edit-goals">Fitness Goals</label>
+                <p class="form-view-field is-textarea" id="view-goals"></p>
+                <textarea class="form-edit-field" id="edit-goals" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons modal-actions-view">
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnEditProfile">
+            Edit Profile
+          </button>
+          <button type="button" class="modal-action-btn modal-btn-reject" id="btnCloseView" data-close>
+            Close
+          </button>
+        </div>
+  
+        <div class="modal-action-buttons modal-actions-edit">
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnSaveChanges" data-close>
+            Save Changes
+          </button>
+          <button type="button" class="modal-action-btn modal-btn-reject" id="btnCancelEdit">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!--Manual Freezing of Member Account-->
+  <div id="modalFreezeAccount" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced">
+        Manually <span class="modal-title-highlight">Freeze</span> Member Account
+      </h3>
+      
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          Are you sure you want to manually freeze this
+          <br>
+          <span class="modal-note-reject">account?</span>
+        </p>
+  
+        <form class="modal-form--enhanced" id="freeze-account-form">
+          <div class="form-group">
+            <label for="freeze-member-name">Member</label>
+            <input type="text" id="freeze-member-name" disabled />
+          </div>
+          <div class="form-group">
+            <label for="freeze-reason">Reason for Manual Freeze</label>
+            <textarea
+              id="freeze-reason"
+              placeholder="Enter justification for manual freeze..."
+              rows="3"
+            ></textarea>
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-approve"
+            id="btnConfirmFreeze"
+          >
+            Confirm Freeze
+          </button>
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-reject"
+            id="btnCancelFreeze"
+            data-close
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>  
+  
+  <!--Modal for check-in and check-out-->
+  <div id="modalCheckInOut" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced">
+        Member
+        <span class="modal-title-highlight">Check-In</span> /
+        <span class="modal-title-highlight--red">Check-Out</span>
+      </h3>
+      
+      <div class="modal-body--enhanced">
+        <form class="modal-form--enhanced" id="checkin-out-form">
+          <div class="form-group">
+            <label for="checkin-member-name">Member</label>
+            <input type="text" id="checkin-member-name" disabled />
+          </div>
+          <div class="form-group">
+            <label for="checkin-member-status">Current Status</label>
+            <input type="text" id="checkin-member-status" disabled />
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn"
+            id="btnConfirmCheckInOut"
+            data-close
+          >
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>  
+
+  <!--Modal for manually Unfreeze member account-->
+  <div id="modalUnfreezeAccount" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--medium">
+      <button class="modal-close-icon" data-close>&times;</button>
+  
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced">
+        Manually <span class="modal-title-highlight">Unfreeze</span> Member Account
+      </h3>
+  
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          Are you sure you want to manually unfreeze this <br>
+          <span class="modal-note-reject">account?</span>
+        </p>
+  
+        <form class="modal-form--enhanced" id="unfreeze-account-form">
+          <div class="form-group">
+            <label for="unfreeze-member-name">Member</label>
+            <input type="text" id="unfreeze-member-name" disabled />
+          </div>
+  
+          <div class="form-group">
+            <label for="unfreeze-reason">Reason for Manual Unfreeze</label>
+            <textarea
+              id="unfreeze-reason"
+              placeholder="Enter justification for manual unfreeze..."
+              rows="3"
+            ></textarea>
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-approve"
+            id="btnConfirmUnfreeze"
+          >
+            Confirm Unfreeze
+          </button>
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-reject"
+            id="btnCancelUnfreeze"
+            data-close
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal for Membership activation-->
+  <div id="modalActivateMembership" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <button class="modal-close-icon" data-close>&times;</button>
+  
+      <div class="modal-brand-header">
+        <img
+          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
+          alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo"
+        />
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+  
+      <h3 class="modal-title--enhanced">
+        Activate <span class="modal-title-highlight">Membership</span>
+      </h3>
+  
+      <div class="modal-body--enhanced">
+        <form class="modal-form--enhanced" id="activate-member-form">
+          <div class="form-group">
+            <label for="activate-member-name">Member</label>
+            <input type="text" id="activate-member-name" disabled />
+          </div>
+  
+          <div class="form-group">
+            <label for="activate-amount">Amount</label>
+            <div class="input-with-symbol">
+              <span class="currency-symbol">₱</span>
+              <input type="text" id="activate-amount" disabled />
+            </div>
+          </div>
+  
+          <div class="form-group">
+            <label for="activate-description">Description</label>
+            <textarea
+              id="activate-description"
+              rows="3"
+              disabled
+            >Cash Payment – Initial Activation</textarea>
+          </div>
+        </form>
+  
+        <div class="modal-action-buttons">
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-approve"
+            id="btnConfirmActivation"
+          >
+            Confirm Activation
+          </button>
+          <button
+            type="button"
+            class="modal-action-btn modal-btn-reject"
+            id="btnCancelActivation"
+            data-close
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>  
+  
 
   <script defer src="{% static 'gymapp/js/staff_dashboard.js' %}"></script>
 </body>
