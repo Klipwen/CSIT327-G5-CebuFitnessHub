@@ -1,51 +1,49 @@
+import json
 from django.utils import timezone
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.hashers import check_password
-from django.http import JsonResponse # Kept from feat/staff-login-validation
-from .forms import CustomUserRegistrationForm, FreezeRequestForm, MemberLoginForm, PasswordChangeForm, UnfreezeRequestForm # Kept both forms from both branches
-from .models import CustomUser, GymStaff
+from django.http import JsonResponse
+from .forms import (
+    CustomUserRegistrationForm, FreezeRequestForm, MemberLoginForm, 
+    PasswordChangeForm, UnfreezeRequestForm
+)
+# Corrected and expanded model imports
+from .models import (
+    CustomUser, GymStaff, gym_Member, Account_Request, 
+    Billing_Record, Check_In, ClassSchedule, OCCUPANCY_TRACKER,
+    Activity_Log, Notification
+)
 from django.views.decorators.http import require_http_methods
+from django.db.models import Max, Sum, Count # For dashboard metrics
+from django.db.models import F # For updating the tracker
 
+# --- Landing, Registration, and Login/Logout (Unchanged) ---
 
 def landing_view(request):
     open_login_modal = False
-    
-    # Check if there are messages (from a redirect, e.g., failed login, successful registration)
-    # This ensures the modal opens to show the message.
     if messages.get_messages(request): 
         open_login_modal = True
-    
-    # If the URL path is '/login/', explicitly open the login modal
     if request.path == '/login/':
         open_login_modal = True
-
-    context = {
-        'open_login_modal': open_login_modal,
-    }
+    
+    context = {'open_login_modal': open_login_modal}
     return render(request, 'gymapp/landing.html', context)
 
-
 def register_member(request):
-    just_updated = False
     if request.method == 'POST':
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Log the user in immediately after successful registration commented out for now
-            #login(request, user)
+            # The signal.py now handles profile creation automatically
             messages.success(request, 'Registration successful! You can now log in.')
-            return redirect('landing') # Redirect to landing page after registration
+            return redirect('landing') 
         else:
-            # If form is invalid, render the modal with errors
             return render(request, 'gymapp/register_modal.html', {'form': form})
     else:
         form = CustomUserRegistrationForm()
-        
     return render(request, 'gymapp/register_modal.html', {'form': form})
-
 
 def member_login(request):
     """
@@ -56,8 +54,6 @@ def member_login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
-        # Check if this is an AJAX request
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
         if email and password:
@@ -66,131 +62,141 @@ def member_login(request):
                 if user.is_active:
                     # Enforce role chosen in the modal
                     role = request.POST.get('role', 'member')
-                    if role == 'staff' and not user.is_staff:
+                    if (role == 'staff' and not user.is_staff) or \
+                       (role == 'member' and user.is_staff):
                         error_message = 'Invalid account.'
                         if is_ajax:
-                            return JsonResponse({
-                                'success': False,
-                                'error_type': 'role_mismatch',
-                                'message': error_message
-                            })
-                        else:
-                            messages.error(request, error_message)
-                            return redirect('landing')
-                    if role == 'member' and user.is_staff:
-                        error_message = 'Invalid account.'
-                        if is_ajax:
-                            return JsonResponse({
-                                'success': False,
-                                'error_type': 'role_mismatch',
-                                'message': error_message
-                            })
+                            return JsonResponse({'success': False, 'error_type': 'role_mismatch', 'message': error_message})
                         else:
                             messages.error(request, error_message)
                             return redirect('landing')
 
-                    # Proceed with login since role matches
                     login(request, user)
                     messages.success(request, f'Welcome back, {user.first_name}!')
                     
-                    # Determine redirect URL based on user type
                     redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
                     
                     if is_ajax:
                         from django.urls import reverse
-                        return JsonResponse({
-                            'success': True,
-                            'redirect_url': reverse(redirect_url)
-                        })
+                        return JsonResponse({'success': True, 'redirect_url': reverse(redirect_url)})
                     else:
                         return redirect(redirect_url)
                 else:
                     error_message = 'Your account is inactive.'
                     if is_ajax:
-                        return JsonResponse({
-                            'success': False,
-                            'error_type': 'email',
-                            'message': error_message
-                        })
+                        return JsonResponse({'success': False, 'error_type': 'email', 'message': error_message})
                     else:
                         messages.error(request, error_message)
+                        return redirect('landing')
             else:
-                # Try to determine if the email exists to provide more specific error
+                # Provide error based on whether email or password was wrong
                 try:
                     user_exists = CustomUser.objects.filter(email=email).exists()
-                    if user_exists:
-                        error_type = 'password'
-                        error_message = 'Invalid password.'
-                    else:
-                        error_type = 'email'
-                        error_message = 'Invalid account.'
+                    error_type = 'password' if user_exists else 'email'
+                    error_message = 'Invalid password.' if user_exists else 'Invalid account.'
                 except:
                     error_type = 'general'
                     error_message = 'Invalid email or password.'
                 
                 if is_ajax:
-                    return JsonResponse({
-                        'success': False,
-                        'error_type': error_type,
-                        'message': error_message
-                    })
+                    return JsonResponse({'success': False, 'error_type': error_type, 'message': error_message})
                 else:
                     messages.error(request, error_message)
+                    return redirect('landing')
         else:
             missing_field = 'email' if not email else 'password'
             error_message = 'Please fill in all fields.'
-            
             if is_ajax:
-                return JsonResponse({
-                    'success': False,
-                    'error_type': missing_field,
-                    'message': error_message
-                })
+                return JsonResponse({'success': False, 'error_type': missing_field, 'message': error_message})
             else:
                 messages.error(request, error_message)
-    
-    # For GET requests, just render the login page, or redirect to landing if this view is mapped to a path that's not meant to be accessed via GET directly.
-    # Assuming this view is only posted to via AJAX or a form, redirect to landing for safety on GET.
+                return redirect('landing')
+
     return redirect('landing')
 
+def general_logout_view(request):
+    """
+    Handles logging out both members and staff by using Django's built-in logout.
+    """
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('landing')
+
+# --- Member Dashboard Views (HEAVILY REVISED) ---
 
 @login_required
 def member_dashboard(request):
     """
     Renders the member dashboard with dynamic data.
-    Only accessible to regular members (not staff) who are logged in.
+    Now fetches data from the linked gym_Member profile.
     """
-    if not request.user.is_authenticated: # Redundant with @login_required but kept for clarity
-        messages.error(request, 'Please log in to access the member dashboard.')
-        return redirect('landing')
-    
     if request.user.is_staff:
         messages.warning(request, 'Staff members should use the staff dashboard.')
         return redirect('staff_dashboard')
     
+    try:
+        # Fetch the member profile linked to the user
+        member_profile = request.user.gym_member
+    except gym_Member.DoesNotExist:
+        messages.error(request, 'Member profile not found. Please contact support.')
+        logout(request)
+        return redirect('landing')
+
+    # Get data from related models
+    now = timezone.now()
+    check_ins_this_month = Check_In.objects.filter(
+        member=member_profile,
+        check_in_time__month=now.month,
+        check_in_time__year=now.year
+    ).count()
+    
+    total_check_ins = Check_In.objects.filter(member=member_profile).count()
+    
+    # Get last 7 days of activity
+    one_week_ago = now.date() - timezone.timedelta(days=7)
+    weekly_activity = Activity_Log.objects.filter(
+        member=member_profile,
+        activity_date__gte=one_week_ago
+    ).order_by('activity_date')
+
     context = {
         'user': request.user,
-        'first_name': request.user.first_name,
-        'last_name': request.user.last_name,
-        'email': request.user.email,
-        'date_joined': request.user.date_joined.strftime('%m/%d/%Y'),
-        'member_name': request.user.get_full_name(), 
+        'member_profile': member_profile,
+        'days_attended_this_month': check_ins_this_month,
+        'total_check_ins': total_check_ins,
+        'weekly_activity': weekly_activity,
+        'occupancy': OCCUPANCY_TRACKER.objects.first(), # Get the single occupancy record
     }
     return render(request, 'gymapp/dashboard.html', context)
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def account_settings_view(request):
     """
-    Handles both displaying the settings page (GET) and processing all
-    form submissions (POST) for this page.
+    Handles displaying and processing all account settings forms:
+    1. Password Change
+    2. Freeze Request
+    3. Unfreeze Request
+    
+    REWRITTEN to use gym_Member and Account_Request models.
     """
     user = request.user
-    
-    # This variable will hold the name of the modal to open on page load, if any.
+    try:
+        member_profile = user.gym_member
+    except gym_Member.DoesNotExist:
+        messages.error(request, 'Member profile not found.')
+        return redirect('member_dashboard')
+
     modal_to_open = None
     
-    # Initialize forms with unique prefixes for the GET request
+    # Check for an existing pending request
+    pending_request = Account_Request.objects.filter(
+        member=member_profile, 
+        status='PENDING'
+    ).first()
+
+    # Initialize forms
     password_form = PasswordChangeForm(request=request, prefix='pw')
     freeze_form = FreezeRequestForm(prefix='freeze')
     unfreeze_form = UnfreezeRequestForm(prefix='unfreeze')
@@ -204,203 +210,89 @@ def account_settings_view(request):
                 user.save()
                 messages.success(request, 'Password changed successfully.')
                 
+                # Re-authenticate to keep the user logged in
                 updated_user = authenticate(request, email=user.email, password=new_password)
                 if updated_user:
                     login(request, updated_user)
                 
                 return redirect('account_settings')
             else:
-                # If form is invalid, set the flag and prepare to re-render
-                modal_to_open = 'password'
-                #messages.error(request, 'Please fix the password errors below.')
+                modal_to_open = 'password' # Re-open modal on error
 
         elif 'request_freeze' in request.POST:
             freeze_form = FreezeRequestForm(request.POST, prefix='freeze')
             if freeze_form.is_valid():
-                if user.freeze_request_status == 'pending':
-                    messages.info(request, 'Freeze request is already pending.')
+                if member_profile.is_frozen:
+                    messages.info(request, 'Your account is already frozen.')
+                elif pending_request:
+                    messages.info(request, 'You already have a request pending review.')
                 else:
-                    user.freeze_request_status = 'pending'
-                    user.freeze_requested_at = timezone.now()
-                    user.save()
+                    # Create the Account_Request object
+                    Account_Request.objects.create(
+                        member=member_profile,
+                        request_type='FREEZE',
+                        reason=freeze_form.cleaned_data['reason'],
+                        status='PENDING',
+                        request_date=timezone.now()
+                    )
                     messages.success(request, 'Freeze request submitted successfully.')
                 return redirect('account_settings')
             else:
-                # If form is invalid, set the flag and prepare to re-render
-                modal_to_open = 'freeze'
-                messages.error(request, 'Please provide a valid reason for the freeze request.')
+                modal_to_open = 'freeze' # Re-open modal on error
 
         elif 'request_unfreeze' in request.POST:
             unfreeze_form = UnfreezeRequestForm(request.POST, prefix='unfreeze')
             if unfreeze_form.is_valid():
-                if user.unfreeze_request_status == 'pending':
-                    messages.info(request, 'Unfreeze request is already pending.')
+                if not member_profile.is_frozen:
+                     messages.info(request, 'Your account is already active.')
+                elif pending_request:
+                    messages.info(request, 'You already have a request pending review.')
                 else:
-                    user.unfreeze_request_status = 'pending'
-                    user.unfreeze_requested_at = timezone.now()
-                    user.save()
+                    # Create the Account_Request object
+                    Account_Request.objects.create(
+                        member=member_profile,
+                        request_type='UNFREEZE',
+                        reason=unfreeze_form.cleaned_data.get('reason', ''),
+                        status='PENDING',
+                        request_date=timezone.now()
+                    )
                     messages.success(request, 'Unfreeze request submitted successfully.')
                 return redirect('account_settings')
             else:
-                # If form is invalid, set the flag and prepare to re-render
-                modal_to_open = 'unfreeze'
-                messages.error(request, 'There was an error with your unfreeze request.')
+                modal_to_open = 'unfreeze' # Re-open modal on error
 
-    # ====================================================================
-    # This context is used for BOTH the initial GET request AND for re-rendering
-    # the page when a POST request fails validation. It correctly includes
-    # the form instances (which will contain errors if validation failed).
-    # ====================================================================
     context = {
-        'member_name': user.get_full_name(),
+        'user': user,
+        'member_profile': member_profile,
         'password_form': password_form,
         'freeze_form': freeze_form,
         'unfreeze_form': unfreeze_form,
-        'modal_to_open': modal_to_open, # This single variable controls which modal opens
+        'modal_to_open': modal_to_open,
+        'pending_request': pending_request, # Pass pending request to template
+        'is_frozen': member_profile.is_frozen, # Pass frozen status to template
     }
     return render(request, 'gymapp/account_settings.html', context)
 
 
 @login_required
-def staff_dashboard_view(request):
-    """
-    Renders the staff dashboard with dynamic data.
-    Only accessible to staff members who are logged in via Django's auth.
-    """
-    if not request.user.is_authenticated or not request.user.is_staff:
-        messages.error(request, 'You do not have permission to access the staff dashboard.')
-        return redirect('landing')
-
-    # Assuming CustomUser has relevant staff attributes or can be linked to GymStaff
-    # If GymStaff is a separate model with additional fields, fetch them.
-    staff_record = None
-    try:
-        staff_record = GymStaff.objects.get(custom_user=request.user) # Assuming a one-to-one link
-    except GymStaff.DoesNotExist:
-        # Handle cases where a staff CustomUser doesn't have a linked GymStaff profile
-        # Or if GymStaff model is deprecated/not used for direct login.
-        pass
-
-    context = {
-        'staff_id': request.user.id, 
-        'staff_name': request.user.get_full_name(),
-        'staff_email': request.user.email,
-        'staff_phone': staff_record.phone_number if staff_record else 'N/A', # Example
-        # Add other staff-specific data from CustomUser or GymStaff
-    }
-    return render(request, 'gymapp/staff_dashboard.html', context)
-
-def staff_logout_view(request):
-    """
-    Handle staff logout by clearing session data.
-    """
-    # Clear staff session data
-    if 'staff_id' in request.session:
-        del request.session['staff_id']
-    if 'staff_email' in request.session:
-        del request.session['staff_email']
-    if 'staff_name' in request.session:
-        del request.session['staff_name']
-    
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('landing')
-
-def logout_confirm_view(request):
-    return render(request, 'gymapp/logout_confirm.html')
-
-
-def logout_prompt_view(request):
-    return render(request, 'gymapp/logout_prompt.html')
-
-
-def general_logout_view(request):
-    """
-    Handles logging out both members and staff by using Django's built-in logout.
-    """
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('landing')
-
-
-@login_required
-def change_password(request):
-    """Handle member password change."""
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.POST)
-        if form.is_valid():
-            current_password = form.cleaned_data['current_password']
-            if not request.user.check_password(current_password):
-                messages.error(request, 'Current password is incorrect.')
-                return redirect('account_settings')
-
-            new_password = form.cleaned_data['new_password']
-            request.user.set_password(new_password)
-            request.user.save()
-            messages.success(request, 'Password changed successfully.')
-            # Re-authenticate after password change
-            user = authenticate(request, email=request.user.email, password=new_password)
-            if user:
-                login(request, user)
-            return redirect('account_settings')
-        else:
-            #messages.error(request, 'Please fix the errors in the form.')
-            return redirect('account_settings')
-    return redirect('account_settings')
-
-
-@login_required
-def request_account_unfreeze(request):
-    """Allow a member to request account unfreeze."""
-    if request.method == 'POST':
-        user = request.user
-        # Only allow one pending request
-        if user.unfreeze_request_status == 'pending':
-            messages.info(request, 'Unfreeze request is already pending.')
-            return redirect('account_settings')
-
-        from django.utils import timezone
-        user.unfreeze_request_status = 'pending'
-        user.unfreeze_requested_at = timezone.now()
-        user.save()
-        messages.success(request, 'Unfreeze request submitted. We will review it shortly.')
-        return redirect('account_settings')
-    return redirect('account_settings')
-
-
-@login_required
-def request_account_freeze(request):
-    """Allow a member to request account freeze."""
-    if request.method == 'POST':
-        user = request.user
-        # Only allow one pending request
-        if user.freeze_request_status == 'pending':
-            messages.info(request, 'Freeze request is already pending.')
-            return redirect('account_settings')
-
-        from django.utils import timezone
-        user.freeze_request_status = 'pending'
-        user.freeze_requested_at = timezone.now()
-        user.save()
-        messages.success(request, 'Freeze request submitted. We will review it shortly.')
-        return redirect('account_settings')
-    return redirect('account_settings')
-
-@login_required
 @require_http_methods(["GET", "POST"])
 def member_details_view(request):
-    user: CustomUser = request.user  
-    just_updated = False  
+    """
+    Handles viewing and editing the user's *own* profile details.
+    This view remains largely the same, as it edits CustomUser fields.
+    """
+    user: CustomUser = request.user 
+    just_updated = False 
 
     if request.method == 'POST':
-        # Update only editable fields
+        # Update editable fields on the CustomUser model
         user.contact_number = request.POST.get('contact_number', user.contact_number)
         user.fitness_goals = request.POST.get('fitness_goals', user.fitness_goals)
         user.emergency_contact_name = request.POST.get('emergency_contact_name', user.emergency_contact_name)
         user.emergency_contact_number = request.POST.get('emergency_contact_number', user.emergency_contact_number)
-
         user.save()
         messages.success(request, 'Details updated successfully!')
-        just_updated = True  
+        just_updated = True 
 
     context = {
         'user': user,
@@ -415,12 +307,239 @@ def member_details_view(request):
     }
     return render(request, 'gymapp/member_details.html', context)
 
-# Check-in History
 @login_required
 def check_in_view(request):
-    return render(request, 'gymapp/check_in.html')
+    """
+    Fetches and displays the member's check-in history.
+    """
+    try:
+        member_profile = request.user.gym_member
+        check_in_history = Check_In.objects.filter(member=member_profile)
+        
+        # Calculate duration for each check-in
+        history_with_duration = []
+        for check_in in check_in_history:
+            duration = None
+            if check_in.check_out_time:
+                time_diff = check_in.check_out_time - check_in.check_in_time
+                duration = int(time_diff.total_seconds() / 60) # Duration in minutes
+            history_with_duration.append({
+                'check_in': check_in,
+                'duration_minutes': duration
+            })
+            
+        context = {'history': history_with_duration}
+    except gym_Member.DoesNotExist:
+        context = {'history': []}
+        
+    return render(request, 'gymapp/check_in.html', context)
 
-# Billing History
 @login_required
 def billing_history_view(request):
-    return render(request, 'gymapp/billing_history.html')
+    """
+    Fetches and displays the member's billing history.
+    """
+    try:
+        member_profile = request.user.gym_member
+        billing_history = Billing_Record.objects.filter(member=member_profile)
+        context = {
+            'history': billing_history,
+            'current_balance': member_profile.balance
+        }
+    except gym_Member.DoesNotExist:
+        context = {'history': [], 'current_balance': 0}
+        
+    return render(request, 'gymapp/billing_history.html', context)
+
+# --- Staff Dashboard Views (REVISED) ---
+@login_required
+def staff_dashboard_view(request):
+    """
+    Renders the staff dashboard with dynamic data.
+    Now correctly fetches the linked staff profile.
+    """
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('landing')
+
+    try:
+        # Fetch the staff profile
+        staff_profile = request.user.gym_staff
+    except GymStaff.DoesNotExist:
+        messages.error(request, 'Staff profile not found. Please contact admin.')
+        logout(request)
+        return redirect('landing')
+
+    # --- Data for Staff Overview (KPIs) ---
+    now = timezone.now()
+    pending_approvals = Account_Request.objects.filter(status='PENDING').count()
+
+    # We get the list of members first
+    active_members_list = gym_Member.objects.filter(user__is_active=True, is_frozen=False)
+
+    # Then we get the count from that list
+    active_members_count = active_members_list.count()
+
+    todays_revenue = Billing_Record.objects.filter(
+        transaction_type='PAYMENT',
+        timestamp__date=now.date()
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+
+    monthly_revenue = Billing_Record.objects.filter(
+        transaction_type='PAYMENT',
+        timestamp__month=now.month,
+        timestamp__year=now.year
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+
+    mrr = Billing_Record.objects.filter(
+        transaction_type='FEE',
+        timestamp__month=now.month,
+        timestamp__year=now.year
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+
+    # --- NEW LOGIC BLOCK TO ADD ---
+    # This processes the member list for the table
+    member_data = []
+    for member in active_members_list:
+        # Find the LATEST check-in record for this member
+        latest_checkin = member.check_ins.order_by('-check_in_time').first()
+
+        is_checked_in = False
+        last_checkin_time = None
+
+        if latest_checkin:
+            last_checkin_time = latest_checkin.check_in_time
+            # Check if check_out_time is null (meaning they are still inside)
+            if latest_checkin.check_out_time is None:
+                is_checked_in = True
+
+        member_data.append({
+            'member': member,
+            'is_checked_in': is_checked_in,  # True or False
+            'last_checkin_time': last_checkin_time  # The full datetime object or None
+        })
+    # --- END OF NEW LOGIC BLOCK ---
+
+    # Pass both the KPIs and the new member_list to the template
+    context = {
+        'staff_user': request.user,
+        'staff_profile': staff_profile,
+        'pending_approvals': pending_approvals,
+        'active_members': active_members_count,  # For the KPI box
+        'todays_revenue': todays_revenue,
+        'monthly_revenue': monthly_revenue,
+        'mrr': mrr,
+        'notifications': Notification.objects.filter(recipient_staff=staff_profile, is_read=False),
+
+        # --- NEW CONTEXT VARIABLE TO ADD ---
+        'member_list': member_data,  # For the Member Management table
+    }
+    return render(request, 'gymapp/staff_dashboard.html', context)
+
+@login_required
+def class_schedule_view(request):
+    """
+    Fetches and displays the weekly class schedule.
+    """
+    # Fetch all class objects from the database
+    # Order them by day and time, just like in the model's Meta
+    schedule = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
+    
+    context = {
+        'schedule': schedule
+    }
+    return render(request, 'gymapp/class_schedule.html', context)
+
+@login_required
+def check_in_out_view(request):
+    """
+    Handles the backend logic for a staff member manually
+    checking a member in or out.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            action = data.get('action')
+            
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+            tracker = OCCUPANCY_TRACKER.objects.first()  # Get the tracker
+
+            if action == 'checkin':
+                # --- CHECK-IN LOGIC ---
+                # 1. Create a new CheckIn record
+                Check_In.objects.create(
+                    member=member,
+                    check_in_time=timezone.now(),
+                    check_out_time=None  # This is important
+                )
+                
+                # 2. Update the Occupancy Tracker
+                if tracker:
+                    tracker.current_count = F('current_count') + 1
+                    tracker.last_updated = timezone.now()
+                    tracker.save()
+                
+                return JsonResponse({'status': 'success', 'message': 'Member checked in.'})
+
+            elif action == 'checkout':
+                # --- CHECK-OUT LOGIC ---
+                # 1. Find the latest check-in record that is still open
+                latest_checkin = Check_In.objects.filter(
+                    member=member,
+                    check_out_time__isnull=True
+                ).order_by('-check_in_time').first()
+                
+                if latest_checkin:
+                    # 2. Close the record
+                    latest_checkin.check_out_time = timezone.now()
+                    latest_checkin.save()
+                    
+                    # 3. Update the Occupancy Tracker
+                    if tracker and tracker.current_count > 0:
+                        tracker.current_count = F('current_count') - 1
+                        tracker.last_updated = timezone.now()
+                        tracker.save()
+
+                    # 4. (Optional but recommended) Create the Activity_Log record
+                    duration = (latest_checkin.check_out_time - latest_checkin.check_in_time).total_seconds() / 60
+                    Activity_Log.objects.create(
+                        member=member,
+                        activity_date=latest_checkin.check_in_time.date(),
+                        duration_minutes=int(duration)
+                    )
+                    
+                    return JsonResponse({'status': 'success', 'message': 'Member checked out.'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Could not find an open check-in record to close.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+    
+# --- Deprecated / Redundant Views ---
+# The logic from these views has been consolidated into 'account_settings_view'
+# and 'general_logout_view'. They can be safely removed from urls.py.
+
+# def staff_logout_view(request):
+#     ... (Redundant)
+
+# def logout_confirm_view(request):
+#     ... (Template can be used by general_logout_view if needed)
+
+# def logout_prompt_view(request):
+#     ... (Template can be used by general_logout_view if needed)
+
+# def change_password(request):
+#     ... (Logic moved to account_settings_view)
+
+# def request_account_unfreeze(request):
+#     ... (Logic moved to account_settings_view)
+
+# def request_account_freeze(request):
+#     ... (Logic moved to account_settings_view)
