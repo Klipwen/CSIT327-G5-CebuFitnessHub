@@ -96,7 +96,13 @@
          <div id="modalChangePassword" class="modal" aria-hidden="true">
             <div class="modal-content modal-content--enhanced">
                 <button class="modal-close-icon" data-close>&times;</button>
-                <div class="modal-brand-header"><!-- ... brand header ... --></div>
+                <div class="modal-brand-header">
+                    <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+                    <div class="modal-brand-header__text">
+                        <div class="modal-brand-header__line-1">CEBU</div>
+                        <div class="modal-brand-header__line-2">FITNESS HUB</div>
+                    </div>
+                </div>
                 <h3 class="modal-title--enhanced">Change <span class="modal-title-highlight">Password</span></h3>
                 <div class="modal-body--enhanced">
                     <form method="post" action="{% url 'account_settings' %}" class="modal-form--enhanced">
