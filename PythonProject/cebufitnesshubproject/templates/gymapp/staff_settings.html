@@ -1,0 +1,198 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cebu Fitness Hub • Staff Settings</title>
+  <link rel="stylesheet" href="{% static 'gymapp/css/staff_settings.css' %}">
+</head>
+<body>
+  {% csrf_token %}
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+        <div class="cebu-reg">CEBU</div>
+        <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
+        </span>
+        <span class="user-name">Test Staff</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-bg-fix"></div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="sidebar-title">STAFF DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="{% url 'staff_dashboard' %}" class="nav-item">Overview</a>
+        <a href="#approvals" class="nav-item">Approval Queue</a>
+        <a href="#members" class="nav-item">Member Management</a>
+        <a href="#revenue" class="nav-item">Revenue Tracker</a>
+        <a href="#notifications" class="nav-item">Notifications</a>
+        <a href="#settings" class="nav-item active">Settings</a>
+        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <!-- Main Content Area -->
+        <div id="settings-page-wrapper">
+
+        <!-- ================= HEADER SECTION ================= -->
+        <section id="overview" class="header-section">
+            <div class="welcome-left">
+            <h2 class="welcome-text">
+                Welcome back,<br> Naruto Uzumaki!
+            </h2>
+            </div>
+
+            <div class="overview-right">
+            <h1 class="overview-title">SETTINGS</h1>
+            <p class="subtext">
+                Manage the gym's global rules, pricing, and facility details.
+            </p>
+            </div>
+        </section>
+
+        <!-- ================= GYM INFO SECTION ================= -->
+        <section class="content-box" id="gym-info-section">
+            <div class="settings-header">
+            <img 
+                src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" 
+                alt="Cebu Fitness Hub" 
+                class="settings-gym-logo"
+            >
+            
+            <div class="settings-gym-details">
+                <div class="settings-gym-name">
+                    <span class="settings-gym-name--green">CEBU</span>
+                    FITNESS HUB
+                </div>
+                <div class="settings-gym-address">
+                5th Floor, 8 Banawa Centrale, R. Duterte Street, Cebu City
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button type="button" class="settings-btn btn-edit-mode" id="btn-edit-settings">Edit</button>
+                <button type="button" class="settings-btn btn-cancel-mode" id="btn-cancel-settings">Cancel</button>
+                <button type="button" class="settings-btn btn-save-mode" id="btn-save-settings">Save</button>
+            </div>
+            </div>
+        </section>
+
+        <!-- ================= MAIN SETTINGS SECTION ================= -->
+        <section class="content-box" id="main-settings">
+            <form id="gym-settings-form">
+            
+            <!-- Contact and Fee Info -->
+            <div class="settings-grid settings-grid-2col">
+                <div class="form-group">
+                    <label for="contact-number">Contact Number</label>
+                    <p class="form-view-field">+63 917 132 9601</p>
+                    <input 
+                    type="tel" 
+                    class="form-edit-field" 
+                    id="contact-number" 
+                    value="+63 917 132 9601"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="default-fee">Default Monthly Fee</label>
+                    <div class="input-with-symbol">
+                    <span class="currency-symbol">₱</span>
+                    <p class="form-view-field">2000.00</p>
+                    <input 
+                        type="text" 
+                        class="form-edit-field" 
+                        id="default-fee" 
+                        value="2000.00"
+                        inputmode="decimal"
+                    >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facility Management -->
+            <div class="box-header">
+                <h2 class="box-title">Facility Management</h2>
+                <div class="title-divider"></div>
+            </div>
+
+            <div class="settings-grid settings-grid-3col">
+                <!-- Gym Capacity -->
+                <div class="form-group">
+                    <label for="gym-capacity">Gym Capacity Limit</label>
+                    <div class="input-with-unit">
+                        <span class="input-unit">People:</span>
+                        <p class="form-view-field">120</p>
+                        <input 
+                            type="text" 
+                            class="form-edit-field" 
+                            id="gym-capacity" 
+                            value="120" 
+                            inputmode="numeric"
+                        >
+                    </div>
+                </div>
+
+                <!-- Peak Hours Start -->
+                <div class="form-group custom-select-wrapper" id="time-select-start">
+                    <label for="peak-start-trigger">Peak Hours Start</label>
+                    <p class="form-view-field">8:00 AM</p>
+                    <button 
+                        type="button" 
+                        class="form-edit-field custom-select-trigger" 
+                        id="peak-start-trigger" 
+                        aria-haspopup="true" 
+                        aria-expanded="false"
+                    >
+                        <span class="custom-select-label">8:00 AM</span>
+                        <span class="custom-select-arrow">▼</span>
+                    </button>
+                    <div class="custom-select-panel" role="menu">
+                        <div class="dropdown-actions"></div>
+                    </div>
+                </div>
+
+                <!-- Peak Hours End -->
+                <div class="form-group custom-select-wrapper" id="time-select-end">
+                    <label for="peak-end-trigger">Peak Hours End</label>
+                    <p class="form-view-field">8:00 PM</p>
+                    <button 
+                        type="button" 
+                        class="form-edit-field custom-select-trigger" 
+                        id="peak-end-trigger" 
+                        aria-haspopup="true" 
+                        aria-expanded="false"
+                    >
+                        <span class="custom-select-label">8:00 PM</span>
+                        <span class="custom-select-arrow">▼</span>
+                    </button>
+                    <div class="custom-select-panel" role="menu">
+                        <div class="dropdown-actions"></div>
+                    </div>
+                </div>
+            </div>
+            <!--End-->
+            </form>
+        </section>
+
+        </div>
+        <!-- End of Main Content Area -->
+    </main>
+  </div>
+
+  <script defer src="{% static 'gymapp/js/staff_settings.js' %}"></script>
+</body>
+</html>
