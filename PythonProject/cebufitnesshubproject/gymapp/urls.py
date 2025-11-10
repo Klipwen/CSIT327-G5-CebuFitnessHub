@@ -28,6 +28,7 @@ from .views import (
     # We must add the new ClassSchedule view
     class_schedule_view, 
     check_in_out_view,
+    staff_settings_view,
 )
 
 urlpatterns = [
@@ -50,6 +51,7 @@ urlpatterns = [
     path('staff_dashboard/', staff_dashboard_view, name='staff_dashboard'),
 
     path('staff/check-in-out/', check_in_out_view, name='check_in_out_view'),
+    path('staff/settings/', staff_settings_view, name='staff_settings'),
     
     # --- These paths are no longer needed ---
     # They all point to views that have been consolidated.
