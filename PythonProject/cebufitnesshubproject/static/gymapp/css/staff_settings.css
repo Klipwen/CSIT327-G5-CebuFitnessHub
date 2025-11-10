@@ -1,0 +1,634 @@
+@import url('https://fonts.googleapis.com/css2?family=Quattrocento+Sans:wght@400;700&display=swap');
+
+:root {
+  --green: #6BCB3D;
+  --dark: #000000;
+  --light-bg: #F5F5F5;
+  --text-dark: #1a1a1a;
+  --text-muted: #666666;
+  --card-bg: #f5f5f5;
+  --white: #ffffff;
+  --sidebar-width: 260px;
+  --header-height: 80px;
+  --sidebar-color: #3a3a3a;
+  --border: #e6e6e6;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f1c40f;
+  --neutral: #7f8c8d;
+  --dropdown-bg: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--white);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.site-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 16px 40px;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.site-header .navbar ul {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+}
+
+.site-header .navbar a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.site-header .navbar a:hover {
+  color: var(--green);
+}
+
+.user-info {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand .logo {
+  width: 50px;
+  height: 50px;
+}
+
+.logo-text .cebu-reg {
+  color: #7fb33e;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: -10px;
+}
+
+.logo-text .fitness-hub-reg {
+  color: #888;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.sidebar-bg-fix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: var(--header-height);
+  background: var(--sidebar-color);
+  z-index: 99;
+}
+
+.layout {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--light-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  background: var(--sidebar-color);
+  color: var(--white);
+  padding: 20px 16px;
+  position: fixed;
+  left: 0;
+  top: var(--header-height);
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  color: #e6e6e6;
+  flex-shrink: 0;
+}
+
+.side-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-nav .nav-item {
+  display: block;
+  padding: 10px 12px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: background 0.2s, color 0.2s;
+  position: relative;
+  padding-left: 16px;
+}
+
+.side-nav .nav-item:hover {
+  background: #1e1e1e;
+  color: #fff;
+}
+
+.side-nav .nav-item.active {
+  background: #b9fe81e8;
+  color: #000;
+}
+
+.side-nav .nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  background: #43d300;
+  border-radius: 3px;
+}
+
+.main {
+  padding: 16px 28px;
+  background: var(--light-bg);
+}
+
+/*====================================================================================================*/
+/*TEMPLATE*/
+/*====================================================================================================*/
+
+
+/* ====================================================================
+   STAFF SETTINGS PAGE STYLES (FIXED)
+   ==================================================================== */
+
+/* --------------------------------------------------------------------
+   FIX (Minor 1 & 2): Copied missing base styles from staff_dashboard.css
+   Adds page header layout, spacing, and title styles.
+-------------------------------------------------------------------- */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.welcome-text {
+  font-size: 36px;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+}
+
+.overview-right {
+  text-align: right;
+}
+
+.overview-title {
+  font-size: 68px;
+  font-weight: 800;
+  color: #eaeaea; /* Light grey, as requested */
+  letter-spacing: 3px;
+  /* 1. Reduces bottom space (was 8px) */
+  margin-bottom: 4px; 
+  margin-top: 5px;
+ 
+  /* 2. Reduces top space by tightening the text's line height */
+  line-height: 1.1;
+}
+
+.subtext {
+  color: #555;
+  font-size: 14px;
+  margin: 0;
+}
+
+.content-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px; /* Fixes cramped spacing (Minor 2) */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.box-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.box-title {
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.title-divider {
+  flex-grow: 1;
+  border-bottom: 1px solid #ddd;
+  height: 1px;
+}
+/* --- End of copied base styles --- */
+
+
+/* ====================================================================
+   1. GYM INFO HEADER
+   ==================================================================== */
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap; /* Added for better responsive handling */
+}
+
+.settings-gym-logo {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.settings-gym-details {
+  flex-grow: 1; /* Ensures it takes up the middle space */
+}
+
+.settings-gym-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #515151;
+}
+
+.settings-gym-address {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.settings-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto; /* FIX (Major 1): Pushes buttons to the far right */
+}
+
+
+/* ====================================================================
+   2. SETTINGS BUTTONS
+   ==================================================================== */
+.settings-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-edit-mode,
+.btn-save-mode {
+  background-color: #7CC013;
+}
+
+.btn-edit-mode:hover,
+.btn-save-mode:hover {
+  background-color: #6ba010;
+}
+
+.btn-cancel-mode {
+  background-color: #FF3838;
+}
+
+.btn-cancel-mode:hover {
+  background-color: #e02b2b;
+}
+
+
+/* ====================================================================
+   3. SETTINGS FORM GRID
+   ==================================================================== */
+.settings-grid {
+  display: grid;
+  gap: 16px 20px;
+  margin-top: 0px;
+  margin-bottom: 15px;
+}
+
+.settings-grid-2col {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* FIX (Major 3): Ensured 3-column grid */
+.settings-grid-3col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+
+/* ====================================================================
+   4. FORM GROUPS & FIELDS
+   ==================================================================== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.form-view-field,
+.form-edit-field {
+  width: 90%;
+  padding: 10px 12px;
+  border: 1px solid var(--dark);
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.form-view-field {
+  background-color: #fff;
+  color: #000;
+  min-height: 40px;
+  line-height: 1.5;
+}
+
+.form-edit-field {
+  color: var(--text-dark);
+  background-color: var(--white);
+}
+
+.form-edit-field:focus {
+  outline: none;
+  border-color: #7CC013;
+  box-shadow: 0 0 0 3px rgba(124, 192, 19, 0.3);
+}
+
+
+/* ====================================================================
+   5. CURRENCY SYMBOL STYLES
+   ==================================================================== */
+
+/* Wrapper for positioning */
+.input-with-symbol {
+  position: relative;
+}
+
+/* The '₱' symbol */
+.input-with-symbol .currency-symbol {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px; /* Matches your .form-edit-field padding */
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none; /* Lets you click through it */
+  transition: color 0.2s;
+
+  /* Black by default (View Mode) */
+  color: #000000;
+}
+
+/* Add padding to the fields to make space for the symbol */
+.input-with-symbol .form-view-field,
+.input-with-symbol .form-edit-field {
+  padding-left: 30px; /* 12px original padding + 18px for symbol */
+}
+
+/* State Toggling: Change symbol color in Edit Mode */
+#settings-page-wrapper.is-editing .input-with-symbol .currency-symbol {
+  color: #FF3838; /* Red in Edit Mode */
+}
+
+/* ====================================================================
+   6. INPUT WITH UNIT SUFFIX (e.g., "People") [CORRECTED]
+   ==================================================================== */
+
+/* Wrapper for positioning */
+.input-with-unit {
+  position: relative;
+}
+
+/* The "People" unit */
+.input-with-unit .input-unit {
+  position: absolute;
+  top: 50%;
+  left: 12px; /* CHANGED: Was 'right' */
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+  transition: color 0.2s;
+
+  /* View Mode: Black */
+  color: #000000;
+}
+
+/* Add padding to the fields to make space for the unit */
+.input-with-unit .form-view-field,
+.input-with-unit .form-edit-field {
+  /* CHANGED: Was 'padding-right' */
+  padding-left: 70px !important; /* Adjust "70px" as needed */
+}
+
+/* State Toggling: Change unit color in Edit Mode */
+#settings-page-wrapper.is-editing .input-with-unit .input-unit {
+  color: #636363; /* Edit Mode: Gray */
+}
+
+
+
+/* ====================================================================
+   STATE TOGGLING LOGIC (FIXED)
+   ==================================================================== */
+/* FIX (Major 2): Corrected CSS selectors.
+   The :not() selector is now correctly placed on the wrapper. */
+
+/* In VIEW mode (default), hide Edit buttons and Edit fields */
+#settings-page-wrapper:not(.is-editing) .btn-cancel-mode,
+#settings-page-wrapper:not(.is-editing) .btn-save-mode,
+#settings-page-wrapper:not(.is-editing) .form-edit-field{
+  display: none;
+}
+
+/* In EDIT mode, hide the Edit button and View fields */
+#settings-page-wrapper.is-editing .btn-edit-mode,
+#settings-page-wrapper.is-editing .form-view-field {
+  display: none;
+}
+/* --- End of state-toggling fix --- */
+
+/* --- FIX: --- */
+/* This ensures the custom trigger button *IS* visible in edit mode */
+#settings-page-wrapper.is-editing .custom-select-trigger.form-edit-field {
+  display: flex;
+}
+
+
+/* ====================================================================
+   RESPONSIVE STYLES
+   ==================================================================== */
+@media (max-width: 900px) {
+  /* On smaller screens, stack all grid items */
+  .settings-grid-2col,
+  .settings-grid-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Fix layout for the gym info header on mobile */
+  .settings-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-left: 0; /* Reset margin */
+  }
+
+  .settings-actions .btn-edit-mode {
+    grid-column: 1 / -1; /* Make Edit button full-width */
+  }
+}
+
+.settings-gym-name--green {
+    color: #7CC013;
+}
+
+
+/* ====================================================================
+   CUSTOM TIME-PICKER DROPDOWN STYLES
+   ==================================================================== */
+
+/* 1. Wrapper: Needed for positioning the panel */
+.custom-select-wrapper {
+  position: relative;
+}
+
+/* 2. Trigger Button: The field the user clicks */
+.custom-select-trigger {
+  /* This overrides display:none in edit mode */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.custom-select-trigger .custom-select-label {
+  flex-grow: 1;
+}
+
+.custom-select-trigger .custom-select-arrow {
+  font-size: 12px;
+  color: #333;
+  transition: transform 0.2s ease-in-out; /* Smooth rotation */
+}
+
+/* This rule rotates the arrow when the dropdown is open */
+.custom-select-wrapper.is-open .custom-select-trigger .custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+/* 3. Panel: The dropdown menu that appears */
+.custom-select-panel {
+  display: none; /* Hidden by default */
+  position: absolute;
+  top: 100%; /* --- Always appears below the button --- */
+  left: 0;
+  /* right: 0;  <-- REMOVE THIS */
+  width: 95%; /* <-- ADD THIS */
+  background: var(--dropdown-bg, #fff);
+  border: 1px solid var(--border, #e6e6e6);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+
+  /* --- Controls the menu height --- */
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* 4. Show/Hide: JS toggles this class */
+.custom-select-wrapper.is-open .custom-select-panel {
+  display: block;
+}
+
+/* ====================================================================
+   REUSED STYLES (from member filter)
+   ==================================================================== */
+
+/* 5. Actions List: Wrapper for the buttons */
+.custom-select-panel .dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 4px; /* A little padding inside the scrollable area */
+  gap: 4px;
+}
+
+/* 6. Option Buttons: The individual time (e.g., "8:00 AM") */
+.custom-select-panel .dropdown-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: "Quattrocento Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px; /* Smaller font for more options */
+  color: #FFFFFF;
+  text-align: left; /* Aligns time to the left */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* 7. Button Colors (reusing your existing style) */
+.custom-select-panel .dropdown-btn.btn-positive {
+  background-color: #7CC013;
+}
+.custom-select-panel .dropdown-btn.btn-positive:hover {
+  background-color: #6ba010;
+}
+
+/* 8. Active/Selected state for the time */
+.custom-select-panel .dropdown-btn.is-selected-time {
+  background-color: #3a3a3a; /* Dark background for selected */
+  font-weight: 700;
+}
