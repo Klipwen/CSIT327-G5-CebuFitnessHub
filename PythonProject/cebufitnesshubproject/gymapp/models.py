@@ -284,16 +284,23 @@ class ClassSchedule(models.Model):
 
 class OCCUPANCY_TRACKER(models.Model):
     """
-    NEW MODEL
-    Standalone table for tracking live gym occupancy.
+    Standalone table for tracking live gym occupancy and global settings.
     This table will likely only ever have one row.
     """
     occupancy_id = models.AutoField(primary_key=True)
     current_count = models.IntegerField(default=0)
-    capacity_limit = models.IntegerField()
-    peak_hours_start = models.TimeField()
-    peak_hours_end = models.TimeField()
+    capacity_limit = models.IntegerField(default=100) # Added default
+    peak_hours_start = models.TimeField(default='08:00') # Added default
+    peak_hours_end = models.TimeField(default='20:00') # Added default
     last_updated = models.DateTimeField(default=timezone.now)
+
+    # --- ADD THESE NEW FIELDS ---
+    gym_name = models.CharField(max_length=100, default='Cebu Fitness Hub')
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    contact_address = models.CharField(max_length=255, blank=True, null=True)
+    default_monthly_fee = models.DecimalField(max_digits=10, decimal_places=2, default=2000.00)
+    member_id_prefix = models.CharField(max_length=5, default='CFH')
+    # --- END OF NEW FIELDS ---
 
     class Meta:
         verbose_name = 'Occupancy Tracker'
