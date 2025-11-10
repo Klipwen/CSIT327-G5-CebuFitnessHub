@@ -521,6 +521,61 @@ def check_in_out_view(request):
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 
+
+
+@login_required
+@require_http_methods(["GET", "POST"]) # This view handles both
+def staff_settings_view(request):
+    """
+    Handles loading and saving the global gym settings.
+    """
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('landing')
+
+    # Get the one and only settings object.
+    # .get_or_create() ensures it exists on the first run.
+    # We use 'pk=1' to always get the same row.
+    settings, created = OCCUPANCY_TRACKER.objects.get_or_create(
+        pk=1,
+        defaults={
+            'capacity_limit': 120,
+            'peak_hours_start': '08:00',
+            'peak_hours_end': '20:00',
+            'default_monthly_fee': 2000.00,
+            'gym_name': 'Cebu Fitness Hub',
+            'contact_number': '+63 917 123 4567',
+            'contact_address': '5th Floor, 8 Banawa Centrale, R. Duterte Street, Cebu City'
+        }
+    )
+
+    # --- HANDLE POST REQUEST (from JavaScript fetch) ---
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Update all fields from the data sent by the JS
+            settings.contact_number = data.get('contact_number')
+            settings.default_monthly_fee = data.get('default_fee')
+            settings.capacity_limit = data.get('gym_capacity')
+            settings.peak_hours_start = data.get('peak_start')
+            settings.peak_hours_end = data.get('peak_end')
+            
+            # You can also save gym_name and contact_address if you add them to your form
+            
+            settings.save()
+            return JsonResponse({'status': 'success', 'message': 'Settings saved successfully!'})
+            
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    # --- HANDLE GET REQUEST (Normal page load) ---
+    context = {
+        'settings': settings,
+        'staff_user': request.user # For the header/sidebar
+    }
+    return render(request, 'gymapp/staff_settings.html', context)
+
     
 # --- Deprecated / Redundant Views ---
 # The logic from these views has been consolidated into 'account_settings_view'
