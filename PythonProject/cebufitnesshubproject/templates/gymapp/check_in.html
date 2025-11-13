@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Check-in - Cebu Fitness Hub</title>
   
-  <!-- FIX: Changed path from 'firstapp' to 'gymapp' to match your app name -->
   <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'gymapp/css/check_in.css' %}">
 </head>
@@ -29,7 +28,7 @@
       </div>
       <nav class="navbar">
         <ul>
-          <li><a href="#">Homepage</a></li>
+          <li><a href="{% url 'member_dashboard' %}">Homepage</a></li>
           <li><a href="#">Schedule</a></li>
           <li><a href="#">Occupancy</a></li>
         </ul>
@@ -45,16 +44,15 @@
         <a href="{% url 'member_dashboard' %}" class="nav-item">Home / Overview</a>
         <a href="{% url 'member_details' %}" class="nav-item">My Details</a>
         
-        <!-- FIX: Added 'active' class here for the current page -->
         <a href="{% url 'check_in' %}" class="nav-item active">Check-in History</a>
 
         <a href="{% url 'billing_history' %}" class="nav-item">Billing History</a>
         <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
-        <a href="#Logout" class="nav-item">Logout</a>
+        
+        <a href="{% url 'logout' %}" class="nav-item" id="logoutBtn">Logout</a>
       </nav>
     </aside>
     <main class="main-content">
-      <!-- Main Content: Attendance History -->
       <section class="attendance">
         <h2 class="attendance__title">Attendance History</h2>
 
@@ -69,51 +67,37 @@
               </tr>
             </thead>
             
-            <!-- ====================================================================
-                API INTEGRATION PLACEHOLDER
-                Backend data from Django views or a frontend API fetch
-                will populate the rows inside this tbody element.
-                ==================================================================== -->
             <tbody id="attendance-data" class="attendance__table-body">
               
-              <!-- Placeholder Row 1 -->
+              {% for item in history %}
               <tr class="attendance__row">
-                <td class="attendance__cell" data-label="Date">Monday, Oct 27, 2025</td>
-                <td class="attendance__cell" data-label="Check-In">06:15 AM</td>
-                <td class="attendance__cell" data-label="Check-Out">07:45 AM</td>
-                <td class="attendance__cell" data-label="Duration">1 hr 30 mins</td>
+                <td class="attendance__cell" data-label="Date">{{ item.check_in.check_in_time|date:"l, M d, Y" }}</td>
+                
+                <td class="attendance__cell" data-label="Check-In">{{ item.check_in.check_in_time|time:"g:i A" }}</td>
+
+                {% if item.check_in.check_out_time %}
+                  <td class="attendance__cell" data-label="Check-Out">{{ item.check_in.check_out_time|time:"g:i A" }}</td>
+                  <td class="attendance__cell" data-label="Duration">{{ item.duration_minutes }} mins</td>
+                {% else %}
+                  <td class="attendance__cell attendance__cell--status" data-label="Check-Out">Checked In</td>
+                  <td class="attendance__cell attendance__cell--status" data-label="Duration">--</td>
+                {% endif %}
               </tr>
 
-              <!-- Placeholder Row 2 -->
+              {% empty %}
               <tr class="attendance__row">
-                <td class="attendance__cell" data-label="Date">Saturday, Oct 25, 2025</td>
-                <td class="attendance__cell" data-label="Check-In">10:00 AM</td>
-                <td class="attendance__cell" data-label="Check-Out">12:30 PM</td>
-                <td class="attendance__cell" data-label="Duration">2 hrs 30 mins</td>
+                <td class="attendance__cell" colspan="4" style="text-align: center;">You have no check-in history yet.</td>
               </tr>
-              
-              <!-- Placeholder Row 3 -->
-              <tr class="attendance__row">
-                <td class="attendance__cell" data-label="Date">Wednesday, Oct 22, 2025</td>
-                <td class="attendance__cell" data-label="Check-In">08:30 AM</td>
-                <td class="attendance__cell" data-label="Check-Out">09:45 AM</td>
-                <td class="attendance__cell" data-label="Duration">1 hr 15 mins</td>
-              </tr>
-              
-              <!-- Placeholder Row 4 (Checked In Status) -->
-              <tr class="attendance__row">
-                <td class="attendance__cell" data-label="Date">Monday, Oct 20, 2025</td>
-                <td class="attendance__cell" data-label="Check-In">06:05 PM</td>
-                <td class="attendance__cell attendance__cell--status" data-label="Check-Out">Checked In</td>
-                <td class="attendance__cell attendance__cell--status" data-label="Duration">Checked In</td>
-              </tr>
+              {% endfor %}
               
             </tbody>
-          </table>
+            </table>
         </div>
       </section>
-      <!-- End of Main Content -->
-    </main>
+      </main>
+  </div>
+  
+  <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
 
 </body>
 </html>
