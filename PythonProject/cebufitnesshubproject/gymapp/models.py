@@ -101,11 +101,16 @@ class gym_Member(models.Model):
     )
     # ERD Fields
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    monthly_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     next_due_date = models.DateField(null=True, blank=True)
     
     # This field will be controlled by staff via Account_Request logic
     is_frozen = models.BooleanField(default=False)
+
+    # Stores the remaining days of the plan when frozen
+    days_remaining_on_freeze = models.IntegerField(null=True, blank=True)
+    # --- END OF NEW FIELD ---
+
+    membership_id = models.CharField(max_length=20, unique=True, null=True, blank=True, help_text="e.g., CFH-2025-0001")
 
     class Meta:
         verbose_name = 'Gym Member Profile'
@@ -189,7 +194,6 @@ class Billing_Record(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(default=timezone.now)
     description = models.CharField(max_length=255, blank=True, null=True)
-    new_balance = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         ordering = ['-timestamp']
@@ -243,6 +247,8 @@ class Notification(models.Model):
     notification_type = models.CharField(max_length=50) # e.g., 'NEW_REQUEST', 'PAYMENT_DUE'
     timestamp = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
+
+    redirect_url = models.CharField(max_length=255, blank=True, null=True, help_text="URL to redirect to on click")
 
     class Meta:
         ordering = ['-timestamp']
