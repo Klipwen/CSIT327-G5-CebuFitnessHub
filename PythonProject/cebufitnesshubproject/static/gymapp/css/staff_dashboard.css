@@ -431,8 +431,11 @@ body {
   font-size: 14px;
 }
 
-/* Revenue grid */
-.revenue-grid {
+/*========================= 
+Revenue grid 
+KPIs
+====================*/
+.revenue-grid { 
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 16px;
@@ -440,15 +443,60 @@ body {
 
 .revenue-cards {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr; /* <-- FIX: This creates 1 column (rows) */
+  gap: 16px;
+  /* margin-bottom: 20px; (This is no longer needed) */
 }
 
 .mini-card {
-  background: #f7f7f7;
-  border: 1px solid #eee;
+  background: #FFFFFF;
+  border: 1px solid #e6e6e6;
   border-radius: 12px;
-  padding: 14px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  
+  /* This layout is correct: */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Pushes header up, value down */
+
+  /* --- ADD THIS --- */
+  /* Give the card a minimum height so the elements can separate */
+  min-height: 120px;
+}
+
+/* 2. The Header (Icon + Label) */
+.mini-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /*margin-bottom: 12px;  Space between header and value */
+}
+
+.mini-card-icon {
+  color: var(--text-muted, #666);
+  flex-shrink: 0;
+  display: inline-flex;
+} 
+
+.mini-card-label {
+  /* As you suggested: UPPERCASE and muted */
+  font-size: 12px;      /* 1. De-emphasize: Smaller */
+  font-weight: 700;
+  color: var(--text-muted, #666); /* 2. De-emphasize: Lighter color */
+  text-transform: uppercase;     /* 3. De-emphasize: Uppercase */
+  letter-spacing: 0.5px;  
+}
+
+/* 3. The Value (Large and bold) */
+.mini-card-value {
+  /* --- THIS IS THE HIERARCHY FIX --- */
+  font-size: 32px;      /* 1. Emphasize: Huge */
+  font-weight: 700;
+  color: var(--text-dark, #1a1a1a);
+  line-height: 1.2;
+  text-align: center;  
+  margin-bottom: 20px;
 }
 
 .mini-label {
@@ -462,15 +510,78 @@ body {
   font-weight: 700;
 }
 
-.revenue-chart {
-  background: #fafafa;
-  border: 1px dashed #ddd;
+/* ===================================
+   NEW REVENUE CHART WIDGET STYLES
+   =================================== */
+
+/* 1. The main card container */
+.revenue-chart-widget {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
   border-radius: 12px;
-  min-height: 220px;
-  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
+  /* This ensures the widget stacks cleanly and fixes the z-index overlap */
   display: flex;
+  flex-direction: column;
+  position: relative; /* Stacking context */
+  z-index: 1;
+}
+
+/* 2. The new header (for title and slicer) */
+.widget-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.widget-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  margin-left: 12px;
+}
+
+/* 3. The slicer buttons (re-uses your existing style) */
+.chart-filters {
+  display: flex;
+  gap: 8px;
+  /* margin-bottom: 0; (removed from old style) */
+}
+
+.widget-header .chart-filter-btn {
+  border: 1px solid #7CC013;
+  background-color: #ffffff;
+  color: #7CC013;
+  border-radius: 8px;
+  padding: 6.5px 16.5px;
+  margin-top: 12px;
+  font-size: 16.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chart-filter-btn.active {
+  background-color: #7CC013;
+  color: #ffffff;
+}
+.chart-filter-btn:hover:not(.active) {
+  background-color: #f5f5f5;
+}
+
+/* 4. The chart content area */
+.widget-content {
+  padding: 20px;
+}
+
+/* 5. The chart canvas container (FIXES THE EXPANDING BUG) */
+.chart-canvas-container {
+  position: relative;
+  height: 320px; /* Set a fixed height */
+  width: 100%;
 }
 
 .chart-placeholder {
@@ -478,46 +589,105 @@ body {
   font-size: 14px;
 }
 
-/* Notifications */
+/* ===================================
+   NEW NOTIFICATION STYLES
+   (Delete your old .notif-list, .notif-item, .dot, .time styles)
+   =================================== */
+
+/* The main <ul> list */
 .notif-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px; /* Space between notification chips */
 }
 
+/* The <li>, styled as a "chip" */
 .notif-item {
+  border-radius: 8px;
+  background: #fff;
+  border-left: 4px solid var(--neutral, #7f8c8d); /* Default border color */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden; /* Ensures <a> tag fills the border-radius */
+}
+
+/* 1. Clickable Chip Behavior (Critique 2 & 3) */
+.notif-link {
   display: flex;
+  justify-content: space-between; /* This is the fix for alignment */
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #f8f8f8;
-  border-radius: 10px;
+  padding: 12px 16px;
+  
+  /* --- Fixes all link styling --- */
+  text-decoration: none;
+  color: var(--text-dark, #1a1a1a);
+  cursor: pointer;
+  gap: 16px; /* Space between message and time */
 }
 
-.notif-item .time {
-  margin-left: auto;
-  color: #888;
-  font-size: 12px;
+.notif-item:hover {
+  background-color: #f7f7f7; /* Hover effect */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
+/* 2. Text Hierarchy (Critique 1) */
+.notif-content {
+  flex-grow: 1; /* Allows message to take up space */
 }
 
-.dot.success {
-  background: var(--success);
+.notif-prefix {
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dark, #1a1a1a);
+  font-size: 0.9rem;
+  margin-right: 6px;
 }
 
-.dot.warning {
-  background: var(--warning);
+.notif-message {
+  font-weight: 400;
+  color: var(--text-muted, #666);
 }
 
-.dot.neutral {
-  background: var(--neutral);
+/* 3. Timestamp Alignment (Critique 4) */
+.notif-time {
+  color: #999;
+  font-size: 0.85rem;
+  text-align: right;
+  white-space: nowrap; /* Prevents "5 minutes" from wrapping */
+  flex-shrink: 0; /* Prevents timestamp from shrinking */
+}
+
+/* 4. Background Colors (Critique 5) */
+.notif-item--warning {
+  background-color: #fffbf2; /* Light yellow */
+  border-left-color: var(--warning, #f1c40f);
+}
+.notif-item--warning .notif-prefix {
+  color: #c89c0a;
+}
+
+.notif-item--success {
+  background-color: #f2fcf5; /* Light green */
+  border-left-color: var(--success, #27ae60);
+}
+.notif-item--success .notif-prefix {
+  color: #20864a;
+}
+
+/* This is the logic from the previous step (fades out read items) */
+.notif-item.is-read {
+  opacity: 0.6;
+  background-color: #f9f9f9;
+  border-left-color: var(--neutral, #7f8c8d);
+}
+
+.notif-item.is-read:hover {
+  opacity: 1; /* Bring back to full opacity on hover */
+  background-color: #f0f0f0;
 }
 
 /* Logout Modal */
@@ -1632,3 +1802,36 @@ body {
     }
   }
 
+/* ===================================
+   CHART FILTER BUTTON STYLES
+   =================================== */
+   .chart-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    justify-content: flex-end; /* Aligns buttons to the right */
+  }
+  
+  .chart-filter-btn {
+    /* This copies your existing button style */
+    border: 1px solid #7CC013; /* Green border */
+    background-color: #ffffff;  /* White background */
+    color: #7CC013;           /* Green text */
+    border-radius: 8px;
+    padding: 5px 15px; /* Smaller padding for a filter button */
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  /* This is the style for the selected button */
+  .chart-filter-btn.active {
+    background-color: #7CC013; /* Solid green */
+    color: #ffffff;           /* White text */
+  }
+  
+  /* This adds a simple hover effect */
+  .chart-filter-btn:hover:not(.active) {
+    background-color: #f5f5f5; /* Light gray background on hover */
+  }
