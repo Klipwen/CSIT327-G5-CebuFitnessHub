@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('click', (event) => {
         if (event.target === modal) {
-            close();
+            window.location.href = '/'; // This redirects the user back to the landing page
         }
     });
 
