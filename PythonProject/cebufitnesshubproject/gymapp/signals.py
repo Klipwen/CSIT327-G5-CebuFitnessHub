@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
-from .models import CustomUser, gym_Member, GymStaff
+from .models import CustomUser, gym_Member, GymStaff, Account_Request, Notification
+from django.urls import reverse
 
 # Use settings.AUTH_USER_MODEL to refer to your CustomUser
 # This is safer than importing CustomUser directly
@@ -41,3 +42,32 @@ def save_user_profile(sender, instance, **kwargs):
         # We re-run the creation logic just in case.
         if not hasattr(instance, 'gym_staff') and not hasattr(instance, 'gym_member'):
              create_user_profile(sender, instance, created=True, **kwargs)
+
+
+@receiver(post_save, sender=Account_Request)
+def create_request_notification(sender, instance, created, **kwargs):
+    """
+    Signal to notify all staff members when a new Account_Request is created.
+    """
+    # Only run if the request is NEW and its status is PENDING
+    if created and instance.status == 'PENDING':
+        # 1. Get all staff members
+        all_staff = GymStaff.objects.all()
+        
+        # 2. Create the message
+        member_name = instance.member.user.get_full_name()
+        request_type = instance.get_request_type_display()
+        message = f"New {request_type} request from {member_name}."
+        
+        # 3. Define the redirect URL
+        # This points to your main staff dashboard, the 'Approval Queue' section
+        redirect_url = reverse('staff_dashboard') + '#approvals' 
+
+        # 4. Create a notification for each staff member
+        for staff in all_staff:
+            Notification.objects.create(
+                recipient_staff=staff,
+                message=message,
+                notification_type='NEW_REQUEST',
+                redirect_url=redirect_url
+            )
