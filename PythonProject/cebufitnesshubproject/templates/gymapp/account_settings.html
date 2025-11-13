@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="{% static 'gymapp/css/account_settings.css' %}">
 </head>
 <body {% if modal_to_open %}data-modal-to-open="{{ modal_to_open }}"{% endif %}>
-    <!-- Header/Nav bar -->
     <header class="site-header">
         <div class="brand">
             <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -23,13 +22,13 @@
                 <span class="user-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
                 </span>
-                <span class="user-name">{{ member_name|default:"Member Name" }}</span>
+                <span class="user-name">{{ user.get_full_name|default:"Member" }}</span>
             </div>
             <nav class="navbar">
                 <ul>
-                    <li><a href="#home">Homepage</a></li>
-                    <li><a href="#schedule">Schedule</a></li>
-                    <li><a href="#occupancy">Occupancy</a></li>
+                    <li><a href="{% url 'member_dashboard' %}">Homepage</a></li>
+                    <li><a href="#">Schedule</a></li>
+                    <li><a href="#">Occupancy</a></li>
                 </ul>
             </nav>
         </div>
@@ -46,12 +45,11 @@
                 <a href="{% url 'check_in' %}" class="nav-item">Check-in History</a>
                 <a href="{% url 'billing_history' %}" class="nav-item">Billing History</a>
                 <a href="{% url 'account_settings' %}" class="nav-item active" aria-current="page">Account Settings</a>
-                <a href="#" class="nav-item">Logout</a>
+                <a href="{% url 'logout' %}" class="nav-item" id="logoutBtn">Logout</a>
             </nav>
         </aside>
 
         <main class="main">
-            <!-- Django Messages for success/redirect errors -->
             {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
@@ -72,86 +70,79 @@
                 </div>
                 <div class="settings-section">
                     <h2 class="settings-subtitle">Membership Management</h2>
-                    {% if not request.user.is_frozen %}
-                        {% if request.user.freeze_request_status == 'pending' %}
-                            <button class="btn btn-pending" disabled>Request Pending</button>
-                        {% else %}
-                            <button id="btnOpenFreeze" class="btn btn-danger">Request Account Freeze</button>
-                        {% endif %}
+                    
+                    {% if pending_request %}
+                        <button class="btn btn-pending" disabled>Request Pending</button>
+                    
+                    {% elif is_frozen %}
+                        <button id="btnOpenUnfreeze" class="btn btn-green">Request Account Unfreeze</button>
+                    
                     {% else %}
-                        {% if request.user.unfreeze_request_status == 'pending' %}
-                            <button class="btn btn-pending" disabled>Request Pending</button>
-                        {% else %}
-                            <button id="btnOpenUnfreeze" class="btn btn-green">Request Account Unfreeze</button>
-                        {% endif %}
+                        <button id="btnOpenFreeze" class="btn btn-danger">Request Account Freeze</button>
                     {% endif %}
-                </div>
+                    </div>
             </div>
         </main>
     </div>
 
-    <!-- ====================================================================
-         FIX: Updated "Change Password" Modal with the visibility toggle.
-         ==================================================================== -->
-         <div id="modalChangePassword" class="modal" aria-hidden="true">
-            <div class="modal-content modal-content--enhanced">
-                <button class="modal-close-icon" data-close>&times;</button>
-                <div class="modal-brand-header">
-                    <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
-                    <div class="modal-brand-header__text">
-                        <div class="modal-brand-header__line-1">CEBU</div>
-                        <div class="modal-brand-header__line-2">FITNESS HUB</div>
-                    </div>
-                </div>
-                <h3 class="modal-title--enhanced">Change <span class="modal-title-highlight">Password</span></h3>
-                <div class="modal-body--enhanced">
-                    <form method="post" action="{% url 'account_settings' %}" class="modal-form--enhanced">
-                        {% csrf_token %}
-                        {% if password_form.non_field_errors %}<div class="form-errors">{% for error in password_form.non_field_errors %}<p class="error-message">{{ error }}</p>{% endfor %}</div>{% endif %}
-                        
-                        <div class="form-group {% if password_form.current_password.errors %}has-error{% endif %}">
-                            <label for="{{ password_form.current_password.id_for_label }}">Current Password <span class="required-asterisk">*</span></label>
-                            <div class="password-group">
-                                {{ password_form.current_password }}
-                                <span class="toggle-password" data-target="{{ password_form.current_password.id_for_label }}">
-                                    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                    <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
-                                </span>
-                            </div>
-                            {% if password_form.current_password.errors %}<ul class="errorlist">{% for error in password_form.current_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-                        </div>
-                        
-                        <div class="form-group {% if password_form.new_password.errors %}has-error{% endif %}">
-                            <label for="{{ password_form.new_password.id_for_label }}">New Password <span class="required-asterisk">*</span></label>
-                            <div class="password-group">
-                                {{ password_form.new_password }}
-                                <span class="toggle-password" data-target="{{ password_form.new_password.id_for_label }}">
-                                    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                    <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
-                                </span>
-                            </div>
-                            {% if password_form.new_password.errors %}<ul class="errorlist">{% for error in password_form.new_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-                        </div>
-    
-                        <div class="form-group {% if password_form.confirm_password.errors %}has-error{% endif %}">
-                            <label for="{{ password_form.confirm_password.id_for_label }}">Confirm New Password <span class="required-asterisk">*</span></label>
-                            <div class="password-group">
-                                {{ password_form.confirm_password }}
-                                <span class="toggle-password" data-target="{{ password_form.confirm_password.id_for_label }}">
-                                    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                    <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
-                                </span>
-                            </div>
-                            {% if password_form.confirm_password.errors %}<ul class="errorlist">{% for error in password_form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-                        </div>
-                        
-                        <button type="submit" name="change_password" class="modal-submit-btn">Change Password</button>
-                    </form>
+    <div id="modalChangePassword" class="modal" aria-hidden="true">
+        <div class="modal-content modal-content--enhanced">
+            <button class="modal-close-icon" data-close>&times;</button>
+            <div class="modal-brand-header">
+                <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+                <div class="modal-brand-header__text">
+                    <div class="modal-brand-header__line-1">CEBU</div>
+                    <div class="modal-brand-header__line-2">FITNESS HUB</div>
                 </div>
             </div>
+            <h3 class="modal-title--enhanced">Change <span class="modal-title-highlight">Password</span></h3>
+            <div class="modal-body--enhanced">
+                <form method="post" action="{% url 'account_settings' %}" class="modal-form--enhanced">
+                    {% csrf_token %}
+                    {% if password_form.non_field_errors %}<div class="form-errors">{% for error in password_form.non_field_errors %}<p class="error-message">{{ error }}</p>{% endfor %}</div>{% endif %}
+                    
+                    <div class="form-group {% if password_form.current_password.errors %}has-error{% endif %}">
+                        <label for="{{ password_form.current_password.id_for_label }}">Current Password <span class="required-asterisk">*</span></label>
+                        <div class="password-group">
+                            {{ password_form.current_password }}
+                            <span class="toggle-password" data-target="{{ password_form.current_password.id_for_label }}">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                            </span>
+                        </div>
+                        {% if password_form.current_password.errors %}<ul class="errorlist">{% for error in password_form.current_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    
+                    <div class="form-group {% if password_form.new_password.errors %}has-error{% endif %}">
+                        <label for="{{ password_form.new_password.id_for_label }}">New Password <span class="required-asterisk">*</span></label>
+                        <div class="password-group">
+                            {{ password_form.new_password }}
+                            <span class="toggle-password" data-target="{{ password_form.new_password.id_for_label }}">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                            </span>
+                        </div>
+                        {% if password_form.new_password.errors %}<ul class="errorlist">{% for error in password_form.new_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+    
+                    <div class="form-group {% if password_form.confirm_password.errors %}has-error{% endif %}">
+                        <label for="{{ password_form.confirm_password.id_for_label }}">Confirm New Password <span class="required-asterisk">*</span></label>
+                        <div class="password-group">
+                            {{ password_form.confirm_password }}
+                            <span class="toggle-password" data-target="{{ password_form.confirm_password.id_for_label }}">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                <svg class="eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74 .25-3.98 .7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                            </span>
+                        </div>
+                        {% if password_form.confirm_password.errors %}<ul class="errorlist">{% for error in password_form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    
+                    <button type="submit" name="change_password" class="modal-submit-btn">Change Password</button>
+                </form>
+            </div>
         </div>
+    </div>
 
-    <!-- Request Freeze Modal -->
     <div id="modalFreeze" class="modal" aria-hidden="true">
         <div class="modal-content modal-content--enhanced">
             <button class="modal-close-icon" data-close>&times;</button>
@@ -179,7 +170,6 @@
         </div>
     </div>
 
-    <!-- Request Unfreeze Modal -->
     <div id="modalUnfreeze" class="modal" aria-hidden="true">
         <div class="modal-content modal-content--enhanced">
             <button class="modal-close-icon" data-close>&times;</button>
@@ -207,162 +197,136 @@
         </div>
     </div>
     
-    <!-- ====================================================================
-         FIX: The entire JavaScript block has been refactored for accessibility
-         and proper state management (form resetting).
-         ==================================================================== -->
-         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // --- State and Element References ---
-                const modals = {
-                    password: document.getElementById('modalChangePassword'),
-                    freeze: document.getElementById('modalFreeze'),
-                    unfreeze: document.getElementById('modalUnfreeze')
-                };
-                const openButtons = {
-                    password: document.getElementById('btnOpenChangePassword'),
-                    freeze: document.getElementById('btnOpenFreeze'),
-                    unfreeze: document.getElementById('btnOpenUnfreeze')
-                };
-                let lastFocusedElement;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- State and Element References ---
+            const modals = {
+                password: document.getElementById('modalChangePassword'),
+                freeze: document.getElementById('modalFreeze'),
+                unfreeze: document.getElementById('modalUnfreeze')
+            };
+            const openButtons = {
+                password: document.getElementById('btnOpenChangePassword'),
+                freeze: document.getElementById('btnOpenFreeze'),
+                unfreeze: document.getElementById('btnOpenUnfreeze')
+            };
+            let lastFocusedElement;
 
-                // --- Core Modal Functions ---
-
-                function openModal(modal, triggerElement) { 
-                    if (!modal) return;
-                    lastFocusedElement = triggerElement;
-                    modal.classList.add('show'); 
-                    modal.setAttribute('aria-hidden', 'false');
-                    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-                    focusableElements.forEach(el => el.setAttribute('tabindex', '0'));
-                    const firstFocusable = focusableElements[0];
-                    if (firstFocusable) firstFocusable.focus();
-                    modal.addEventListener('keydown', trapFocus);
+            // --- Core Modal Functions ---
+            function openModal(modal, triggerElement) { 
+                if (!modal) return;
+                lastFocusedElement = triggerElement;
+                modal.classList.add('show'); 
+                modal.setAttribute('aria-hidden', 'false');
+                const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                focusableElements.forEach(el => el.setAttribute('tabindex', '0'));
+                const firstFocusable = focusableElements[0];
+                if (firstFocusable) firstFocusable.focus();
+                modal.addEventListener('keydown', trapFocus);
+            }
+            
+            function closeModal(modal) { 
+                if (!modal) return;
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset(); 
                 }
+                modal.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+                modal.querySelectorAll('.errorlist').forEach(el => el.innerHTML = '');
+                modal.querySelectorAll('.form-errors').forEach(el => el.remove());
                 
-                /**
-                 * Closes a modal, resets its forms, resets password fields, and returns focus.
-                 * @param {HTMLElement} modal - The modal element to close.
-                 */
-                function closeModal(modal) { 
-                    if (!modal) return;
-
-                    // --- FIX: Reset form and clear errors ---
-                    const form = modal.querySelector('form');
-                    if (form) {
-                        form.reset(); // Clears all input/textarea values
-                    }
-                    modal.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
-                    modal.querySelectorAll('.errorlist').forEach(el => el.innerHTML = '');
-                    modal.querySelectorAll('.form-errors').forEach(el => el.remove());
-
-                    // ====================================================================
-                    // FIX: Specifically reset all password fields within the closing modal.
-                    // This ensures passwords are always hidden when a modal is reopened.
-                    // ====================================================================
-                    const passwordGroups = modal.querySelectorAll('.password-group');
-                    passwordGroups.forEach(group => {
-                        const input = group.querySelector('input');
-                        const eyeIcon = group.querySelector('.eye-icon');
-                        const eyeSlashIcon = group.querySelector('.eye-slash-icon');
-
-                        if (input) input.type = 'password'; // Always reset to hidden
-                        if (eyeIcon) eyeIcon.classList.remove('hidden'); // Show the 'eye'
-                        if (eyeSlashIcon) eyeSlashIcon.classList.add('hidden'); // Hide the 'eye-slash'
-                    });
-
-                    // --- Accessibility improvements ---
-                    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-                    focusableElements.forEach(el => el.setAttribute('tabindex', '-1'));
-                    
-                    modal.classList.remove('show'); 
-                    modal.setAttribute('aria-hidden', 'true'); 
-                    modal.removeEventListener('keydown', trapFocus);
-
-                    if (lastFocusedElement) {
-                        lastFocusedElement.focus();
-                    }
-                }
+                const passwordGroups = modal.querySelectorAll('.password-group');
+                passwordGroups.forEach(group => {
+                    const input = group.querySelector('input');
+                    const eyeIcon = group.querySelector('.eye-icon');
+                    const eyeSlashIcon = group.querySelector('.eye-slash-icon');
+                    if (input) input.type = 'password';
+                    if (eyeIcon) eyeIcon.classList.remove('hidden');
+                    if (eyeSlashIcon) eyeSlashIcon.classList.add('hidden');
+                });
                 
-                /**
-                 * Traps keyboard focus within the currently open modal.
-                 * @param {KeyboardEvent} e - The keydown event.
-                 */
-                function trapFocus(e) {
-                    if (e.key !== 'Tab') return;
-    
-                    const modal = e.currentTarget;
-                    const focusableElements = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => el.getAttribute('tabindex') !== '-1');
-                    const firstElement = focusableElements[0];
-                    const lastElement = focusableElements[focusableElements.length - 1];
-    
-                    if (e.shiftKey) { // If Shift + Tab is pressed
-                        if (document.activeElement === firstElement) {
-                            lastElement.focus();
-                            e.preventDefault();
-                        }
-                    } else { // If only Tab is pressed
-                        if (document.activeElement === lastElement) {
-                            firstElement.focus();
-                            e.preventDefault();
-                        }
+                const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                focusableElements.forEach(el => el.setAttribute('tabindex', '-1'));
+                
+                modal.classList.remove('show'); 
+                modal.setAttribute('aria-hidden', 'true'); 
+                modal.removeEventListener('keydown', trapFocus);
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                }
+            }
+            
+            function trapFocus(e) {
+                if (e.key !== 'Tab') return;
+                const modal = e.currentTarget;
+                const focusableElements = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => el.getAttribute('tabindex') !== '-1');
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                if (e.shiftKey) { 
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
                     }
                 }
+            }
     
-                // --- Event Listeners ---
-                if (openButtons.password) openButtons.password.addEventListener('click', (e) => openModal(modals.password, e.currentTarget));
-                if (openButtons.freeze) openButtons.freeze.addEventListener('click', (e) => openModal(modals.freeze, e.currentTarget));
-                if (openButtons.unfreeze) openButtons.unfreeze.addEventListener('click', (e) => openModal(modals.unfreeze, e.currentTarget));
+            // --- Event Listeners ---
+            if (openButtons.password) openButtons.password.addEventListener('click', (e) => openModal(modals.password, e.currentTarget));
+            if (openButtons.freeze) openButtons.freeze.addEventListener('click', (e) => openModal(modals.freeze, e.currentTarget));
+            if (openButtons.unfreeze) openButtons.unfreeze.addEventListener('click', (e) => openModal(modals.unfreeze, e.currentTarget));
 
-                document.querySelectorAll('[data-close]').forEach(el => {
-                    el.addEventListener('click', (e) => {
-                        const parentModal = e.target.closest('.modal');
-                        closeModal(parentModal);
-                    });
+            document.querySelectorAll('[data-close]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const parentModal = e.target.closest('.modal');
+                    closeModal(parentModal);
                 });
-
-                document.querySelectorAll('.modal').forEach(m => {
-                    m.addEventListener('click', (e) => { 
-                        if (e.target === m) closeModal(m);
-                    });
-                });
-
-                // --- Password Visibility Toggle Logic ---
-                const passwordToggles = document.querySelectorAll('.toggle-password');
-                function togglePasswordVisibility(e) {
-                    if (e.type === 'keydown' && (e.key !== 'Enter' && e.key !== ' ')) return;
-                    
-                    const toggle = e.currentTarget;
-                    const targetId = toggle.getAttribute('data-target');
-                    const passwordInput = document.getElementById(targetId);
-                    if (!passwordInput) return;
-
-                    const eyeIcon = toggle.querySelector('.eye-icon');
-                    const eyeSlashIcon = toggle.querySelector('.eye-slash-icon');
-
-                    if (passwordInput.type === 'password') {
-                        passwordInput.type = 'text';
-                        if (eyeIcon) eyeIcon.classList.add('hidden');
-                        if (eyeSlashIcon) eyeSlashIcon.classList.remove('hidden');
-                    } else {
-                        passwordInput.type = 'password';
-                        if (eyeIcon) eyeIcon.classList.remove('hidden');
-                        if (eyeSlashIcon) eyeSlashIcon.classList.add('hidden');
-                    }
-                }
-
-                passwordToggles.forEach(toggle => {
-                    toggle.addEventListener('click', togglePasswordVisibility);
-                    toggle.addEventListener('keydown', togglePasswordVisibility);
-                });
-
-                // --- Auto-open modal on page load if there was a validation error ---
-                const modalToOpenName = document.body.dataset.modalToOpen;
-                if (modalToOpenName && modals[modalToOpenName]) {
-                    const triggerButton = openButtons[modalToOpenName];
-                    openModal(modals[modalToOpenName], triggerButton);
-                }
             });
-        </script>
+
+            document.querySelectorAll('.modal').forEach(m => {
+                m.addEventListener('click', (e) => { 
+                    if (e.target === m) closeModal(m);
+                });
+            });
+
+            // --- Password Visibility Toggle Logic ---
+            const passwordToggles = document.querySelectorAll('.toggle-password');
+            function togglePasswordVisibility(e) {
+                if (e.type === 'keydown' && (e.key !== 'Enter' && e.key !== ' ')) return;
+                
+                const toggle = e.currentTarget;
+                const targetId = toggle.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                if (!passwordInput) return;
+                const eyeIcon = toggle.querySelector('.eye-icon');
+                const eyeSlashIcon = toggle.querySelector('.eye-slash-icon');
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    if (eyeIcon) eyeIcon.classList.add('hidden');
+                    if (eyeSlashIcon) eyeSlashIcon.classList.remove('hidden');
+                } else {
+                    passwordInput.type = 'password';
+                    if (eyeIcon) eyeIcon.classList.remove('hidden');
+                    if (eyeSlashIcon) eyeSlashIcon.classList.add('hidden');
+                }
+            }
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('click', togglePasswordVisibility);
+                toggle.addEventListener('keydown', togglePasswordVisibility);
+            });
+
+            // --- Auto-open modal on page load if there was a validation error ---
+            const modalToOpenName = document.body.dataset.modalToOpen;
+            if (modalToOpenName && modals[modalToOpenName]) {
+                const triggerButton = openButtons[modalToOpenName];
+                openModal(modals[modalToOpenName], triggerButton);
+            }
+        });
+    </script>
 </body>
 </html>
