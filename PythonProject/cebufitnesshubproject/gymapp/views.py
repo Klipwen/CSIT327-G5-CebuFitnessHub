@@ -1,3 +1,8 @@
+from django.db.models import Q # For complex 'OR' queries
+from django.db.models.functions import TruncDay
+from datetime import timedelta # Import timedelta
+from decimal import Decimal
+from django.db import transaction
 import json
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
@@ -18,6 +23,7 @@ from .models import (
 from django.views.decorators.http import require_http_methods
 from django.db.models import Max, Sum, Count # For dashboard metrics
 from django.db.models import F # For updating the tracker
+import calendar
 
 # --- Landing, Registration, and Login/Logout (Unchanged) ---
 
@@ -58,51 +64,70 @@ def member_login(request):
         
         if email and password:
             user = authenticate(request, email=email, password=password)
-            if user is not None:
-                if user.is_active:
-                    # Enforce role chosen in the modal
-                    role = request.POST.get('role', 'member')
-                    if (role == 'staff' and not user.is_staff) or \
-                       (role == 'member' and user.is_staff):
-                        error_message = 'Invalid account.'
-                        if is_ajax:
-                            return JsonResponse({'success': False, 'error_type': 'role_mismatch', 'message': error_message})
-                        else:
-                            messages.error(request, error_message)
-                            return redirect('landing')
 
-                    login(request, user)
-                    messages.success(request, f'Welcome back, {user.first_name}!')
+            #first
+            # --- START: NEW LOGIN LOGIC ---
+            
+            # First, try to find the user by their email.
+            try:
+                user = CustomUser.objects.get(email=email)
+            except CustomUser.DoesNotExist:
+                user = None # User does not exist
+
+            if user is not None:
+                # User exists. NOW check their password and active status.
+                if user.check_password(password):
+                    # Password is correct.
+                    if user.is_active:
+                        # --- SUCCESS ---
+                        # Enforce role chosen in the modal
+                        role = request.POST.get('role', 'member')
+                        if (role == 'staff' and not user.is_staff) or \
+                           (role == 'member' and user.is_staff):
+                            error_message = 'Invalid account.'
+                            if is_ajax:
+                                return JsonResponse({'success': False, 'error_type': 'role_mismatch', 'message': error_message})
+                            else:
+                                messages.error(request, error_message)
+                                return redirect('landing')
+                        
+                        # Proceed with login
+                        login(request, user)
+                        messages.success(request, f'Welcome back, {user.first_name}!')
+                        redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
+                        
+                        if is_ajax:
+                            from django.urls import reverse
+                            return JsonResponse({'success': True, 'redirect_url': reverse(redirect_url)})
+                        else:
+                            return redirect(redirect_url)
                     
-                    redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
-                    
-                    if is_ajax:
-                        from django.urls import reverse
-                        return JsonResponse({'success': True, 'redirect_url': reverse(redirect_url)})
                     else:
-                        return redirect(redirect_url)
-                else:
-                    error_message = 'Your account is inactive.'
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'error_type': 'email', 'message': error_message})
-                    else:
-                        messages.error(request, error_message)
-                        return redirect('landing')
-            else:
-                # Provide error based on whether email or password was wrong
-                try:
-                    user_exists = CustomUser.objects.filter(email=email).exists()
-                    error_type = 'password' if user_exists else 'email'
-                    error_message = 'Invalid password.' if user_exists else 'Invalid account.'
-                except:
-                    error_type = 'general'
-                    error_message = 'Invalid email or password.'
+                        # --- ERROR 1: ACCOUNT INACTIVE ---
+                        # Password was correct, but is_active is False.
+                        error_message = 'This account is inactive and awaiting staff activation.'
+                        error_type = 'inactive'
                 
-                if is_ajax:
-                    return JsonResponse({'success': False, 'error_type': error_type, 'message': error_message})
                 else:
-                    messages.error(request, error_message)
-                    return redirect('landing')
+                    # --- ERROR 2: INVALID PASSWORD ---
+                    # User exists, but password was wrong.
+                    error_message = 'Invalid password.'
+                    error_type = 'password'
+            
+            else:
+                # --- ERROR 3: USER DOES NOT EXIST ---
+                error_message = 'Invalid account.'
+                error_type = 'email'
+
+            # --- This is the new, combined error handling ---
+            if is_ajax:
+                return JsonResponse({'success': False, 'error_type': error_type, 'message': error_message})
+            else:
+                messages.error(request, error_message)
+                return redirect('landing')
+
+            # --- END: NEW LOGIN LOGIC ---
+
         else:
             missing_field = 'email' if not email else 'password'
             error_message = 'Please fill in all fields.'
@@ -123,50 +148,107 @@ def general_logout_view(request):
     return redirect('landing')
 
 # --- Member Dashboard Views (HEAVILY REVISED) ---
-
+#=========================================================================================================================================
+#                                               NEW MEMBER_DASHBOARD VIEW
+#=========================================================================================================================================
 @login_required
 def member_dashboard(request):
     """
     Renders the member dashboard with dynamic data.
     Now fetches data from the linked gym_Member profile.
     """
+    # --- Access Control ---
     if request.user.is_staff:
         messages.warning(request, 'Staff members should use the staff dashboard.')
         return redirect('staff_dashboard')
-    
+
+    # --- Fetch Member Profile ---
     try:
-        # Fetch the member profile linked to the user
         member_profile = request.user.gym_member
     except gym_Member.DoesNotExist:
         messages.error(request, 'Member profile not found. Please contact support.')
         logout(request)
         return redirect('landing')
 
-    # Get data from related models
+    # --- Get Data from Related Models ---
     now = timezone.now()
+
+    # NEW, CORRECTED CODE-----------------------------
     check_ins_this_month = Check_In.objects.filter(
         member=member_profile,
         check_in_time__month=now.month,
         check_in_time__year=now.year
+    ).annotate(
+        day=TruncDay('check_in_time')  # 1. Group check-ins by the calendar day
+    ).values(
+        'day'                         # 2. Get only the unique days
+    ).distinct().count()              # 3. Count the unique days
+
+    #-----------------------------------------------
+
+    total_check_ins = Check_In.objects.filter(
+        member=member_profile
     ).count()
-    
-    total_check_ins = Check_In.objects.filter(member=member_profile).count()
-    
-    # Get last 7 days of activity
-    one_week_ago = now.date() - timezone.timedelta(days=7)
-    weekly_activity = Activity_Log.objects.filter(
+
+    # Get last 7 days of activity logs
+    one_week_ago = now.date() - timedelta(days=6)  # 6 days ago to include today (7 days total)
+    weekly_activity_qs = Activity_Log.objects.filter(
         member=member_profile,
         activity_date__gte=one_week_ago
-    ).order_by('activity_date')
+    )
 
+    # --- Process Data for the Template ---
+
+    # 1. Weekly Activity (convert queryset to dictionary)
+    weekly_activity_dict = {
+        'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0
+    }
+    day_map = {
+        0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'
+    }
+
+    for log in weekly_activity_qs:
+        day_name = day_map.get(log.activity_date.weekday())
+        if day_name:
+            weekly_activity_dict[day_name] += log.duration_minutes
+
+    # 2. Account Status
+    if member_profile.is_frozen:
+        account_status = "Frozen"
+    elif request.user.is_active:
+        account_status = "Active"
+    else:
+        account_status = "Inactive"
+
+    # 3. Occupancy Data
+    occupancy = OCCUPANCY_TRACKER.objects.first()
+    occupancy_percent = 0
+    gym_status = "Open"
+
+    if occupancy and occupancy.capacity_limit > 0:
+        occupancy_percent = int((occupancy.current_count / occupancy.capacity_limit) * 100)
+
+        # Determine gym status
+        if occupancy_percent >= 95:
+            gym_status = "Full"
+        elif occupancy_percent >= 70:
+            gym_status = "Peak"
+        else:
+            gym_status = "Open"
+
+    # --- Final Context ---
     context = {
         'user': request.user,
         'member_profile': member_profile,
         'days_attended_this_month': check_ins_this_month,
         'total_check_ins': total_check_ins,
-        'weekly_activity': weekly_activity,
-        'occupancy': OCCUPANCY_TRACKER.objects.first(), # Get the single occupancy record
+        'weekly_activity_dict': weekly_activity_dict,
+        'account_status': account_status,
+        'occupancy': occupancy,
+        'occupancy_percent': occupancy_percent,
+        'gym_status': gym_status,
     }
+
     return render(request, 'gymapp/dashboard.html', context)
 
 
@@ -337,14 +419,38 @@ def check_in_view(request):
 @login_required
 def billing_history_view(request):
     """
-    Fetches and displays the member's billing history.
+    Fetches and displays the member's billing history,
+    now with a calculated running balance for each transaction.
     """
     try:
         member_profile = request.user.gym_member
-        billing_history = Billing_Record.objects.filter(member=member_profile)
+        
+        # Get all transactions, newest first
+        billing_history_qs = Billing_Record.objects.filter(member=member_profile).order_by('-timestamp')
+        
+        # --- THIS IS THE NEW LOGIC ---
+        
+        # Get the member's current balance (e.g., 1500)
+        current_balance = member_profile.balance
+        
+        history_with_balance = []
+        
+        # Loop through the history (newest to oldest)
+        for record in billing_history_qs:
+            history_with_balance.append({
+                'record': record,
+                'balance_after_tx': current_balance
+            })
+            
+            # "Rewind" the balance to what it was *before* this transaction
+            # (Remember: Payments are negative, Fees are positive)
+            current_balance = current_balance - record.amount 
+            
+        # --- END OF NEW LOGIC ---
+
         context = {
-            'history': billing_history,
-            'current_balance': member_profile.balance
+            'history': history_with_balance, # Pass the new processed list
+            'current_balance': member_profile.balance # Keep passing this for the header (if needed)
         }
     except gym_Member.DoesNotExist:
         context = {'history': [], 'current_balance': 0}
@@ -355,84 +461,128 @@ def billing_history_view(request):
 @login_required
 def staff_dashboard_view(request):
     """
-    Renders the staff dashboard with dynamic data.
-    Now correctly fetches the linked staff profile.
+    Renders the staff dashboard with all dynamic data for KPIs,
+    all member lists, approval queue, and notifications.
     """
     if not request.user.is_staff:
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('landing')
 
     try:
-        # Fetch the staff profile
         staff_profile = request.user.gym_staff
     except GymStaff.DoesNotExist:
         messages.error(request, 'Staff profile not found. Please contact admin.')
         logout(request)
         return redirect('landing')
 
-    # --- Data for Staff Overview (KPIs) ---
     now = timezone.now()
+
+    # --- 1. KPI DATA ---
     pending_approvals = Account_Request.objects.filter(status='PENDING').count()
+    active_members_count = gym_Member.objects.filter(user__is_active=True, is_frozen=False).count()
 
-    # We get the list of members first
-    active_members_list = gym_Member.objects.filter(user__is_active=True, is_frozen=False)
-
-    # Then we get the count from that list
-    active_members_count = active_members_list.count()
-
-    todays_revenue = Billing_Record.objects.filter(
+    # We use .lstrip('-') to handle the negative 'PAYMENT' values
+    todays_revenue = (Billing_Record.objects.filter(
         transaction_type='PAYMENT',
         timestamp__date=now.date()
-    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00) * -1 # Multiply by -1 to make positive
 
-    monthly_revenue = Billing_Record.objects.filter(
+    monthly_revenue = (Billing_Record.objects.filter(
         transaction_type='PAYMENT',
         timestamp__month=now.month,
         timestamp__year=now.year
-    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
-
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00) * -1 # Multiply by -1
+    
+    # MRR (fees charged) are positive in your new 'Debt Ledger' model
     mrr = Billing_Record.objects.filter(
         transaction_type='FEE',
         timestamp__month=now.month,
         timestamp__year=now.year
     ).aggregate(Sum('amount'))['amount__sum'] or 0.00
 
-    # --- NEW LOGIC BLOCK TO ADD ---
-    # This processes the member list for the table
-    member_data = []
-    for member in active_members_list:
-        # Find the LATEST check-in record for this member
-        latest_checkin = member.check_ins.order_by('-check_in_time').first()
+    # --- 2. MEMBER MANAGEMENT TABLES ---
 
+    search_query = request.GET.get('q', None) #new logic for search filter
+    
+    # Get the 3 separate member lists
+    active_members_list = gym_Member.objects.filter(user__is_active=True, is_frozen=False).select_related('user')
+    pending_members_list = gym_Member.objects.filter(user__is_active=False).select_related('user')
+    frozen_members_list = gym_Member.objects.filter(is_frozen=True).select_related('user')
+
+    # If a search query exists, filter the 'active' list
+    if search_query:
+        active_members_list = active_members_list.filter(
+            Q(user__first_name__icontains=search_query) |  # Search by first name
+            Q(user__last_name__icontains=search_query) |   # Search by last name
+            Q(user__email__icontains=search_query) |      # Search by email
+            Q(membership_id__icontains=search_query)    # Search by Member ID
+        )
+    # --- END OF SEARCH LOGIC ---
+
+    # Process the 'Active' list (which you already did)
+    active_member_data = []
+    for member in active_members_list:
+        latest_checkin = member.check_ins.order_by('-check_in_time').first()
         is_checked_in = False
         last_checkin_time = None
-
         if latest_checkin:
             last_checkin_time = latest_checkin.check_in_time
-            # Check if check_out_time is null (meaning they are still inside)
             if latest_checkin.check_out_time is None:
                 is_checked_in = True
-
-        member_data.append({
+        active_member_data.append({
             'member': member,
-            'is_checked_in': is_checked_in,  # True or False
-            'last_checkin_time': last_checkin_time  # The full datetime object or None
+            'is_checked_in': is_checked_in,
+            'last_checkin_time': last_checkin_time
         })
-    # --- END OF NEW LOGIC BLOCK ---
 
-    # Pass both the KPIs and the new member_list to the template
+    # Process the 'Frozen' list
+    frozen_member_data = []
+    for member in frozen_members_list:
+        latest_checkin = member.check_ins.order_by('-check_in_time').first()
+        frozen_member_data.append({
+            'member': member,
+            'last_checkin_time': latest_checkin.check_in_time if latest_checkin else None
+        })
+        
+    # --- 3. APPROVAL QUEUE DATA ---
+    approval_requests = Account_Request.objects.filter(status='PENDING').select_related('member__user')
+
+    # --- 4. REVENUE TRACKER TABLE ---
+    revenue_transactions = Billing_Record.objects.filter(
+        transaction_type='PAYMENT'
+    ).select_related('member__user').order_by('-timestamp')[:10] # Get last 10 payments
+
+    # --- 5. NOTIFICATIONS ---
+    # Get the 10 most recent notifications, regardless of read status
+    notifications = Notification.objects.filter(
+        recipient_staff=staff_profile
+    ).order_by('-timestamp')[:10] # Get the 10 newest
+
+    # --- 6. FINAL CONTEXT ---
     context = {
         'staff_user': request.user,
         'staff_profile': staff_profile,
+
+        # --- ADD THIS LINE ---
+        'settings': OCCUPANCY_TRACKER.objects.first(), # Pass settings to template
+        # --- END ADD ---
+
+        'search_query': search_query, # Pass the query back to the template
+        
+        # KPI Context
         'pending_approvals': pending_approvals,
-        'active_members': active_members_count,  # For the KPI box
+        'active_members': active_members_count,
         'todays_revenue': todays_revenue,
         'monthly_revenue': monthly_revenue,
         'mrr': mrr,
-        'notifications': Notification.objects.filter(recipient_staff=staff_profile, is_read=False),
-
-        # --- NEW CONTEXT VARIABLE TO ADD ---
-        'member_list': member_data,  # For the Member Management table
+        
+        # Table Context
+        'active_member_list': active_member_data,   # For 'Active' table
+        'pending_member_list': pending_members_list, # For 'Pending' table
+        'frozen_member_list': frozen_member_data,    # For 'Frozen' table
+        'approval_requests': approval_requests,
+        'revenue_transactions': revenue_transactions,
+        'notifications': notifications,
     }
     return render(request, 'gymapp/staff_dashboard.html', context)
 
@@ -576,7 +726,399 @@ def staff_settings_view(request):
     }
     return render(request, 'gymapp/staff_settings.html', context)
 
+
+@login_required
+def log_payment_view(request):
+    """
+    Handles the backend logic for a staff member logging a new payment.
+    This is for *subsequent* payments, not initial activation.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            amount_str = data.get('amount')
+            description = data.get('description', 'Onsite Payment')
+
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+            amount = Decimal(amount_str)
+
+            if amount <= 0:
+                return JsonResponse({'status': 'error', 'message': 'Amount must be positive.'})
+
+            with transaction.atomic():
+                # 1. Update the member's balance (they owe less money)
+                member.balance = F('balance') - amount
+                member.save()
+
+                # 2. Create the Billing_Record (no 'new_balance' field)
+                Billing_Record.objects.create(
+                    member=member,
+                    staff_processor=request.user.gym_staff,
+                    transaction_type='PAYMENT',
+                    amount = -amount, # Payments are negative
+                    description=description
+                )
+
+            return JsonResponse({'status': 'success', 'message': 'Payment logged.'})
+        
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+@login_required
+def manual_freeze_view(request):
+    """
+    Handles the backend logic for a staff member manually
+    freezing an active account and pausing their plan.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            reason = data.get('reason', 'Manually frozen by staff.')
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+
+            if member.is_frozen:
+                return JsonResponse({'status': 'error', 'message': 'Account is already frozen.'})
+
+            with transaction.atomic():
+                # --- YOUR NEW LOGIC ---
+                days_remaining = 0
+                if member.next_due_date:
+                    days_remaining = (member.next_due_date - timezone.now().date()).days
+                
+                # 1. Update the member's status
+                member.is_frozen = True
+                member.days_remaining_on_freeze = days_remaining if days_remaining > 0 else 0
+                member.next_due_date = None # Pause the due date
+                member.save()
+                
+                # 2. Create an Account_Request for auditing
+                Account_Request.objects.create(
+                    member=member,
+                    staff_reviewer=request.user.gym_staff,
+                    request_type='FREEZE',
+                    reason=reason,
+                    status='APPROVED',
+                    staff_decision_reason='Manually applied by staff.',
+                    decision_date=timezone.now()
+                )
+            
+            return JsonResponse({'status': 'success', 'message': 'Account frozen.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@login_required
+def process_request_view(request):
+    """
+    Handles the backend logic for approving or rejecting
+    a member's Freeze/Unfreeze request.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            request_id = data.get('request_id')
+            action = data.get('action') # 'approve' or 'reject'
+            staff_reason = data.get('staff_reason', '')
+
+            req = get_object_or_404(Account_Request, request_id=request_id, status='PENDING')
+            member = req.member
+
+            with transaction.atomic():
+                if action == 'approve':
+                    req.status = 'APPROVED'
+                    # Update the member's 'is_frozen' status
+                    if req.request_type == 'FREEZE':
+                        member.is_frozen = True
+                    elif req.request_type == 'UNFREEZE':
+                        member.is_frozen = False
+                
+                elif action == 'reject':
+                    req.status = 'REJECTED'
+                    req.staff_decision_reason = staff_reason
+                
+                req.staff_reviewer = request.user.gym_staff
+                req.decision_date = timezone.now()
+                
+                req.save()
+                member.save()
+            
+            return JsonResponse({'status': 'success', 'message': f'Request {action}d.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+@login_required
+def activate_member_view(request):
+    """
+    Handles the backend logic for activating a new member
+    and processing their first payment.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            amount_str = data.get('amount')
+            description = data.get('description', 'Initial Activation Payment')
+
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+            if member.user.is_active:
+                return JsonResponse({'status': 'error', 'message': 'Member is already active.'})
+                
+            amount_paid = Decimal(amount_str)
+            
+            # Get the single source of truth for the fee
+            settings = OCCUPANCY_TRACKER.objects.get(pk=1)
+            default_fee = settings.default_monthly_fee
+
+            # --- 1. MEMBERSHIP ID GENERATOR LOGIC ---
+            current_year = timezone.now().year
+            prefix = settings.member_id_prefix or "CFH"
+
+            # Count members from this year to get the next sequential number
+            members_this_year = gym_Member.objects.filter(
+                membership_id__startswith=f"{prefix}-{current_year}-"
+            ).count()
+            
+            next_seq_number = members_this_year + 1
+            
+            # Format the ID: CFH-2025-0009
+            new_membership_id = f"{prefix}-{current_year}-{next_seq_number:04d}"
+            # --- END OF ID GENERATOR ---
+
+            #-----------------------------------------------------------------------
+
+            with transaction.atomic():
+                # 1. Calculate the new balance based on your logic
+                # (Balance = Fee - Downpayment)
+                new_balance = default_fee - amount_paid
+                
+                # 2. Update the Member's profile
+                member.balance = new_balance
+                member.is_frozen = False
+                member.next_due_date = timezone.now().date() + timedelta(days=30)
+                member.membership_id = new_membership_id # <-- SAVE THE NEW ID FOR ID GENERATOR
+                member.save()
+                
+                # 3. Update the base CustomUser
+                member.user.is_active = True 
+                member.user.save()
+
+                # 4. Create the FEE record
+                Billing_Record.objects.create(
+                    member=member,
+                    staff_processor=request.user.gym_staff,
+                    transaction_type='FEE',
+                    amount=default_fee, # Positive amount to create debt
+                    description="Initial Membership Fee"
+                )
+                
+                # 5. Create the PAYMENT record
+                Billing_Record.objects.create(
+                    member=member,
+                    staff_processor=request.user.gym_staff,
+                    transaction_type='PAYMENT',
+                    amount = -amount_paid, # Negative amount to clear debt
+                    description=description
+                )
+            
+            return JsonResponse({'status': 'success', 'message': 'Member activated successfully.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405) 
+
+@login_required
+def manual_unfreeze_view(request):
+    """
+    Handles the backend logic for a staff member manually
+    unfreezing an account and resuming their plan.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            reason = data.get('reason', 'Manually unfrozen by staff.')
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+
+            if not member.is_frozen:
+                return JsonResponse({'status': 'error', 'message': 'Account is already active.'})
+
+            with transaction.atomic():
+                # --- YOUR NEW LOGIC ---
+                days_remaining = member.days_remaining_on_freeze or 0
+                new_due_date = timezone.now().date() + timedelta(days=days_remaining)
+                
+                # 1. Update the member's status
+                member.is_frozen = False
+                member.days_remaining_on_freeze = None # Clear the saved days
+                member.next_due_date = new_due_date # Set new expiry date
+                member.save()
+                
+                # 2. Create an Account_Request for auditing
+                Account_Request.objects.create(
+                    member=member,
+                    staff_reviewer=request.user.gym_staff,
+                    request_type='UNFREEZE',
+                    reason=reason,
+                    status='APPROVED',
+                    staff_decision_reason='Manually applied by staff.',
+                    decision_date=timezone.now()
+                )
+            
+            return JsonResponse({'status': 'success', 'message': 'Account unfrozen.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405) 
+
+
+@login_required
+def edit_member_view(request):
+    """
+    Handles a staff member editing a member's profile details.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+
+            # We get the CustomUser object, not the profile,
+            # because all these fields are on the CustomUser.
+            user_to_edit = get_object_or_404(CustomUser, pk=member_id)
+
+            # Update all the editable fields
+            user_to_edit.first_name = data.get('first_name', user_to_edit.first_name)
+            user_to_edit.last_name = data.get('last_name', user_to_edit.last_name)
+            user_to_edit.contact_number = data.get('contact_number', user_to_edit.contact_number)
+            user_to_edit.emergency_contact_name = data.get('emergency_contact_name', user_to_edit.emergency_contact_name)
+            user_to_edit.emergency_contact_number = data.get('emergency_contact_number', user_to_edit.emergency_contact_number)
+            user_to_edit.medical_conditions = data.get('medical_conditions', user_to_edit.medical_conditions)
+            user_to_edit.fitness_goals = data.get('fitness_goals', user_to_edit.fitness_goals)
+            
+            user_to_edit.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Member details updated.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+# -----------------------------------------------------------------
+# --- Imlementing Chart in Staff dashboard ---
+# -----------------------------------------------------------------
+@login_required
+def revenue_chart_data_view(request):
+    """
+    API endpoint to send revenue data for the chart.
+    Handles two filter types:
+    - 'daily': Returns daily totals for the current month.
+    - 'monthly': Returns monthly totals for the current year.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    filter_type = request.GET.get('filter', 'daily') # Default to 'daily'
+    now = timezone.now()
     
+    # We only care about payments (negative numbers in the 'Debt Ledger')
+    base_queryset = Billing_Record.objects.filter(transaction_type='PAYMENT')
+
+    if filter_type == 'monthly':
+        # --- LOGIC FOR "THIS YEAR (MONTHLY)" ---
+        
+        # 1. Get all payments for the current year
+        payments_this_year = base_queryset.filter(timestamp__year=now.year)
+        
+        # 2. Format for Chart.js
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        data = [0.0] * 12 # A list of 12 zeros
+        
+        for payment in payments_this_year:
+            # (payment.amount is negative, so *-1 makes it positive)
+            data[payment.timestamp.month - 1] += float(payment.amount * -1)
+
+    else:
+        # --- LOGIC FOR "THIS MONTH (DAILY)" ---
+        
+        # 1. Get all payments for the current month and year
+        payments_this_month = base_queryset.filter(
+            timestamp__year=now.year,
+            timestamp__month=now.month
+        )
+        
+        # 2. Format for Chart.js
+        num_days = calendar.monthrange(now.year, now.month)[1] # Gets days in current month (e.g., 30)
+        labels = [f"{now.strftime('%b')} {day}" for day in range(1, num_days + 1)] # e.g., ["Nov 1", "Nov 2", ...]
+        data = [0.0] * num_days # A list of 30 zeros
+
+        for payment in payments_this_month:
+            # (payment.amount is negative, so *-1 makes it positive)
+            data[payment.timestamp.day - 1] += float(payment.amount * -1)
+
+    return JsonResponse({
+        'labels': labels,
+        'data': data
+    })
+
+
+@login_required
+def mark_notification_read_view(request, notification_id):
+    """
+    Marks a specific notification as 'read' and redirects
+    the staff member to the appropriate page.
+    """
+    if not request.user.is_staff:
+        return redirect('landing')
+    
+    # Find the notification, making sure it belongs to the logged-in staff
+    notification = get_object_or_404(
+        Notification, 
+        notification_id=notification_id, 
+        recipient_staff=request.user.gym_staff
+    )
+    
+    # Mark it as read
+    if not notification.is_read:
+        notification.is_read = True
+        notification.save()
+        
+    # Redirect to the URL stored on the notification
+    if notification.redirect_url:
+        return redirect(notification.redirect_url)
+    
+    # Fallback if no URL is set
+    return redirect('staff_dashboard')
+
 # --- Deprecated / Redundant Views ---
 # The logic from these views has been consolidated into 'account_settings_view'
 # and 'general_logout_view'. They can be safely removed from urls.py.
