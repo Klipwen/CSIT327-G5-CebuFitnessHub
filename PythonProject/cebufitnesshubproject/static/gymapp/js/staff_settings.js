@@ -116,9 +116,19 @@
       const btnCancel = document.getElementById('btn-cancel-settings');
       const btnSave = document.getElementById('btn-save-settings');
   
-      // 1. Initialize custom time pickers
-      initializeCustomTimePicker('time-select-start', '08:00'); // 8:00 AM
-      initializeCustomTimePicker('time-select-end', '20:00');   // 8:00 PM
+      // --- 1. THIS IS THE FIRST FIX ---
+      // Read the default values from the HTML data-attributes
+      const startWrapper = document.getElementById('time-select-start');
+      const endWrapper = document.getElementById('time-select-end');
+
+      // Get the saved HH:MM value, or use the old hard-coded default as a fallback
+      const defaultStartTime = startWrapper ? startWrapper.dataset.defaultValue : '08:00';
+      const defaultEndTime = endWrapper ? endWrapper.dataset.defaultValue : '20:00';
+
+      initializeCustomTimePicker('time-select-start', defaultStartTime);
+      initializeCustomTimePicker('time-select-end', defaultEndTime);
+      // --- END OF FIRST FIX ---
+
   
       // 2. Add Event Listeners for Toggling View/Edit Mode
       if (btnEdit) {
@@ -162,17 +172,26 @@
             .then(response => response.json())
             .then(result => {
                 if (result.status === 'success') {
-                    // 4. On success, update the 'form-view-field' <p> tags
-                    // so the user sees the new data without a page reload.
+                    // --- 2. THIS IS THE SECOND FIX ---
+                    // 4. On success, update ALL relevant fields
+                    
+                    // Update the simple text inputs
                     document.querySelector('#contact-number').previousElementSibling.textContent = data.contact_number;
                     document.querySelector('#default-fee').previousElementSibling.textContent = data.default_fee;
                     document.querySelector('#gym-capacity').previousElementSibling.textContent = data.gym_capacity;
                     
-                    // Update the <p> tags for the time pickers
-                    const startLabel = document.querySelector('#time-select-start .custom-select-label').textContent;
-                    const endLabel = document.querySelector('#time-select-end .custom-select-label').textContent;
+                    // Get the human-readable labels from the buttons we just saved
+                    const startLabel = document.querySelector('#time-select-start .dropdown-btn.is-selected-time').textContent;
+                    const endLabel = document.querySelector('#time-select-end .dropdown-btn.is-selected-time').textContent;
+                    
+                    // Update the <p> tags (view mode)
                     document.querySelector('#peak-start-trigger').previousElementSibling.textContent = startLabel;
                     document.querySelector('#peak-end-trigger').previousElementSibling.textContent = endLabel;
+                    
+                    // Update the <span class="custom-select-label"> (edit mode)
+                    document.querySelector('#time-select-start .custom-select-label').textContent = startLabel;
+                    document.querySelector('#time-select-end .custom-select-label').textContent = endLabel;
+                    // --- END OF SECOND FIX ---
                     
                     // 5. Switch back to view mode
                     wrapper.classList.remove('is-editing');
