@@ -29,6 +29,14 @@ from .views import (
     class_schedule_view, 
     check_in_out_view,
     staff_settings_view,
+    log_payment_view,
+    manual_freeze_view,
+    process_request_view,
+    activate_member_view,
+    manual_unfreeze_view,
+    edit_member_view,
+    revenue_chart_data_view,
+    mark_notification_read_view,
 )
 
 urlpatterns = [
@@ -52,13 +60,21 @@ urlpatterns = [
 
     path('staff/check-in-out/', check_in_out_view, name='check_in_out_view'),
     path('staff/settings/', staff_settings_view, name='staff_settings'),
+    path('staff/log-payment/', log_payment_view, name='log_payment_view'),
+    path('staff/manual-freeze/', manual_freeze_view, name='manual_freeze_view'),
+    path('staff/process-request/', process_request_view, name='process_request_view'),
+    path('staff/activate-member/', activate_member_view, name='activate_member_view'),
+    path('staff/manual-unfreeze/', manual_unfreeze_view, name='manual_unfreeze_view'),
+    path('staff/edit-member/', edit_member_view, name='edit_member_view'),
+    path('staff/revenue-chart-data/', revenue_chart_data_view, name='revenue_chart_data'),
+    path('staff/notifications/read/<int:notification_id>/', mark_notification_read_view, name='mark_notification_read'),
     
     # --- These paths are no longer needed ---
     # They all point to views that have been consolidated.
     
     # path('logout/', logout_prompt_view, name='logout_prompt'),
     # path('staff-logout/', staff_logout_view, name'staff_logout'),
-    # path('logout/confirm/', logout_confirm_view, name='logout_confirm'),
+    # path('logout/confirm/', logout_confirm_view, name='logout_confirm'),  
     # path('account/change-password/', change_password, name='change_password'),
     # path('account/request-unfreeze/', request_account_unfreeze, name='request_account_unfreeze'),
     # path('account/request-freeze/', request_account_freeze, name='request_account_freeze'),
