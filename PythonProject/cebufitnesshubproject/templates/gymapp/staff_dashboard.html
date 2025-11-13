@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %} 
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
 </head>
 <body>
-  {% csrf_token %}
+  {% csrf_token %} 
   <header class="site-header">
     <div class="brand">
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -22,7 +23,7 @@
         <span class="user-icon" aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
         </span>
-        <span class="user-name">Test Staff</span>
+        <span class="user-name">{{ staff_user.get_full_name|default:"Test Staff" }}</span>
       </div>
     </div>
   </header>
@@ -33,24 +34,23 @@
     <aside class="sidebar">
       <h3 class="sidebar-title">STAFF DASHBOARD</h3>
       <nav class="side-nav">
-        <a href="#overview" class="nav-item active">Overview</a>
+        <a href="#overview-section" class="nav-item active">Overview</a>
         <a href="#approvals" class="nav-item">Approval Queue</a>
         <a href="#members" class="nav-item">Member Management</a>
         <a href="#revenue" class="nav-item">Revenue Tracker</a>
         <a href="#notifications" class="nav-item">Notifications</a>
         <a href="{% url 'staff_settings' %}" class="nav-item">Settings</a>
-        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout">Logout</a>
+        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout" id="logoutBtn">Logout</a>
       </nav>
     </aside>
 
     <main class="main">
-      <section id="overview" class="header-section">
-        <div class="welcome-left">
-          <h2 class="welcome-text">Welcome back,<br> [Staff Name Placeholder]!</h2>
+      <section id="overview-section" class="header-section"> <div class="welcome-left">
+          <h2 class="welcome-text">Welcome back,<br> {{ staff_user.first_name }}!</h2>
         </div>
         <div class="overview-right">
           <h1 class="overview-title">STAFF OVERVIEW</h1>
-          <p class="subtext">[Overview Subtitle Placeholder]</p>
+          <p class="subtext">Here’s a snapshot of today’s performance and necessary actions!</p>
         </div>
       </section>
 
@@ -61,7 +61,7 @@
           </div>
           <div class="card-content">
             <div class="card-title">Pending Approvals</div>
-            <div class="card-value">##</div>
+            <div class="card-value">{{ pending_approvals }}</div>
           </div>
         </div>
         <div class="card">
@@ -70,7 +70,7 @@
           </div>
           <div class="card-content">
             <div class="card-title">MRR</div>
-            <div class="card-value">₱##,###.00</div>
+            <div class="card-value">₱{{ mrr|floatformat:2|intcomma }}</div>
           </div>
         </div>
         <div class="card">
@@ -79,7 +79,7 @@
           </div>
           <div class="card-content">
             <div class="card-title">Active Members</div>
-            <div class="card-value">###</div>
+            <div class="card-value">{{ active_members }}</div>
           </div>
         </div>
         <div class="card">
@@ -88,7 +88,7 @@
           </div>
           <div class="card-content">
             <div class="card-title">Today’s Revenue</div>
-            <div class="card-value">₱##,###.00</div>
+            <div class="card-value">₱{{ todays_revenue|floatformat:2|intcomma }}</div>
           </div>
         </div>
       </section>
@@ -112,60 +112,35 @@
               </tr>
             </thead>
             <tbody id="approval-queue-tbody">
-              <tr>
-                <td><span class="request-type-badge">FREEZE</span></td>
-                <td>Naruto Uzumaki</td>
-                <td>2025-10-27</td>
+              
+              {% for request in approval_requests %}
+              <tr data-request-id="{{ request.request_id }}">
+                <td><span class="request-type-badge">{{ request.get_request_type_display }}</span></td>
+                <td>{{ request.member.user.get_full_name }}</td>
+                <td>{{ request.request_date|date:"Y-m-d" }}</td>
                 <td>
-                  <button class="action-btn" type="button" aria-label="View details">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor"> <!--button for approval queue-->
-                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="request-type-badge">UNFREEZE</span></td>
-                <td>Sakura Haruno</td>
-                <td>2025-10-27</td>
-                <td>
-                  <button class="action-btn" type="button" aria-label="View details">
+                  <button class="action-btn" type="button" aria-label="View details"
+                          data-request-id="{{ request.request_id }}"
+                          data-reason="{{ request.reason|default:'No reason provided.' }}"
+                          data-member-name="{{ request.member.user.get_full_name }}"
+                          data-request-type="{{ request.request_type }}">
                     <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
                       <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
                     </svg>
                   </button>
                 </td>
               </tr>
-              <tr>
-                <td><span class="request-type-badge">FREEZE</span></td>
-                <td>Monday</td>
-                <td>2025-10-27</td>
-                <td>
-                  <button class="action-btn" type="button" aria-label="View details">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
-                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="request-type-badge">FREEZE</span></td>
-                <td>Monday</td>
-                <td>2025-10-27</td>
-                <td>
-                  <button class="action-btn" type="button" aria-label="View details">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
-                      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
+              {% endfor %}
+
             </tbody>
           </table>
-          <div class="approval-empty-message" id="approval-empty" style="display: none;">
+          
+          {% if not approval_requests %}
+          <div class="approval-empty-message" id="approval-empty">
             No pending approval requests.
           </div>
-          <div class="fallback" aria-hidden="true">Section unavailable</div>
+          {% endif %}
+          
         </div>
       </section>
 
@@ -178,27 +153,64 @@
           <div class="title-divider"></div>
         </div>
         <div class="revenue-grid">
+          <!--KPIs Start-->
           <div class="revenue-cards">
+
             <div class="mini-card">
-            <div class="mini-label">Today</div>
-            <div class="mini-value">₱##,###.00</div>
+              <div class="mini-card-header">
+                <span class="mini-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+                    <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Z"/>
+                  </svg>
+                </span>
+                <span class="mini-card-label">TODAY</span>
+              </div>
+              <div class="mini-card-value">₱{{ todays_revenue|floatformat:2|intcomma }}</div>
             </div>
+          
             <div class="mini-card">
-            <div class="mini-label">This Month</div>
-            <div class="mini-value">₱###,###.00</div>
+              <div class="mini-card-header">
+                <span class="mini-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+                    <path d="M480-80q-33 0-56.5-23.5T400-160v-480h160v480q0 33-23.5 56.5T480-80ZM200-240q-33 0-56.5-23.5T120-320v-320q0-33 23.5-56.5T200-720h120v-80h80v80h160v-80h80v80h120q33 0 56.5 23.5T840-640v320q0 33-23.5 56.5T760-240H200Z"/>
+                  </svg>
+                </span>
+                <span class="mini-card-label">THIS MONTH</span>
+              </div>
+              <div class="mini-card-value">₱{{ monthly_revenue|floatformat:2|intcomma }}</div>
             </div>
+          
             <div class="mini-card">
-            <div class="mini-label">MRR</div>
-            <div class="mini-value">₱###,###.00</div>
+              <div class="mini-card-header">
+                <span class="mini-card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+                    <path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q134 0 227 93t93 227q0 134-93 227t-227 93Zm0-80q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70Zm0-153q-24 0-41.5-16t-20.5-40q-2 0-3.5-1.5t-1.5-3.5V-480q0-8 5.5-13.5T400-499h160v-80H400q-33 0-56.5 23.5T320-499v203q0 24 16 40.5t40 19.5q2 0 3.5 1t1.5 3.5v28q0 24 17 40t42 16Z"/>
+                  </svg>
+                </span>
+                <span class="mini-card-label">MRR</span>
+              </div>
+              <div class="mini-card-value">₱{{ mrr|floatformat:2|intcomma }}</div>
+            </div>
+          
+          </div>          
+          <!--End of KPIs-->
+          <!--Start of chart-->
+          <div class="revenue-chart-widget">
+            <div class="widget-header">
+              <h3 class="widget-title" id="revenue-chart-title">Revenue</h3>
+              <div class="chart-filters">
+                <button type="button" class="chart-filter-btn active" data-filter="daily">This Month</button>
+                <button type="button" class="chart-filter-btn" data-filter="monthly">This Year</button>
+              </div>
+            </div>
+          
+            <div class="widget-content">
+              <div class="chart-canvas-container">
+                <canvas id="revenueChart"></canvas>
+              </div>
             </div>
           </div>
-          <div class="revenue-chart" role="img" aria-label="Revenue trend chart placeholder">
-          <div class="chart-placeholder">[Chart Placeholder]</div>
-            <div class="fallback" aria-hidden="true">Section unavailable</div>
-            <noscript>
-              <div class="noscript-msg">Section unavailable (JavaScript disabled)</div>
-            </noscript>
-          </div>
+          <!--End of the chart-->
         </div>
         <div class="table-wrap">
           <table class="table compact">
@@ -207,32 +219,25 @@
                 <th>Receipt #</th>
                 <th>Member</th>
                 <th>Amount</th>
-                <th>Method</th>
+                <th>Method/Description</th>
                 <th>Date</th>
               </tr>
             </thead>
             <tbody>
+              
+              {% for tx in revenue_transactions %}
               <tr>
-                <td>[Receipt Placeholder]</td>
-                <td>[Member Name Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td>[Method Placeholder]</td>
-                <td>[Date Placeholder]</td>
+                <td>{{ tx.billing_id }}</td>
+                <td>{{ tx.member.user.get_full_name }}</td>
+                <td>₱{{ tx.amount|floatformat:2|intcomma|slice:"1:" }}</td> <td>{{ tx.description|default:"N/A" }}</td>
+                <td>{{ tx.timestamp|date:"Y-m-d, g:i A" }}</td>
               </tr>
+              {% empty %}
               <tr>
-                <td>[Receipt Placeholder]</td>
-                <td>[Member Name Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td>[Method Placeholder]</td>
-                <td>[Date Placeholder]</td>
+                <td colspan="5" style="text-align: center;">No payments recorded yet.</td>
               </tr>
-              <tr>
-                <td>[Receipt Placeholder]</td>
-                <td>[Member Name Placeholder]</td>
-                <td>₱##,###.00</td>
-                <td>[Method Placeholder]</td>
-                <td>[Date Placeholder]</td>
-              </tr>
+              {% endfor %}
+              
             </tbody>
           </table>
         </div>
@@ -246,77 +251,59 @@
           <h2 class="box-title">Member Management</h2>
           <div class="title-divider"></div>
         </div>
-        <!--Start of the new drop-->
+        
         <div class="member-management-controls">
-          <!-- Member Search Group -->
-          <div class="member-search-group" id="member-search-group" style="display: none;">
+          <!--Search bar Start-->
+          <form
+            class="member-search-group"
+            id="member-search-group"
+            method="GET"
+            action="#members"
+          >
             <input
               type="search"
               class="input member-search-input"
               id="member-search-input"
-              placeholder="Find Member by ID"
-              aria-label="Find Member by ID"
+              name="q"
+              placeholder="Search by name, email, or ID..."
+              value="{{ search_query|default:'' }}"
             />
             <button
               class="btn member-search-btn"
-              type="button"
+              type="submit"
               id="member-search-btn"
             >
               Search
             </button>
-          </div>
+          </form>
+          <!--Search bar end-->
         
-          <!-- Member Filter Group -->
           <div class="member-filter-group" id="member-filter-component">
-            <button
-              class="member-filter-trigger"
-              type="button"
-              aria-haspopup="true"
-              aria-expanded="false"
-              aria-controls="member-filter-panel"
-            >
+            <button class="member-filter-trigger" type="button" aria-haspopup="true" aria-expanded="false"
+                    aria-controls="member-filter-panel">
               <span id="member-filter-label">Active Members</span>
               <span class="filter-arrow" aria-hidden="true">▼</span>
             </button>
         
-            <div
-              class="filter-dropdown-panel"
-              id="member-filter-panel"
-              role="menu"
-            >
+            <div class="filter-dropdown-panel" id="member-filter-panel" role="menu">
               <div class="dropdown-actions">
-                <button
-                  type="button"
-                  class="dropdown-btn btn-positive"
-                  role="menuitem"
-                  data-value="active"
-                  data-label="Active Members"
-                >
+                <button type="button" class="dropdown-btn btn-positive" role="menuitem"
+                        data-value="active" data-label="Active Members">
                   Active Members
                 </button>
-                <button
-                  type="button"
-                  class="dropdown-btn btn-positive"
-                  role="menuitem"
-                  data-value="pending"
-                  data-label="Pending Activation"
-                >
+                <button type="button" class="dropdown-btn btn-positive" role="menuitem"
+                        data-value="pending" data-label="Pending Activation">
                   Pending Activation
                 </button>
-                <button
-                  type="button"
-                  class="dropdown-btn btn-positive"
-                  role="menuitem"
-                  data-value="frozen"
-                  data-label="Frozen Accounts"
-                >
+                <button type="button" class="dropdown-btn btn-positive" role="menuitem"
+                        data-value="frozen" data-label="Frozen Accounts">
                   Frozen Accounts
                 </button>
               </div>
             </div>
           </div>
-        </div>        
-        <!-- END: NEW FILTER COMPONENT -->
+        </div>
+        
         <div class="table-wrap">
           <table class="table member-table">
             <thead>
@@ -325,40 +312,36 @@
                 <th>Status</th>
                 <th>Plan</th>
                 <th>Last Check-in</th>
-                <th>Balance</th>
-                <th>Actions</th>
+                <th>Balance Owed</th> <th>Actions</th>
               </tr>
             </thead>
 
-            <!--start of the Active Members-->
-
-            <tbody id="member-management-tbody" data-filter="active">
-              {% for data in member_list %}
-                  <tr data-member-id="{{ data.member.user.pk }}" data-checkin-status="{% if data.is_checked_in %}checked-in{% else %}checked-out{% endif %}">
-                  
+            <tbody id="member-management-tbody" data-filter="active" style="display: table-row-group;">
+              {% for data in active_member_list %}
+                <tr data-member-id="{{ data.member.user.pk }}" 
+                    data-checkin-status="{% if data.is_checked_in %}checked-in{% else %}checked-out{% endif %}"
+                    data-member-name="{{ data.member.user.get_full_name }}"
+                    data-member-email="{{ data.member.user.email }}"
+                    data-contact-number="{{ data.member.user.contact_number|default:'' }}"
+                    data-e-name="{{ data.member.user.emergency_contact_name|default:'' }}"
+                    data-e-contact="{{ data.member.user.emergency_contact_number|default:'' }}"
+                    data-medical="{{ data.member.user.medical_conditions|default:'' }}"
+                    data-goals="{{ data.member.user.fitness_goals|default:'' }}"
+                    data-member-id-str="{{ data.member.membership_id|default:'N/A' }}"
+                    data-date-joined="{{ data.member.user.date_joined|date:'Y-m-d' }}"
+                    data-balance="{{ data.member.balance|floatformat:2|intcomma }}"
+                    data-status-text="Active">
+                
                   <td>{{ data.member.user.get_full_name }}</td>
-                  <td>
-                    <span class="badge success">Active</span>
-                  </td>
-                  
-                  <td>₱{{ data.member.monthly_fee|floatformat:2 }}</td>
+                  <td><span class="badge success">Active</span></td>
+                  <td>₱{{ settings.default_monthly_fee|floatformat:2|intcomma }}</td>
                   <td>{{ data.last_checkin_time|date:"M. d, g:i A"|default:"N/A" }}</td>
-                  <td>₱{{ data.member.balance|floatformat:2 }}</td>
-                  
+                  <td>₱{{ data.member.balance|floatformat:2|intcomma }}</td>
                   <td class="action-cell">
                     <div class="action-menu-wrapper">
-                      <button
-                        class="action-menu-btn"
-                        type="button"
-                        aria-label="More options"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
+                      <button class="action-menu-btn" type="button" aria-label="More options">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
                       </button>
-
                       <div class="action-dropdown" role="menu">
                         <div class="dropdown-connector" aria-hidden="true"></div>
                         <div class="dropdown-actions">
@@ -371,151 +354,91 @@
                     </div>
                   </td>
                 </tr>
-              {% endfor %}
+                {% empty %}
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 20px; color: #666;">
+                    
+                    {% if search_query %}
+                      No active members found matching "{{ search_query }}".
+                    {% else %}
+                      No active members found.
+                    {% endif %}
+                    
+                  </td>
+                </tr>
+                {% endfor %}
             </tbody>
-
-            <!--End of the Active Members filtering-->
 
             <tbody id="member-management-tbody-pending" data-filter="pending" style="display: none;">
-              <tr>
-                <td>Naruto Uzumaki</td>
-                <td><span class="badge warning">Pending</span></td>
-                <td>₱2,000.00</td>
-                <td>N/A</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Sasuke Uchiha</td>
-                <td><span class="badge warning">Pending</span></td>
-                <td>₱2,000.00</td>
-                <td>N/A</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Hinata Hyuga</td>
-                <td><span class="badge warning">Pending</span></td>
-                <td>₱2,000.00</td>
-                <td>N/A</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Roronoa Zoro</td>
-                <td><span class="badge warning">Pending</span></td>
-                <td>₱2,000.00</td>
-                <td>N/A</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
-                </td>
-              </tr>
+              {% for member in pending_member_list %}
+                <tr data-member-id="{{ member.user.pk }}"
+                    data-member-name="{{ member.user.get_full_name }}"
+                    data-default-fee="{{ member.monthly_fee|floatformat:2 }}">
+                  <td>{{ member.user.get_full_name }}</td>
+                  <td><span class="badge warning">Pending</span></td>
+                  <td>₱{{ settings.default_monthly_fee|floatformat:2|intcomma }}</td>
+                  <td>N/A</td>
+                  <td>₱{{ member.balance|floatformat:2|intcomma }}</td>
+                  <td class="action-cell">
+                    <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" style="text-align: center;">No pending members found.</td></tr>
+              {% endfor %}
             </tbody>
-            <!--FOR FROZEN-->
-            <tbody id="member-management-tbody-frozen" data-filter="frozen" style="display: none;">
-              <tr>
-                <td>David Brown</td>
-                <td><span class="badge frozen">Frozen</span></td>
-                <td>₱2,000.00</td>
-                <td>2025-10-10</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <div class="action-menu-wrapper">
-                    <button
-                      class="action-menu-btn"
-                      type="button"
-                      aria-label="More options"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <span class="dot"></span>
-                      <span class="dot"></span>
-                      <span class="dot"></span>
-                    </button>
-                
-                    <div class="action-dropdown" role="menu">
-                      <div class="dropdown-connector" aria-hidden="true"></div>
-                
-                      <div class="dropdown-actions">
-                        <button
-                          type="button"
-                          class="dropdown-btn btn-danger"
-                          role="menuitem"
-                        >
-                          Unfreeze
-                        </button>
-                        <button
-                          type="button"
-                          class="dropdown-btn btn-positive"
-                          role="menuitem"
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </td>                
-              </tr>
             
-              <tr>
-                <td>Michael Chen</td>
-                <td><span class="badge frozen">Frozen</span></td>
-                <td>₱2,000.00</td>
-                <td>2025-10-05</td>
-                <td>₱0.00</td>
-                <td class="action-cell">
-                  <div class="action-menu-wrapper">
-                    <button
-                      class="action-menu-btn"
-                      type="button"
-                      aria-label="More options"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <span class="dot"></span>
-                      <span class="dot"></span>
-                      <span class="dot"></span>
-                    </button>
-                
-                    <div class="action-dropdown" role="menu">
-                      <div class="dropdown-connector" aria-hidden="true"></div>
-                
-                      <div class="dropdown-actions">
-                        <button
-                          type="button"
-                          class="dropdown-btn btn-danger"
-                          role="menuitem"
-                        >
-                          Unfreeze
-                        </button>
-                        <button
-                          type="button"
-                          class="dropdown-btn btn-positive"
-                          role="menuitem"
-                        >
-                          View Details
-                        </button>
+            <tbody id="member-management-tbody-frozen" data-filter="frozen" style="display: none;">
+              {% for data in frozen_member_list %}
+                <tr data-member-id="{{ data.member.user.pk }}"
+                    data-member-name="{{ data.member.user.get_full_name }}"
+                    data-member-email="{{ data.member.user.email }}"
+                    data-contact-number="{{ data.member.user.contact_number|default:'' }}"
+                    data-e-name="{{ data.member.user.emergency_contact_name|default:'' }}"
+                    data-e-contact="{{ data.member.user.emergency_contact_number|default:'' }}"
+                    data-medical="{{ data.member.user.medical_conditions|default:'' }}"
+                    data-goals="{{ data.member.user.fitness_goals|default:'' }}"
+                    data-member-id-str="{{ data.member.membership_id|default:'N/A' }}"
+                    data-date-joined="{{ data.member.user.date_joined|date:'Y-m-d' }}"
+                    data-balance="{{ data.member.balance|floatformat:2|intcomma }}"
+                    data-status-text="Frozen">
+                  
+                  <td>{{ data.member.user.get_full_name }}</td>
+                  <td><span class="badge frozen">Frozen</span></td>
+                  <td>₱{{ settings.default_monthly_fee|floatformat:2|intcomma }}</td>
+                  <td>{{ data.last_checkin_time|date:"M. d, g:i A"|default:"N/A" }}</td>
+                  <td>₱{{ data.member.balance|floatformat:2|intcomma }}</td>
+                  <td class="action-cell">
+                    <div class="action-menu-wrapper">
+                      <button class="action-menu-btn" type="button" aria-label="More options">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                      </button>
+                      <div class="action-dropdown" role="menu">
+                        <div class="dropdown-connector" aria-hidden="true"></div>
+                        <div class="dropdown-actions">
+                          <button type="button" class="dropdown-btn btn-danger" role="menuitem">Unfreeze</button>
+                          <button type="button" class="dropdown-btn btn-positive" role="menuitem">View Details</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>                
-              </tr>
-            </tbody>            
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" style="text-align: center;">No frozen members found.</td></tr>
+              {% endfor %}
+            </tbody>
           </table>
+          
           <div class="member-empty-message" id="member-empty" style="display: none;">
             No members found.
           </div>
-          <div class="fallback" aria-hidden="true">Section unavailable</div>
         </div>
       </section>
 
+      <!--Notification Start-->
+      <!-- ========================================================
+     REPLACE your old <section> with this new version
+     ======================================================== -->
       <section id="notifications" class="content-box notifications-box" data-section="notifications">
         <div class="box-header">
           <div class="box-icon">
@@ -524,96 +447,94 @@
           <h2 class="box-title">Notifications</h2>
           <div class="title-divider"></div>
         </div>
+
+        <!-- This 'notif-list' wrapper is the same -->
         <ul class="notif-list" aria-live="polite">
-          <li class="notif-item">
-            <span class="dot success" aria-hidden="true"></span>
-            [Notification Placeholder]
-            <time class="time">[Time Placeholder]</time>
-          </li>
-          <li class="notif-item">
-            <span class="dot warning" aria-hidden="true"></span>
-            [Notification Placeholder]
-            <time class="time">[Time Placeholder]</time>
-          </li>
-          <li class="notif-item">
-            <span class="dot neutral" aria-hidden="true"></span>
-            [Notification Placeholder]
-            <time class="time">[Time Placeholder]</time>
-          </li>
+
+          {% for notif in notifications %}
+            <!-- 
+              This <li> is the new "chip".
+              We add dynamic classes for styling based on status.
+            -->
+            <li class="notif-item 
+              {% if notif.is_read %}is-read{% endif %}
+              {% if notif.notification_type == 'NEW_REQUEST' %}notif-item--warning{% else %}notif-item--neutral{% endif %}
+            ">
+              <!-- This <a> tag is the clickable area -->
+              <a href="{% url 'mark_notification_read' notif.notification_id %}" class="notif-link">
+                
+                <!-- This div holds the text content -->
+                <div class="notif-content">
+                  <!-- 1. The Prefix (bold, uppercase) -->
+                  <span class="notif-prefix">
+                    {% if notif.notification_type == 'NEW_REQUEST' %}
+                      Action Required:
+                    {% else %}
+                      System:
+                    {% endif %}
+                  </span>
+                  
+                  <!-- 2. The Message (normal) -->
+                  <span class="notif-message">{{ notif.message }}</span>
+                </div>
+
+                <!-- 3. The Timestamp (right-aligned) -->
+                <time class="notif-time">{{ notif.timestamp|timesince }} ago</time>
+              </a>
+            </li>
+          {% empty %}
+            <li class="notif-item is-read">
+              <a href="#" class="notif-link" style="pointer-events: none;">
+                <div class="notif-content">
+                  <span class="notif-prefix">System:</span>
+                  <span class="notif-message">You have no unread notifications.</span>
+                </div>
+                <time class="notif-time">Just now</time>
+              </a>
+            </li>
+          {% endfor %}
+
         </ul>
-        <div class="fallback" aria-hidden="true">Section unavailable</div>
       </section>
+      <!--End of the Notification-->
+
     </main>
   </div>
 
   <div id="logout-backdrop" class="logout-backdrop" aria-hidden="true">
-    <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logout-title" aria-describedby="logout-desc">
-      <button type="button" class="logout-close" id="logout-close" aria-label="Close logout modal">✕</button>
-      <div class="logout-header">
-        <h2 id="logout-title" class="logout-title">Are you sure you want to logout?</h2>
-        <p id="logout-desc" class="logout-desc">You can log back in anytime.</p>
-      </div>
+    <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logout-title">
       <div class="logout-actions">
         <a href="{% url 'logout' %}" class="btn btn-danger" id="logout-yes" aria-label="Confirm logout">Yes</a>
-        <button type="button" class="btn btn-outline" id="logout-cancel" aria-label="Cancel logout">Cancel</button>
+        <button type="button" class="btn btn-outline" id="logout-cancel" data-close aria-label="Cancel logout">Cancel</button>
       </div>
     </div>
   </div>
 
-  <!--Modals-->
-
+  <!--REQUEST ACCOUNT FREEZE-->
   <div id="modalApproval" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
-      <!-- Close Button -->
       <button class="modal-close-icon" data-close>&times;</button>
-  
-      <!-- Brand Header -->
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
-      <!-- Modal Title -->
-      <h3 class="modal-title--enhanced">
+      <h3 class="modal-title--enhanced" id="approval-modal-title">
         Request Account <span class="modal-title-highlight">Freeze</span>
       </h3>
-  
-      <!-- Modal Body -->
       <div class="modal-body--enhanced">
-        <p class="modal-instruction">Reviewing request from member.</p>
-        <p class="modal-note-reject">Please approve or reject.</p>
-  
-        <!-- Reason Section -->
+        <p class="modal-instruction">Reviewing request from <strong id="approval-member-name">Member</strong>.</p>
         <div class="approval-reason-group">
           <label for="approval-reason-text">Reason</label>
-          <textarea id="approval-reason-text" readonly>
-            I'm going to Japan for vacation.</textarea>
+          <textarea id="approval-reason-text" readonly></textarea>
         </div>
-  
-        <!-- Action Buttons -->
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-reject"
-            id="btnReject"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-reject" id="btnReject">
             Reject Request
           </button>
-  
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-approve"
-            id="btnApprove"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnApprove">
             Approve Request
           </button>
         </div>
@@ -621,135 +542,81 @@
     </div>
   </div>
 
-  <!--Modal Log Payment-->
-
+  <!--LOG PAYMENT-->
   <div id="modalLogPayment" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
-      
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
       <h3 class="modal-title--enhanced">
         Log <span class="modal-title-highlight">Payment</span>
       </h3>
-      
       <div class="modal-body--enhanced">
-        <form class="modal-form--enhanced">
+        <form class="modal-form--enhanced" id="log-payment-form">
           <div class="form-group">
             <label for="log-member-name">Member</label>
             <input type="text" id="log-member-name" readonly />
           </div>
-          <!--Editted the currency-->
           <div class="form-group">
             <label for="log-payment-amount">Amount</label>
             <div class="input-with-symbol">
               <span class="currency-symbol">₱</span>
-          
-              <input
-                type="text"
-                inputmode="decimal" /* Better for mobile keyboards */
-                id="log-payment-amount"
-                placeholder="0.00" /* Updated placeholder */
-              />
+              <input type="text" inputmode="decimal" id="log-payment-amount" placeholder="0.00"/>
             </div>
           </div>
-          <!--End Tag-->
           <div class="form-group">
-            <label for="log-payment-description">Description</label>
-            <textarea
-              id="log-payment-description"
-              placeholder="e.g., Cash Payment - November Dues"
-              rows="3"
-            ></textarea>
+            <label for="log-payment-description">Description / Method</label>
+            <textarea id="log-payment-description" placeholder="e.g., Cash Payment - November Dues" rows="3"></textarea>
           </div>
         </form>
-  
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-approve"
-            id="btnConfirmPayment"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnConfirmPayment">
             Confirm Payment
           </button>
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-reject"
-            id="btnCancelPayment"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
             Cancel
           </button>
         </div>
       </div>
     </div>
   </div>
-
-   
-  <!--View Profile Modal-->
+    
+  <!--VIEW DETAILS-->
   <div id="modalViewDetails" class="modal" aria-hidden="true">
-    <div
-      class="modal-content modal-content--enhanced modal-content--large"
-      id="modalViewDetailsContent"
-      data-active-tab="member"
-    >
+    <div class="modal-content modal-content--enhanced modal-content--large" id="modalViewDetailsContent" data-active-tab="member">
       <button class="modal-close-icon" data-close>&times;</button>
-  
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
           <div class="modal-brand-header__line-1">CEBU</div>
           <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
+      
       <h3 class="modal-title--enhanced modal-title-view">
         Member <span class="modal-title-highlight">Details</span>
       </h3>
       <h3 class="modal-title--enhanced modal-title-edit">
         Edit <span class="modal-title-highlight">Details</span>
       </h3>
-  
+      
       <nav class="modal-tab-nav">
-        <button
-          type="button"
-          class="modal-tab-btn is-active"
-          data-tab="member"
-          role="tab"
-          aria-selected="true"
-        >
+        <button type="button" class="modal-tab-btn is-active" data-tab="member" role="tab" aria-selected="true">
           Member & Account
         </button>
-        <button
-          type="button"
-          class="modal-tab-btn"
-          data-tab="profile"
-          role="tab"
-          aria-selected="false"
-          tabindex="-1"
-        >
+        <button type="button" class="modal-tab-btn" data-tab="profile" role="tab" aria-selected="false" tabindex="-1">
           Profile & Emergency
         </button>
       </nav>
-  
+      
       <div class="modal-body--enhanced">
         <form class="modal-form--enhanced" id="member-details-form">
-  
+          
           <div class="modal-tab-pane is-active" id="tab-member" role="tabpanel">
             <div class="modal-grid">
               <div class="form-group">
@@ -781,19 +648,19 @@
                 <input type="text" id="edit-date-joined" disabled />
               </div>
             </div>
-  
+      
             <div class="modal-grid">
               <div class="form-group">
                 <label for="edit-status">Current Status</label>
                 <input type="text" id="edit-status" disabled />
               </div>
               <div class="form-group">
-                <label for="edit-balance">Balance</label>
+                <label for="edit-balance">Balance Owed</label>
                 <input type="text" id="edit-balance" disabled />
               </div>
             </div>
           </div>
-  
+      
           <div class="modal-tab-pane" id="tab-profile" role="tabpanel">
             <div class="modal-grid">
               <div class="form-group">
@@ -807,7 +674,7 @@
                 <input type="text" class="form-edit-field" id="edit-e-contact" />
               </div>
             </div>
-  
+      
             <div class="modal-grid">
               <div class="form-group grid-span-2">
                 <label for="edit-medical">Medical Conditions</label>
@@ -822,18 +689,18 @@
             </div>
           </div>
         </form>
-  
+      
         <div class="modal-action-buttons modal-actions-view">
           <button type="button" class="modal-action-btn modal-btn-approve" id="btnEditProfile">
             Edit Profile
           </button>
-          <button type="button" class="modal-action-btn modal-btn-reject" id="btnCloseView" data-close>
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
             Close
           </button>
         </div>
-  
+      
         <div class="modal-action-buttons modal-actions-edit">
-          <button type="button" class="modal-action-btn modal-btn-approve" id="btnSaveChanges" data-close>
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnSaveChanges">
             Save Changes
           </button>
           <button type="button" class="modal-action-btn modal-btn-reject" id="btnCancelEdit">
@@ -844,34 +711,25 @@
     </div>
   </div>
   
-  <!--Manual Freezing of Member Account-->
   <div id="modalFreezeAccount" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
-      
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
       <h3 class="modal-title--enhanced">
         Manually <span class="modal-title-highlight">Freeze</span> Member Account
       </h3>
-      
       <div class="modal-body--enhanced">
         <p class="modal-instruction">
           Are you sure you want to manually freeze this
           <br>
           <span class="modal-note-reject">account?</span>
         </p>
-  
         <form class="modal-form--enhanced" id="freeze-account-form">
           <div class="form-group">
             <label for="freeze-member-name">Member</label>
@@ -879,58 +737,36 @@
           </div>
           <div class="form-group">
             <label for="freeze-reason">Reason for Manual Freeze</label>
-            <textarea
-              id="freeze-reason"
-              placeholder="Enter justification for manual freeze..."
-              rows="3"
-            ></textarea>
+            <textarea id="freeze-reason" placeholder="Enter justification for manual freeze..." rows="3"></textarea>
           </div>
         </form>
-  
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-approve"
-            id="btnConfirmFreeze"
-          >
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnConfirmFreeze">
             Confirm Freeze
           </button>
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-reject"
-            id="btnCancelFreeze"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
             Cancel
           </button>
         </div>
       </div>
     </div>
-  </div>  
+  </div>
   
-  <!--Modal for check-in and check-out-->
   <div id="modalCheckInOut" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
-      
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
       <h3 class="modal-title--enhanced">
         Member
         <span class="modal-title-highlight">Check-In</span> /
         <span class="modal-title-highlight--red">Check-Out</span>
       </h3>
-      
       <div class="modal-body--enhanced">
         <form class="modal-form--enhanced" id="checkin-out-form">
           <div class="form-group">
@@ -942,77 +778,47 @@
             <input type="text" id="checkin-member-status" disabled />
           </div>
         </form>
-  
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn"
-            id="btnConfirmCheckInOut"
-            data-close
-          >
-          </button>
+          <button type="button" class="modal-action-btn" id="btnConfirmCheckInOut">
+            </button>
         </div>
       </div>
     </div>
-  </div>  
+  </div>
 
-  <!--Modal for manually Unfreeze member account-->
   <div id="modalUnfreezeAccount" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--medium">
       <button class="modal-close-icon" data-close>&times;</button>
-  
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
       <h3 class="modal-title--enhanced">
         Manually <span class="modal-title-highlight">Unfreeze</span> Member Account
       </h3>
-  
       <div class="modal-body--enhanced">
         <p class="modal-instruction">
           Are you sure you want to manually unfreeze this <br>
           <span class="modal-note-reject">account?</span>
         </p>
-  
         <form class="modal-form--enhanced" id="unfreeze-account-form">
           <div class="form-group">
             <label for="unfreeze-member-name">Member</label>
             <input type="text" id="unfreeze-member-name" disabled />
           </div>
-  
           <div class="form-group">
             <label for="unfreeze-reason">Reason for Manual Unfreeze</label>
-            <textarea
-              id="unfreeze-reason"
-              placeholder="Enter justification for manual unfreeze..."
-              rows="3"
-            ></textarea>
+            <textarea id="unfreeze-reason" placeholder="Enter justification for manual unfreeze..." rows="3"></textarea>
           </div>
         </form>
-  
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-approve"
-            id="btnConfirmUnfreeze"
-          >
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnConfirmUnfreeze">
             Confirm Unfreeze
           </button>
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-reject"
-            id="btnCancelUnfreeze"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
             Cancel
           </button>
         </div>
@@ -1020,76 +826,51 @@
     </div>
   </div>
 
-  <!--Modal for Membership activation-->
   <div id="modalActivateMembership" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
-  
       <div class="modal-brand-header">
-        <img
-          src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}"
-          alt="Cebu Fitness Hub Logo"
-          class="modal-brand-header__logo"
-        />
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
         <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+            <div class="modal-brand-header__line-1">CEBU</div>
+            <div class="modal-brand-header__line-2">FITNESS HUB</div>
         </div>
       </div>
-  
       <h3 class="modal-title--enhanced">
         Activate <span class="modal-title-highlight">Membership</span>
       </h3>
-  
       <div class="modal-body--enhanced">
         <form class="modal-form--enhanced" id="activate-member-form">
           <div class="form-group">
-            <label for="activate-member-name">Member</label>
-            <input type="text" id="activate-member-name" disabled />
+            <label for="activate-member-name">Member</LabeL>
+            <input type="text" id="activate-member-name" readonly />
           </div>
-  
           <div class="form-group">
-            <label for="activate-amount">Amount</label>
+            <label for="activate-amount">Downpayment Amount</label>
             <div class="input-with-symbol">
               <span class="currency-symbol">₱</span>
-              <input type="text" id="activate-amount" disabled />
+              <input type="text" id="activate-amount" inputmode="decimal" placeholder="0.00" />
             </div>
           </div>
-  
-          <div class="form-group">
-            <label for="activate-description">Description</label>
-            <textarea
-              id="activate-description"
-              rows="3"
-              disabled
-            >Cash Payment – Initial Activation</textarea>
+          <div class_form-group">
+            <label for="activate-description">Description / Method</label>
+            <textarea id="activate-description" rows="3" placeholder="e.g., Cash Payment - Initial Activation"></textarea>
           </div>
         </form>
-  
         <div class="modal-action-buttons">
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-approve"
-            id="btnConfirmActivation"
-          >
+          <button type="button" class="modal-action-btn modal-btn-approve" id="btnConfirmActivation">
             Confirm Activation
           </button>
-          <button
-            type="button"
-            class="modal-action-btn modal-btn-reject"
-            id="btnCancelActivation"
-            data-close
-          >
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
             Cancel
           </button>
         </div>
       </div>
     </div>
-  </div>  
-  
+  </div>
 
+  <!--For Chart-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script defer src="{% static 'gymapp/js/staff_dashboard.js' %}"></script>
 </body>
 </html>
-
-
