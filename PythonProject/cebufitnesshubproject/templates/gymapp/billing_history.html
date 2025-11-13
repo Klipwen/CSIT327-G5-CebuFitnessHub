@@ -1,4 +1,6 @@
 {% load static %}
+{% load humanize %} <!-- Added for number formatting -->
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,7 +8,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Billing History - Cebu Fitness Hub</title>
   
-  <!-- FIX: Corrected path from 'firstapp' to 'gymapp' -->
   <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'gymapp/css/billing_history.css' %}">
 </head>
@@ -14,7 +15,6 @@
   
   <header class="site-header">
     <div class="brand">
-      <!-- FIX: Corrected path from 'firstapp' to 'gymapp' -->
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
       <div class="logo-text">
         <div class="cebu-reg">CEBU</div>
@@ -30,7 +30,7 @@
       </div>
       <nav class="navbar">
         <ul>
-          <li><a href="#">Homepage</a></li>
+          <li><a href="{% url 'member_dashboard' %}">Homepage</a></li>
           <li><a href="#">Schedule</a></li>
           <li><a href="#">Occupancy</a></li>
         </ul>
@@ -46,9 +46,14 @@
         <a href="{% url 'member_dashboard' %}" class="nav-item">Home / Overview</a>
         <a href="{% url 'member_details' %}" class="nav-item">My Details</a>
         <a href="{% url 'check_in' %}" class="nav-item">Check-in History</a>
+        
+        <!-- This page is now active -->
         <a href="{% url 'billing_history' %}" class="nav-item active">Billing History</a>
+
         <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
-        <a href="#Logout" class="nav-item">Logout</a>
+        
+        <!-- FIX: Pointed logout to the correct URL and added ID -->
+        <a href="{% url 'logout' %}" class="nav-item" id="logoutBtn">Logout</a>
       </nav>
     </aside>
     <main class="main-content">
@@ -68,54 +73,51 @@
               </tr>
             </thead>
             
-            <!-- ====================================================================
-                 API INTEGRATION PLACEHOLDER
-                 Backend data from Django views or a frontend API fetch
-                 will populate the rows inside this tbody element.
-                 ==================================================================== -->
+            <!-- 
+              ========================================
+              START: DJANGO INTEGRATION
+              ========================================
+              This loop iterates over the 'history' variable from your view.
+            -->
             <tbody id="billing-data" class="billing__table-body">
               
-              <!-- Placeholder Row 1 -->
+              {% for item in history %}
               <tr class="billing__row">
-                <td class="billing__cell" data-label="Date">Oct 25, 2025</td>
-                <td class="billing__cell" data-label="Description">October Membership Fee</td>
-                <td class="billing__cell" data-label="Type">MEMBERSHIP FEE</td>
-                <td class="billing__cell billing__cell--positive" data-label="Amount">₊₱2000.00</td>
-                <td class="billing__cell" data-label="Balance">₱2000.00</td>
+                <td class="billing__cell" data-label="Date">{{ item.record.timestamp|date:"M d, Y" }}</td>
+                <td class="billing__cell" data-label="Description">{{ item.record.description }}</td>
+                <td class="billing__cell" data-label="Type">{{ item.record.get_transaction_type_display }}</td>
+
+                {% if item.record.amount > 0 %}
+                  <td class="billing__cell billing__cell--positive" data-label="Amount">+₱{{ item.record.amount|floatformat:2|intcomma }}</td>
+                {% else %}
+                  <td class="billing__cell billing__cell--negative" data-label="Amount">–₱{{ item.record.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+                {% endif %}
+
+                <td class="billing__cell" data-label="Balance">₱{{ item.balance_after_tx|floatformat:2|intcomma }}</td>
               </tr>
-      
-              <!-- Placeholder Row 2 -->
+
+              {% empty %}
+              <!-- This row displays if the 'history' list is empty -->
               <tr class="billing__row">
-                <td class="billing__cell" data-label="Date">Oct 25, 2025</td>
-                <td class="billing__cell" data-label="Description">Cash Payment Received</td>
-                <td class="billing__cell" data-label="Type">PAYMENT</td>
-                <td class="billing__cell billing__cell--negative" data-label="Amount">–₱500.00</td>
-                <td class="billing__cell" data-label="Balance">₱1500.00</td>
+                <td class="billing__cell" colspan="5" style="text-align: center;">You have no billing history yet.</td>
               </tr>
-              
-              <!-- Placeholder Row 3 -->
-              <tr class="billing__row">
-                <td class="billing__cell" data-label="Date">Oct 30, 2025</td>
-                <td class="billing__cell" data-label="Description">Cash Payment Received</td>
-                <td class="billing__cell" data-label="Type">PAYMENT</td>
-                <td class="billing__cell billing__cell--negative" data-label="Amount">–₱1500.00</td>
-                <td class="billing__cell" data-label="Balance">₱0.00</td>
-              </tr>
-              
-              <!-- Placeholder Row 4 -->
-              <tr class="billing__row">
-                <td class="billing__cell" data-label="Date">Nov 25, 2025</td>
-                <td class="billing__cell" data-label="Description">November Membership Fee</td>
-                <td class="billing__cell" data-label="Type">MEMBERSHIP FEE</td>
-                <td class="billing__cell billing__cell--positive" data-label="Amount">₊₱2000.00</td>
-                <td class="billing__cell" data-label="Balance">₱2000.00</td>
-              </tr>
+              {% endfor %}
               
             </tbody>
+            <!-- 
+              ========================================
+              END: DJANGO INTEGRATION
+              ========================================
+            -->
           </table>
         </div>
       </section>
       <!-- End of Main Content -->
     </main>
+  </div>
+  
+  <!-- We can reuse the same dashboard.js for the logout confirm -->
+  <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
+  
 </body>
 </html>
