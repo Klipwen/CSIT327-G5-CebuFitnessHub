@@ -139,6 +139,10 @@ class CustomUserRegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+
+        # --- THIS IS THE FIX ---
+        user.is_active = False # New users are inactive until staff activates them
+        # --- END OF FIX ---
         if commit:
             user.save()
         return user
@@ -164,11 +168,22 @@ class MemberLoginForm(forms.Form):
         if email and password:
             try:
                 user = CustomUser.objects.get(email=email)
+                
                 if not user.check_password(password):
-                    raise ValidationError("Email or password is incorrect.")
+                    # Error 1: Wrong password
+                    raise ValidationError("Invalid password.")
+                    
+                if not user.is_active:
+                    # Error 2: Inactive account
+                    raise ValidationError("This account is inactive and awaiting staff activation.")
+                    
+                # Success!
                 cleaned_data['user'] = user
+                
             except CustomUser.DoesNotExist:
-                raise ValidationError("Email or password is incorrect.")
+                # Error 3: User does not exist
+                raise ValidationError("Invalid account.")
+                
         return cleaned_data
 
 # PasswordChangeForm remains unchanged
