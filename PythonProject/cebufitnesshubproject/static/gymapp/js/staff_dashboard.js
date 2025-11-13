@@ -11,6 +11,8 @@
   // Keeps track of the element that triggered the modal (to restore focus)
   let lastFocusedElement;
 
+  let revenueChartInstance = null; // Stores the chart object so we can destroy it
+
 
   // ====================================================================
   // CORE MODAL FRAMEWORK (Accessible and Generic)
@@ -332,53 +334,61 @@
               }
               openModal(modal, trigger);
             }
+            // Store the member's PK on the *confirmation* button
+            modal.querySelector('#btnConfirmPayment').dataset.memberId = row.dataset.memberId;
+              
+            openModal(modal, trigger);
           }
         }
 
         // --- ADDED: Check if "View Details" was clicked ---
+        // --- (Inside initializeActionDropdowns) ---
+
         else if (clickedButton && clickedButton.textContent.trim() === 'View Details') {
-          e.preventDefault(); // Stop the click from *just* closing the dropdown
+          e.preventDefault(); 
 
           const modal = modals.viewDetails;
           if (modal && trigger) {
 
-            // --- ADDED: Reset tab state on open ---
-            // (This finds the first tab button and programmatically clicks it)
+            // --- Reset tab state on open ---
             const firstTab = modal.querySelector('.modal-tab-btn[data-tab="member"]');
             if (firstTab) firstTab.click();
-            // --- END ADDED ---
 
-            // --- Populate Modal with Data ---
-            // In a real app, this data would come from data-attributes on the row
-            //const row = trigger.closest('tr');
-            const memberName = row.cells[0].textContent.trim();
-            const [firstName, lastName] = memberName.split(' ');
+            // --- Store the memberId on the modal for the "Save" button ---
+            modal.querySelector('#modalViewDetailsContent').dataset.memberId = row.dataset.memberId;
+
+            // --- 
+            // THIS IS THE FIX: Populate Modal with LIVE Data
+            // ---
+            const data = row.dataset; // Get all data-attributes from the <tr>
+            const [firstName, ...lastNameParts] = data.memberName.split(' ');
+            const lastName = lastNameParts.join(' ');
 
             // Set all VIEW fields
             modal.querySelector('#view-first-name').textContent = firstName || 'N/A';
-            modal.querySelector('#view-last-name').textContent = lastName || 'N/A';
-            modal.querySelector('#view-email').textContent = 'naruto@konoha.com'; // Placeholder
-            modal.querySelector('#view-contact').textContent = '+63 917 123 4567'; // Placeholder
-            modal.querySelector('#view-e-name').textContent = 'Kakashi Hatake'; // Placeholder
-            modal.querySelector('#view-e-contact').textContent = '+63 917 765 4321'; // Placeholder
-            modal.querySelector('#view-medical').textContent = 'None noted'; // Placeholder
-            modal.querySelector('#view-goals').textContent = 'To become Hokage!'; // Placeholder
+            modal.querySelector('#view-last-name').textContent = lastName || '';
+            modal.querySelector('#view-email').textContent = data.memberEmail;
+            modal.querySelector('#view-contact').textContent = data.contactNumber;
+            modal.querySelector('#view-e-name').textContent = data.eName;
+            modal.querySelector('#view-e-contact').textContent = data.eContact;
+            modal.querySelector('#view-medical').textContent = data.medical || 'None noted';
+            modal.querySelector('#view-goals').textContent = data.goals || 'None noted';
 
             // Set all EDIT fields
             modal.querySelector('#edit-first-name').value = firstName || '';
             modal.querySelector('#edit-last-name').value = lastName || '';
-            modal.querySelector('#edit-email').value = 'naruto@konoha.com'; // Placeholder
-            modal.querySelector('#edit-contact').value = '+63 917 123 4567'; // Placeholder
-            modal.querySelector('#edit-e-name').value = 'Kakashi Hatake'; // Placeholder
-            modal.querySelector('#edit-e-contact').value = '+63 917 765 4321'; // Placeholder
-            modal.querySelector('#edit-medical').value = 'None noted'; // Placeholder
-            modal.querySelector('#edit-goals').value = 'To become Hokage!'; // Placeholder
+            modal.querySelector('#edit-email').value = data.memberEmail;
+            modal.querySelector('#edit-contact').value = data.contactNumber;
+            modal.querySelector('#edit-e-name').value = data.eName;
+            modal.querySelector('#edit-e-contact').value = data.eContact;
+            modal.querySelector('#edit-medical').value = data.medical || '';
+            modal.querySelector('#edit-goals').value = data.goals || '';
 
             // Set all DISABLED fields
-            modal.querySelector('#edit-member-id').value = 'CFH-2025-0001'; // Placeholder
-            modal.querySelector('#edit-date-joined').value = '2025-10-25'; // Placeholder
-            modal.querySelector('#edit-status').value = row.cells[1].textContent.trim();
-            modal.querySelector('#edit-balance').value = row.cells[4].textContent.trim();
+            modal.querySelector('#edit-member-id').value = data.memberIdStr;
+            modal.querySelector('#edit-date-joined').value = data.dateJoined;
+            modal.querySelector('#edit-status').value = data.statusText;
+            modal.querySelector('#edit-balance').value = `₱${data.balance}`;
 
             // ALWAYS open in view mode
             modal.classList.remove('is-editing');
@@ -400,7 +410,10 @@
             modal.querySelector('#freeze-member-name').value = memberName;
             
             // Store the member name on the confirm button for the handler
-            modal.querySelector('#btnConfirmFreeze').dataset.memberName = memberName;
+            // --- KEEP BOTH OF THESE LINES ---
+            const confirmButton = modal.querySelector('#btnConfirmFreeze');
+            confirmButton.dataset.memberName = memberName; // <-- KEEP THIS
+            confirmButton.dataset.memberId = row.dataset.memberId; // <-- ADD THIS
             
             openModal(modal, trigger);
           }
@@ -467,7 +480,10 @@
               modal.querySelector('#unfreeze-member-name').value = memberName;
 
               // Store the member name on the confirm button for the handler
-              modal.querySelector('#btnConfirmUnfreeze').dataset.memberName = memberName;
+              // --- ADD THESE TWO LINES ---
+              const confirmButton = modal.querySelector('#btnConfirmUnfreeze');
+              confirmButton.dataset.memberName = memberName;
+              confirmButton.dataset.memberId = row.dataset.memberId; // <-- This is the new line
 
               openModal(modal, trigger);
           }
@@ -503,6 +519,77 @@
     });
   }
 
+    // ========================================================================
+    //-----------------------CHART FUNCTION----------------------------------
+    //=======================================================================
+  // --- REPLACE initializeRevenueChart WITH THIS ---
+
+  function updateRevenueChart(filterType = 'daily') {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return; 
+
+    const chartTitleEl = document.getElementById('revenue-chart-title');
+
+    // Fetch data from the API, now with a 'filter' parameter
+    fetch(`/staff/revenue-chart-data/?filter=${filterType}`)
+        .then(response => response.json())
+        .then(data => {
+            
+            if (revenueChartInstance) {
+                revenueChartInstance.destroy();
+            }
+
+            // --- THIS LOGIC IS NEW ---
+            let chartLabel = 'Revenue This Month';
+            if (filterType === 'monthly') {
+                chartLabel = 'Revenue This Year';
+            }
+            
+            // Update the title in the HTML
+            if (chartTitleEl) {
+                chartTitleEl.textContent = chartLabel;
+            }
+            // --- END NEW LOGIC ---
+
+            revenueChartInstance = new Chart(ctx, {
+                type: 'line', 
+                data: {
+                    labels: data.labels, // The dates or months
+                    datasets: [{
+                        label: chartLabel,
+                        data: data.data, // The amounts
+                        borderColor: '#6BCB3D',
+                        backgroundColor: 'rgba(107, 203, 61, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false 
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching chart data:', error);
+            ctx.parentElement.innerHTML = '<div class="chart-placeholder">[Error loading chart]</div>';
+        });
+  }
 
 
   function positionDropdown(dropdown, trigger) {
@@ -588,6 +675,22 @@
     // Setup member management dropdown
     initializeFilterDropdown();
     handleMemberFilterChange('active');
+
+    updateRevenueChart('daily'); 
+
+    // Add event listeners for the new chart filter buttons
+    document.querySelectorAll('.chart-filter-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove 'active' from all buttons
+            document.querySelectorAll('.chart-filter-btn').forEach(btn => btn.classList.remove('active'));
+            // Add 'active' to the one clicked
+            button.classList.add('active');
+            
+            // Get the filter type ("daily" or "monthly") and update the chart
+            const filterType = button.dataset.filter;
+            updateRevenueChart(filterType);
+        });
+    });
 
     // --- Close dropdowns on horizontal scroll ---
     document.querySelectorAll('.table-wrap').forEach(tableWrap => {
@@ -684,6 +787,7 @@
       });
     }
 
+    /*
     const approveBtn = document.getElementById('btnApprove');
     const rejectBtn = document.getElementById('btnReject');
 
@@ -699,9 +803,49 @@
         const requestId = e.currentTarget.dataset.requestId;
         console.log('Placeholder: rejectRequest() called for ID:', requestId);
       });
-    }
+    }*/
 
-    // --- ADDED: Log Payment Modal Logic ---
+    // --- ADD THIS NEW BLOCK ---
+    // This function handles both Approve and Reject clicks
+    function handleApprovalAction(e) {
+      const action = e.currentTarget.id === 'btnApprove' ? 'approve' : 'reject';
+      const requestId = e.currentTarget.dataset.requestId;
+      const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+      fetch('/staff/process-request/', { // New URL
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+              'request_id': requestId,
+              'action': action,
+              // We can add a rejection reason field to the modal later if needed
+              'staff_reason': (action === 'reject') ? 'Rejected by staff' : '' 
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === 'success') {
+              location.reload(); // Reload to update queue and member lists
+          } else {
+              alert(data.message);
+          }
+      });
+  }
+
+  const approveBtn = document.getElementById('btnApprove');
+  const rejectBtn = document.getElementById('btnReject');
+  
+  if (approveBtn) {
+      approveBtn.addEventListener('click', handleApprovalAction);
+  }
+  if (rejectBtn) {
+      rejectBtn.addEventListener('click', handleApprovalAction);
+  }
+
+   /* // --- ADDED: Log Payment Modal Logic ---
     const confirmPaymentBtn = document.getElementById('btnConfirmPayment');
     if (confirmPaymentBtn) {
       confirmPaymentBtn.addEventListener('click', e => {
@@ -712,8 +856,47 @@
         console.log(`Placeholder: confirmPayment() called for ${memberName} with amount ${amount}`);
         // Example: sendPayment(memberName, amount);
       });
+    }  DELETED
+    // --- END ADDED --- */
+
+    // --- ADD THIS NEW BLOCK ---
+    const confirmPaymentBtn = document.getElementById('btnConfirmPayment');
+    if (confirmPaymentBtn) {
+        confirmPaymentBtn.addEventListener('click', e => {
+            const modal = modals.logPayment;
+            const memberId = e.currentTarget.dataset.memberId;
+            const amount = modal.querySelector('#log-payment-amount').value;
+            const description = modal.querySelector('#log-payment-description').value;
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            // Basic validation
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            fetch('/staff/log-payment/', { // New URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    'member_id': memberId,
+                    'amount': amount,
+                    'description': description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload(); // Reload to see updated balance
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
     }
-    // --- END ADDED ---
 
     // --- ADDED: View/Edit Modal Button Logic ---
     const modalViewDetails = modals.viewDetails;
@@ -746,34 +929,78 @@
       }
 
       // "Save Changes" -> Placeholder log
+      // --- NEW: View/Edit Modal "Save Changes" Logic ---
       if (btnSaveChanges) {
         btnSaveChanges.addEventListener('click', () => {
-          // The [data-close] attribute handles closing
-          console.log('Placeholder: Saving member details...');
-          // In a real app, you would get form data and send API request
-          // On success, the modal closes. On error, you'd show a message.
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            // --- THIS IS THE FIX ---
+            // 1. Get the memberId from the modal's content area
+            const memberId = modalViewDetails.querySelector('#modalViewDetailsContent').dataset.memberId;
+
+            // 2. Get all the new values from the edit fields
+            const data = {
+                'member_id': memberId,
+                'first_name': document.getElementById('edit-first-name').value,
+                'last_name': document.getElementById('edit-last-name').value,
+                'contact_number': document.getElementById('edit-contact').value,
+                'emergency_contact_name': document.getElementById('edit-e-name').value,
+                'emergency_contact_number': document.getElementById('edit-e-contact').value,
+                'medical_conditions': document.getElementById('edit-medical').value,
+                'fitness_goals': document.getElementById('edit-goals').value
+            };
+
+            // 3. Send the data to the server
+            fetch('/staff/edit-member/', { // The URL from urls.py
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    // Close the modal and reload
+                    closeModal(modals.viewDetails);
+                    location.reload();
+                } else {
+                    alert('Error saving changes: ' + result.message);
+                }
+            });
         });
       }
     }
     // --- END ADDED ---
 
-    // --- ADDED: Freeze Account Modal Logic ---
+    // --- ADD THIS NEW BLOCK ---
     const btnConfirmFreeze = document.getElementById('btnConfirmFreeze');
-
     if (btnConfirmFreeze) {
       btnConfirmFreeze.addEventListener('click', (e) => {
-        const memberName = e.currentTarget.dataset.memberName;
+        const memberId = e.currentTarget.dataset.memberId;
         const reason = document.getElementById('freeze-reason').value;
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-        // TODO: Add form validation here (e.g., check if reason is empty)
-        console.log(`Placeholder: confirmFreeze() called for ${memberName}`);
-        console.log(`Reason: ${reason}`);
-
-        // Manually close the modal on success
-        closeModal(modals.freezeAccount);
+        // --- THIS IS THE NEW FETCH LOGIC ---
+        fetch('/staff/manual-freeze/', { // The URL we created
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({
+                'member_id': memberId,
+                'reason': reason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload(); // Reload to see member in "Frozen" list
+            } else {
+                alert(data.message);
+            }
+        });
       });
     }
-    // --- END ADDED ---
 
     // ==========================================================
     // THIS IS THE CORRECT AND ONLY CHECK-IN/OUT LOGIC
@@ -826,15 +1053,27 @@
 
     if (btnConfirmUnfreeze) {
       btnConfirmUnfreeze.addEventListener('click', (e) => {
-        const memberName = e.currentTarget.dataset.memberName;
+        const memberId = e.currentTarget.dataset.memberId;
         const reason = document.getElementById('unfreeze-reason').value;
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-        // TODO: Add form validation here (e.g., check if reason is empty)
-        console.log(`Placeholder: confirmUnfreeze() called for ${memberName}`);
-        console.log(`Reason: ${reason}`);
-
-        // Manually close the modal on success
-        closeModal(modals.unfreezeAccount);
+        // --- THIS IS THE NEW FETCH LOGIC ---
+        fetch('/staff/manual-unfreeze/', { // The URL we created
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({
+                'member_id': memberId,
+                'reason': reason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload(); // Reload to see member in "Active" list
+            } else {
+                alert(data.message);
+            }
+        });
       });
     }
     // --- END NEW ---
@@ -871,18 +1110,42 @@
       });
     }
 
+    // --- ADD THIS NEW FETCH LOGIC ---
     const btnConfirmActivation = document.getElementById('btnConfirmActivation');
     if (btnConfirmActivation) {
-      btnConfirmActivation.addEventListener('click', e => {
-        const memberId = e.currentTarget.dataset.memberId;
-        const memberName = e.currentTarget.dataset.memberName;
+        btnConfirmActivation.addEventListener('click', e => {
+            const modal = modals.activateMembership;
+            const memberId = e.currentTarget.dataset.memberId;
+            const amount = modal.querySelector('#activate-amount').value;
+            const description = modal.querySelector('#activate-description').value;
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-        console.log(`Placeholder: confirmActivation() called for ${memberName} (ID: ${memberId})`);
-        // TODO: Add logic to activate member via API
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid downpayment amount.');
+                return;
+            }
 
-        // Manually close the modal on success
-        closeModal(modals.activateMembership);
-      });
+            fetch('/staff/activate-member/', { // The new URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    'member_id': memberId,
+                    'amount': amount,
+                    'description': description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload(); // Reload to show the member in the "Active" list
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
     }
     // --- END NEW ---
 
