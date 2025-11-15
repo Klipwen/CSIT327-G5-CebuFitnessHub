@@ -29,4 +29,6 @@ media/
 .DS_Store
 Thumbs.db
 
+tempfile/
+
 
