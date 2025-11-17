@@ -13,6 +13,15 @@
 
   let revenueChartInstance = null; // Stores the chart object so we can destroy it
 
+  function showLoader() {
+    const l = document.querySelector('.page-loader');
+    if (l) l.classList.add('is-active');
+  }
+  function hideLoader() {
+    const l = document.querySelector('.page-loader');
+    if (l) l.classList.remove('is-active');
+  }
+
 
   // ====================================================================
   // CORE MODAL FRAMEWORK (Accessible and Generic)
@@ -718,8 +727,9 @@
     if (searchBtn) {
       searchBtn.addEventListener('click', () => {
         const searchInput = document.getElementById('member-search-input');
-        if (searchInput && searchInput.value.trim()) {
-          console.log('Searching for:', searchInput.value);
+        if (searchInput) {
+          showLoader();
+          setTimeout(() => hideLoader(), 300);
         }
       });
     }
@@ -807,12 +817,13 @@
 
     // --- ADD THIS NEW BLOCK ---
     // This function handles both Approve and Reject clicks
-    function handleApprovalAction(e) {
-      const action = e.currentTarget.id === 'btnApprove' ? 'approve' : 'reject';
-      const requestId = e.currentTarget.dataset.requestId;
-      const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+  function handleApprovalAction(e) {
+    const action = e.currentTarget.id === 'btnApprove' ? 'approve' : 'reject';
+    const requestId = e.currentTarget.dataset.requestId;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-      fetch('/staff/process-request/', { // New URL
+      showLoader();
+      fetch('/staff/process-request/', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -832,7 +843,8 @@
           } else {
               alert(data.message);
           }
-      });
+      })
+      .finally(() => hideLoader());
   }
 
   const approveBtn = document.getElementById('btnApprove');
@@ -875,7 +887,8 @@
                 return;
             }
 
-            fetch('/staff/log-payment/', { // New URL
+            showLoader();
+            fetch('/staff/log-payment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -894,7 +907,8 @@
                 } else {
                     alert(data.message);
                 }
-            });
+            })
+            .finally(() => hideLoader());
         });
     }
 
@@ -951,7 +965,8 @@
             };
 
             // 3. Send the data to the server
-            fetch('/staff/edit-member/', { // The URL from urls.py
+            showLoader();
+            fetch('/staff/edit-member/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -968,7 +983,8 @@
                 } else {
                     alert('Error saving changes: ' + result.message);
                 }
-            });
+            })
+            .finally(() => hideLoader());
         });
       }
     }
@@ -983,7 +999,8 @@
         const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
         // --- THIS IS THE NEW FETCH LOGIC ---
-        fetch('/staff/manual-freeze/', { // The URL we created
+        showLoader();
+        fetch('/staff/manual-freeze/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
             body: JSON.stringify({
@@ -998,7 +1015,8 @@
             } else {
                 alert(data.message);
             }
-        });
+        })
+        .finally(() => hideLoader());
       });
     }
 
@@ -1022,6 +1040,7 @@
                 const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
                 // Send the data to the server
+                showLoader();
                 fetch('/staff/check-in-out/', {
                     method: 'POST',
                     headers: {
@@ -1040,7 +1059,8 @@
                     } else {
                         alert(data.message);
                     }
-                });
+                })
+                .finally(() => hideLoader());
             });
         }
     }
@@ -1058,7 +1078,8 @@
         const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
         // --- THIS IS THE NEW FETCH LOGIC ---
-        fetch('/staff/manual-unfreeze/', { // The URL we created
+        showLoader();
+        fetch('/staff/manual-unfreeze/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
             body: JSON.stringify({
@@ -1073,7 +1094,8 @@
             } else {
                 alert(data.message);
             }
-        });
+        })
+        .finally(() => hideLoader());
       });
     }
     // --- END NEW ---
@@ -1125,7 +1147,8 @@
                 return;
             }
 
-            fetch('/staff/activate-member/', { // The new URL
+            showLoader();
+            fetch('/staff/activate-member/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1144,7 +1167,8 @@
                 } else {
                     alert(data.message);
                 }
-            });
+            })
+            .finally(() => hideLoader());
         });
     }
     // --- END NEW ---
