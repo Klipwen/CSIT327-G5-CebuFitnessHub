@@ -8,7 +8,7 @@
   <title>Cebu Fitness Hub • Staff Dashboard</title>
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
 </head>
-<body>
+<body data-enable-anchor-loader="true">
   {% csrf_token %} 
   <header class="site-header">
     <div class="brand">
@@ -871,6 +871,7 @@
 
   <!--For Chart-->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
   <script defer src="{% static 'gymapp/js/staff_dashboard.js' %}"></script>
 </body>
 </html>

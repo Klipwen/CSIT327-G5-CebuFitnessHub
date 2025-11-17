@@ -7,7 +7,7 @@
   <title>Cebu Fitness Hub • Staff Settings</title>
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_settings.css' %}">
 </head>
-<body>
+<body data-enable-anchor-loader="true">
   {% csrf_token %}
   <header class="site-header">
     <div class="brand">
@@ -197,6 +197,7 @@
     </main>
   </div>
 
+  <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
   <script defer src="{% static 'gymapp/js/staff_settings.js' %}"></script>
 </body>
 </html>
