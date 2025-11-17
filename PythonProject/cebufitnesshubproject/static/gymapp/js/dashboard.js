@@ -1,22 +1,37 @@
 // static/gymapp/js/dashboard.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Logout Confirmation ---
-    const logoutButton = document.getElementById('logoutBtn');
-  
-    if (logoutButton) {
-      logoutButton.addEventListener('click', function(event) {
-        // This stops the link from navigating immediately
-        event.preventDefault();
-  
-        const confirmLogout = confirm('Are you sure you want to log out?');
-  
-        if (confirmLogout) {
-          // If user clicks "OK", manually follow the link
-          window.location.href = logoutButton.href;
-        }
-        // If user clicks "Cancel", do nothing.
-      });
-    }
+  const loader = document.createElement('div');
+  loader.className = 'page-loader';
+  loader.innerHTML = '<div class="loader-card"><div class="loader-spinner"></div><div class="loader-text">Loading…</div></div>';
+  document.body.appendChild(loader);
+  const activate = () => loader.classList.add('is-active');
+
+  const links = document.querySelectorAll('.side-nav .nav-item, .navbar a');
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('#') || a.classList.contains('active')) return;
+      if (a.id === 'logoutBtn') return;
+      activate();
+    });
   });
+
+  const forms = document.querySelectorAll('form');
+  forms.forEach(f => {
+    f.addEventListener('submit', () => activate());
+  });
+
+  const logoutButton = document.getElementById('logoutBtn');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      const confirmLogout = confirm('Are you sure you want to log out?');
+      if (confirmLogout) {
+        activate();
+        window.location.href = logoutButton.href;
+      }
+    });
+  }
+});
   
