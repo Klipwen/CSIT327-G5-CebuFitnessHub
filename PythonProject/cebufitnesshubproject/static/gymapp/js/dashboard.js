@@ -7,12 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.appendChild(loader);
   const activate = () => loader.classList.add('is-active');
 
+  const enableAnchorLoader = document.body.dataset.enableAnchorLoader === 'true';
   const links = document.querySelectorAll('.side-nav .nav-item, .navbar a');
   links.forEach(a => {
     a.addEventListener('click', e => {
       const href = a.getAttribute('href') || '';
-      if (href.startsWith('#') || a.classList.contains('active')) return;
       if (a.id === 'logoutBtn') return;
+      if (!enableAnchorLoader && href.startsWith('#')) return;
+      if (a.classList.contains('active')) return;
       activate();
     });
   });
