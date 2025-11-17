@@ -161,7 +161,9 @@
             const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
             // 3. Send the data to the server
-            fetch("/staff/settings/", {  // Use the Django URL tag
+            const loaderEl = document.querySelector('.page-loader');
+            if (loaderEl) loaderEl.classList.add('is-active');
+            fetch("/staff/settings/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -202,7 +204,8 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An unexpected error occurred. Please try again.');
-            });
+            })
+            .finally(() => { if (loaderEl) loaderEl.classList.remove('is-active'); });
         });
      }
   
