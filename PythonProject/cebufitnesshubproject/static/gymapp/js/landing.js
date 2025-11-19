@@ -246,6 +246,35 @@
     }
   });
 
+  // Mobile menu toggle functionality
+  var mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+  var mainNav = document.getElementById('main-nav');
+  
+  if (mobileMenuToggle && mainNav) {
+    mobileMenuToggle.addEventListener('click', function() {
+      var isExpanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true';
+      mobileMenuToggle.setAttribute('aria-expanded', !isExpanded);
+      mainNav.classList.toggle('is-open');
+    });
+
+    // Close mobile menu when clicking on a link
+    var navLinks = mainNav.querySelectorAll('a');
+    navLinks.forEach(function(link) {
+      link.addEventListener('click', function() {
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        mainNav.classList.remove('is-open');
+      });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!mainNav.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        mainNav.classList.remove('is-open');
+      }
+    });
+  }
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') window.closeModal();
   });
