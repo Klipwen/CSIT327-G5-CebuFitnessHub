@@ -8,14 +8,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const activate = () => loader.classList.add('is-active');
   const deactivate = () => loader.classList.remove('is-active');
 
-  // Function to update active navigation state based on hash
+  // Function to update active navigation state based on hash or current page
   function updateActiveNavigation(hash) {
     const navItems = document.querySelectorAll('.side-nav .nav-item');
     navItems.forEach(item => {
       item.classList.remove('active');
     });
 
-    // Map hash to navigation item
+    // Check if we're on the settings page
+    const currentPath = window.location.pathname;
+    const isSettingsPage = currentPath.includes('/staff/settings/');
+    
+    if (isSettingsPage) {
+      // Highlight Settings button if on settings page
+      const settingsNavItem = document.querySelector('.side-nav .nav-item[href*="staff/settings"], .side-nav .nav-item[href="#settings"]');
+      if (settingsNavItem) {
+        settingsNavItem.classList.add('active');
+      }
+      return;
+    }
+
+    // Map hash to navigation item (for dashboard page)
     let targetHash = hash || '#overview-section';
     
     // If hash is empty or just '#', default to overview
@@ -36,9 +49,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Update active navigation on page load based on URL hash
+  // Update active navigation on page load based on URL hash or current page
   const currentHash = window.location.hash;
-  if (currentHash) {
+  const currentPath = window.location.pathname;
+  const isSettingsPage = currentPath.includes('/staff/settings/');
+  
+  if (isSettingsPage) {
+    // On settings page, highlight Settings button
+    updateActiveNavigation();
+  } else if (currentHash) {
     // Wait a bit for the page to fully load, then update and scroll
     setTimeout(() => {
       updateActiveNavigation(currentHash);
