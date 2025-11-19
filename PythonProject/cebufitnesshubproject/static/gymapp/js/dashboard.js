@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   const enableAnchorLoader = document.body.dataset.enableAnchorLoader === 'true';
+  const useLogoutModal = document.body.dataset.useLogoutModal === 'true';
   const links = document.querySelectorAll('.side-nav .nav-item, .navbar a');
   links.forEach(a => {
     a.addEventListener('click', e => {
@@ -129,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   const logoutButton = document.getElementById('logoutBtn');
-  if (logoutButton) {
+  if (logoutButton && !useLogoutModal) {
     logoutButton.addEventListener('click', function(event) {
       event.preventDefault();
       const confirmLogout = confirm('Are you sure you want to log out?');
