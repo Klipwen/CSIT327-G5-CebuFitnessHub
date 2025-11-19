@@ -34,10 +34,10 @@
       <h3 class="sidebar-title">STAFF DASHBOARD</h3>
       <nav class="side-nav">
         <a href="{% url 'staff_dashboard' %}" class="nav-item">Overview</a>
-        <a href="#approvals" class="nav-item">Approval Queue</a>
-        <a href="#members" class="nav-item">Member Management</a>
-        <a href="#revenue" class="nav-item">Revenue Tracker</a>
-        <a href="#notifications" class="nav-item">Notifications</a>
+        <a href="{% url 'staff_dashboard' %}#approvals" class="nav-item">Approval Queue</a>
+        <a href="{% url 'staff_dashboard' %}#members" class="nav-item">Member Management</a>
+        <a href="{% url 'staff_dashboard' %}#revenue" class="nav-item">Revenue Tracker</a>
+        <a href="{% url 'staff_dashboard' %}#notifications" class="nav-item">Notifications</a>
         <a href="#settings" class="nav-item active">Settings</a>
         <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout">Logout</a>
       </nav>
