@@ -887,6 +887,10 @@
                 return;
             }
 
+            // Disable the button to prevent multiple clicks
+            const button = e.currentTarget;
+            button.disabled = true;
+
             showLoader();
             fetch('/staff/log-payment/', {
                 method: 'POST',
@@ -903,10 +907,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    location.reload(); // Reload to see updated balance
+                    // Close the modal immediately to prevent duplicate submissions
+                    closeModal(modal);
+                    // Reload to see updated balance
+                    location.reload();
                 } else {
                     alert(data.message);
+                    button.disabled = false; // Re-enable button on error
                 }
+            })
+            .catch(error => {
+                alert('An error occurred. Please try again.');
+                button.disabled = false; // Re-enable button on error
             })
             .finally(() => hideLoader());
         });
