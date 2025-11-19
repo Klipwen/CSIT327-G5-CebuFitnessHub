@@ -8,6 +8,56 @@ document.addEventListener('DOMContentLoaded', function() {
   const activate = () => loader.classList.add('is-active');
   const deactivate = () => loader.classList.remove('is-active');
 
+  // Function to update active navigation state based on hash
+  function updateActiveNavigation(hash) {
+    const navItems = document.querySelectorAll('.side-nav .nav-item');
+    navItems.forEach(item => {
+      item.classList.remove('active');
+    });
+
+    // Map hash to navigation item
+    let targetHash = hash || '#overview-section';
+    
+    // If hash is empty or just '#', default to overview
+    if (!hash || hash === '#' || hash === '') {
+      targetHash = '#overview-section';
+    }
+
+    // Find the navigation item that matches the hash
+    const activeNavItem = document.querySelector(`.side-nav .nav-item[href="${targetHash}"]`);
+    if (activeNavItem) {
+      activeNavItem.classList.add('active');
+    } else {
+      // Fallback: if no match found, activate overview
+      const overviewNavItem = document.querySelector('.side-nav .nav-item[href="#overview-section"]');
+      if (overviewNavItem) {
+        overviewNavItem.classList.add('active');
+      }
+    }
+  }
+
+  // Update active navigation on page load based on URL hash
+  const currentHash = window.location.hash;
+  if (currentHash) {
+    // Wait a bit for the page to fully load, then update and scroll
+    setTimeout(() => {
+      updateActiveNavigation(currentHash);
+      const targetId = currentHash.substring(1);
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  } else {
+    // No hash, default to overview
+    updateActiveNavigation('#overview-section');
+  }
+
+  // Listen for hash changes (when user navigates via browser back/forward)
+  window.addEventListener('hashchange', function() {
+    updateActiveNavigation(window.location.hash);
+  });
+
   const enableAnchorLoader = document.body.dataset.enableAnchorLoader === 'true';
   const links = document.querySelectorAll('.side-nav .nav-item, .navbar a');
   links.forEach(a => {
@@ -15,12 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const href = a.getAttribute('href') || '';
       if (a.id === 'logoutBtn') return;
       if (!enableAnchorLoader && href.startsWith('#')) return;
-      if (a.classList.contains('active')) return;
       
       // If it's an anchor link, show loader and hide it after navigation completes
       if (href.startsWith('#')) {
         e.preventDefault(); // Prevent default anchor navigation
         activate();
+        
+        // Update active navigation immediately
+        updateActiveNavigation(href);
         
         // Get the target element
         const targetId = href.substring(1);
