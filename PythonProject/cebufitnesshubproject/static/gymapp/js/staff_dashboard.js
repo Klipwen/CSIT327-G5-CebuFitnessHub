@@ -671,7 +671,7 @@
   function init() {
     // Modal references
     const modals = {
-      logout: document.getElementById('logout-backdrop'),
+      logout: document.getElementById('modalLogout'),
       approval: document.getElementById('modalApproval'),
       logPayment: document.getElementById('modalLogPayment'), // <-- ADDED
       viewDetails: document.getElementById('modalViewDetails'), // <-- ADDED
@@ -735,8 +735,8 @@
     }
 
     // --- Logout modal logic ---
-    const logoutNavButton = document.querySelector('.side-nav a[href="{% url \'logout\' %}"]');
-    if (logoutNavButton) {
+    const logoutNavButton = document.getElementById('logoutBtn');
+    if (logoutNavButton && modals.logout) {
       logoutNavButton.addEventListener('click', e => {
         e.preventDefault();
         openModal(modals.logout, e.currentTarget);
@@ -763,6 +763,16 @@
       //if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal(modals.logout));
       //if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modals.logout));
     });
+
+    const logoutConfirmBtn = document.getElementById('btnConfirmLogout');
+    if (logoutConfirmBtn) {
+      logoutConfirmBtn.addEventListener('click', () => {
+        const logoutUrl = logoutConfirmBtn.dataset.logoutUrl;
+        if (!logoutUrl) return;
+        showLoader();
+        window.location.href = logoutUrl;
+      });
+    }
 
     // --- Approval queue modal logic ---
     const approvalTableBody = document.getElementById('approval-queue-tbody');
