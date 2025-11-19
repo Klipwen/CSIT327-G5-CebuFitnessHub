@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loader.innerHTML = '<div class="loader-card"><div class="loader-spinner"></div><div class="loader-text">Loading…</div></div>';
   document.body.appendChild(loader);
   const activate = () => loader.classList.add('is-active');
+  const deactivate = () => loader.classList.remove('is-active');
 
   const enableAnchorLoader = document.body.dataset.enableAnchorLoader === 'true';
   const links = document.querySelectorAll('.side-nav .nav-item, .navbar a');
@@ -15,7 +16,39 @@ document.addEventListener('DOMContentLoaded', function() {
       if (a.id === 'logoutBtn') return;
       if (!enableAnchorLoader && href.startsWith('#')) return;
       if (a.classList.contains('active')) return;
-      activate();
+      
+      // If it's an anchor link, show loader and hide it after navigation completes
+      if (href.startsWith('#')) {
+        e.preventDefault(); // Prevent default anchor navigation
+        activate();
+        
+        // Get the target element
+        const targetId = href.substring(1);
+        const targetElement = document.getElementById(targetId);
+        
+        if (targetElement) {
+          // Update URL hash without triggering scroll
+          if (history.pushState) {
+            history.pushState(null, null, href);
+          } else {
+            window.location.hash = href;
+          }
+          
+          // Scroll to the element smoothly
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Hide loader after scroll animation completes (typically 500-600ms)
+          setTimeout(() => {
+            deactivate();
+          }, 700);
+        } else {
+          // If element not found, hide loader immediately
+          deactivate();
+        }
+      } else {
+        // For non-anchor links, just activate (page will reload)
+        activate();
+      }
     });
   });
 
