@@ -7,6 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cebu Fitness Hub dashboard</title>
+  <link rel="icon" href="{% static 'gymapp/img/cebufitnesshub_logo.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
 </head>
 <body>
@@ -102,7 +103,7 @@
           </div>
           <div class="card-content">
             <div class="card-title">Status</div>
-            <div class="status-badge">{{ account_status }}</div> 
+            <div class="status-badge {% if account_status == 'Frozen' %}status-frozen{% endif %}">{{ account_status }}</div> 
           </div>
         </div>
       </section>
