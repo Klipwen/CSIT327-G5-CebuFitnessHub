@@ -521,3 +521,154 @@ body {
   font-weight: 600;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal styles*/
+.modal {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal.show {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content--enhanced {
+  background: var(--white);
+  padding: 24px 32px 32px;
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  transform: scale(0.95);
+  transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-content--enhanced {
+  transform: scale(1);
+}
+
+.modal-close-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #7CC013;
+  cursor: pointer;
+  line-height: 1;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.modal-close-icon:hover {
+  transform: scale(1.2);
+}
+
+.modal-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-brand-header__logo {
+  width: 40px;
+  height: 40px;
+}
+
+.modal-brand-header__text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.modal-brand-header__line-1 {
+  color: #7CC013;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.modal-brand-header__line-2 {
+  color: #707070;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+}
+
+.modal-title--enhanced {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.modal-title-highlight {
+  color: #7CC013;
+}
+
+.modal-instruction {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 2px; /*margin bottom*/
+}
+
+.modal-action-buttons {
+  display: flex;
+  flex-direction: column; /* <-- CHANGED from 'row' */
+  align-items: stretch;   /* <-- ADDED for full-width buttons */
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.modal-action-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-btn-reject {
+  background-color: #FF3838; /* Per requirement */
+}
+
+.modal-btn-reject:hover {
+  background-color: #b90707;
+}
+
+.modal-btn-approve {
+  background-color: #7CC013; /* Per requirement */
+}
+
+.modal-btn-approve:hover {
+  background-color: #6ba010;
+}
