@@ -44,7 +44,7 @@ def register_member(request):
         if form.is_valid():
             user = form.save()
             # The signal.py now handles profile creation automatically
-            messages.success(request, 'Registration successful! You can now log in.')
+            messages.success(request, 'Registration complete! Please wait for staff to confirm your account.')
             return redirect('landing') 
         else:
             return render(request, 'gymapp/register_modal.html', {'form': form})
