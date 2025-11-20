@@ -259,6 +259,11 @@ body {
   font-weight: 600;
 }
 
+/* Frozen status color fix */
+.status-badge.status-frozen {
+  background: #2994FF;
+}
+
 /* Boxes */
 .member-info-box, .weekly-activity-box, .occupancy-box {
   background: #FFFFFF;
