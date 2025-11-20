@@ -5,7 +5,8 @@ from .models import CustomUser, gym_Member, GymStaff, Account_Request
 from django.contrib.auth.password_validation import validate_password
 import re
 
-# CustomUserRegistrationForm remains unchanged as it correctly targets CustomUser
+# CustomUserRegistrationForm remains unchanged as it correctly targets CustomUser 
+# this is where we can see the validation functions of the registration
 class CustomUserRegistrationForm(forms.ModelForm):
     first_name = forms.CharField(
         label='First Name',
