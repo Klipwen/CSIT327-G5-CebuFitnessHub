@@ -456,31 +456,33 @@
               We add dynamic classes for styling based on status.
             -->
             <li class="notif-item 
-              {% if notif.is_read %}is-read{% endif %}
-              {% if notif.notification_type == 'NEW_REQUEST' %}notif-item--warning{% else %}notif-item--neutral{% endif %}
-            ">
-              <!-- This <a> tag is the clickable area -->
+                {% if notif.is_read %}is-read{% endif %}
+                {% if notif.notification_type == 'NEW_REQUEST' or notif.notification_type == 'NEW_REGISTRATION' %}
+                    notif-item--warning
+                {% else %}
+                    notif-item--neutral
+                {% endif %}
+              ">
               <a href="{% url 'mark_notification_read' notif.notification_id %}" class="notif-link">
                 
-                <!-- This div holds the text content -->
                 <div class="notif-content">
-                  <!-- 1. The Prefix (bold, uppercase) -->
                   <span class="notif-prefix">
                     {% if notif.notification_type == 'NEW_REQUEST' %}
-                      Action Required:
+                      Request:
+                    {% elif notif.notification_type == 'NEW_REGISTRATION' %}
+                      New Member: 
                     {% else %}
                       System:
                     {% endif %}
                   </span>
-                  
-                  <!-- 2. The Message (normal) -->
                   <span class="notif-message">{{ notif.message }}</span>
                 </div>
-
-                <!-- 3. The Timestamp (right-aligned) -->
+                
                 <time class="notif-time">{{ notif.timestamp|timesince }} ago</time>
               </a>
             </li>
+
+            <!--End-->
           {% empty %}
             <li class="notif-item is-read">
               <a href="#" class="notif-link" style="pointer-events: none;">
