@@ -329,24 +329,23 @@
           if (modal && trigger) {
             // --- MODIFIED: Use the 'trigger' variable we found earlier
             if (trigger) {
-              //const row = trigger.closest('tr');
               const memberName = row.cells[0].textContent.trim();
-              const memberBalance = row.cells[4].textContent.trim().replace('₱', '').replace(',', '');
-              const amountInput = modal.querySelector('#log-payment-amount');
-              modal.querySelector('#log-member-name').value = memberName;
-              modal.querySelector('#log-payment-description').value = '';
-              if (parseFloat(memberBalance) > 0) {
-                amountInput.value = memberBalance;
+              const memberBalanceStr = row.cells[4].textContent.trim().replace('₱', '').replace(/[,]/g, '');
+              const memberBalance = parseFloat(memberBalanceStr) || 0;
+
+              // If no outstanding balance, show info modal and stop
+              if (memberBalance <= 0 && modals.noBalance) {
+                openModal(modals.noBalance, trigger);
               } else {
-                amountInput.value = '';
-                amountInput.placeholder = '0.00';
+                const amountInput = modal.querySelector('#log-payment-amount');
+                modal.querySelector('#log-member-name').value = memberName;
+                modal.querySelector('#log-payment-description').value = '';
+                amountInput.value = memberBalanceStr;
+                openModal(modal, trigger);
               }
-              openModal(modal, trigger);
             }
-            // Store the member's PK on the *confirmation* button
+            // Store the member's PK on the confirmation button
             modal.querySelector('#btnConfirmPayment').dataset.memberId = row.dataset.memberId;
-              
-            openModal(modal, trigger);
           }
         }
 
@@ -678,7 +677,8 @@
       freezeAccount: document.getElementById('modalFreezeAccount'), // <-- ADDED
       checkInOut: document.getElementById('modalCheckInOut'), // <-- ADDED
       unfreezeAccount: document.getElementById('modalUnfreezeAccount'), //New
-      activateMembership: document.getElementById('modalActivateMembership') // <-- NEW
+      activateMembership: document.getElementById('modalActivateMembership'), // <-- NEW
+      noBalance: document.getElementById('modalNoBalance') // <-- NEW
     };
 
     // Setup member management dropdown
@@ -922,7 +922,13 @@
                     // Reload to see updated balance
                     location.reload();
                 } else {
-                    alert(data.message);
+                    if (data.message && data.message.toLowerCase().includes('no outstanding balance') && modals.noBalance) {
+                        // Show friendly info modal instead of alert
+                        closeModal(modal);
+                        openModal(modals.noBalance, confirmPaymentBtn);
+                    } else {
+                        alert(data.message);
+                    }
                     button.disabled = false; // Re-enable button on error
                 }
             })
