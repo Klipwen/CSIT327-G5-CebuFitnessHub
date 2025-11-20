@@ -7,6 +7,68 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.appendChild(loader);
   const activate = () => loader.classList.add('is-active');
   const deactivate = () => loader.classList.remove('is-active');
+  let lastFocusedElement = null;
+
+  function getFocusableElements(modal) {
+    if (!modal) return [];
+    return modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+  }
+
+  function openModal(modal, triggerElement) {
+    if (!modal) return;
+
+    lastFocusedElement = triggerElement || null;
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+
+    const focusableElements = getFocusableElements(modal);
+    focusableElements.forEach(el => el.setAttribute('tabindex', '0'));
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    modal.addEventListener('keydown', trapFocus);
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+
+    const form = modal.querySelector('form');
+    if (form) form.reset();
+
+    const focusableElements = getFocusableElements(modal);
+    focusableElements.forEach(el => el.setAttribute('tabindex', '-1'));
+
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.removeEventListener('keydown', trapFocus);
+
+    if (lastFocusedElement) {
+      lastFocusedElement.focus();
+      lastFocusedElement = null;
+    }
+  }
+
+  function trapFocus(e) {
+    if (e.key !== 'Tab') return;
+
+    const modal = e.currentTarget;
+    const focusableElements = getFocusableElements(modal);
+    if (!focusableElements.length) return;
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey && document.activeElement === firstFocusable) {
+      e.preventDefault();
+      lastFocusable.focus();
+    } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+      e.preventDefault();
+      firstFocusable.focus();
+    }
+  }
 
   // Function to update active navigation state based on hash or current page
   function updateActiveNavigation(hash) {
@@ -130,13 +192,44 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   const logoutButton = document.getElementById('logoutBtn');
-  if (logoutButton && !useLogoutModal) {
-    logoutButton.addEventListener('click', function(event) {
+  const logoutModal = document.getElementById('modalLogout');
+  const logoutConfirmBtn = document.getElementById('btnConfirmLogout');
+
+  if (logoutButton && useLogoutModal && logoutModal) {
+    logoutButton.addEventListener('click', e => {
+      e.preventDefault();
+      openModal(logoutModal, logoutButton);
+    });
+
+    if (logoutConfirmBtn) {
+      logoutConfirmBtn.addEventListener('click', () => {
+        const logoutUrl =
+          logoutConfirmBtn.dataset.logoutUrl || logoutButton.dataset.logoutUrl;
+        if (!logoutUrl) return;
+        activate();
+        window.location.href = logoutUrl;
+      });
+    }
+
+    const modalCloseButtons = logoutModal.querySelectorAll('[data-close]');
+    modalCloseButtons.forEach(btn => {
+      btn.addEventListener('click', () => closeModal(logoutModal));
+    });
+
+    logoutModal.addEventListener('click', e => {
+      if (e.target === logoutModal) {
+        closeModal(logoutModal);
+      }
+    });
+  } else if (logoutButton) {
+    logoutButton.addEventListener('click', event => {
       event.preventDefault();
       const confirmLogout = confirm('Are you sure you want to log out?');
       if (confirmLogout) {
+        const logoutUrl = logoutButton.dataset.logoutUrl || logoutButton.href;
+        if (!logoutUrl) return;
         activate();
-        window.location.href = logoutButton.href;
+        window.location.href = logoutUrl;
       }
     });
   }
