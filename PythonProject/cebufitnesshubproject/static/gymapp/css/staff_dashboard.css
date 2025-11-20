@@ -492,6 +492,26 @@ KPIs
   display: block;
 }
 
+/* Colorized MRR icon using PNG as mask */
+.mmr-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: #7CC013; /* Required color */
+  -webkit-mask-image: url('../img/icon_mmr.png');
+  mask-image: url('../img/icon_mmr.png');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.mmr-mini-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .mini-card-label {
   /* As you suggested: UPPERCASE and muted */
   font-size: 12px;      /* 1. De-emphasize: Smaller */
