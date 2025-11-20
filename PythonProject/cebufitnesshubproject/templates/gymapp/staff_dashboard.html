@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cebu Fitness Hub • Staff Dashboard</title>
+  <link rel="icon" href="{% static 'gymapp/img/cebufitnesshub_logo.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
 </head>
 <body data-enable-anchor-loader="true" data-use-logout-modal="true">
@@ -66,7 +67,7 @@
         </div>
         <div class="card">
           <div class="card-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#6BCB3D"><path d="M640-120v-80h80q17 0 28.5-11.5T760-240v-80H480q-33 0-56.5-23.5T400-400v-160q0-33 23.5-56.5T480-640h360v-80q0-17-11.5-28.5T800-760h-80v-80h80q50 0 85 35t35 85v440q0 50-35 85t-85 35h-80ZM200-760v-80h80v80h80q33 0 56.5 23.5T440-680v80H80v-80q0-33 23.5-56.5T160-760h40Zm-40 520q-50 0-85-35t-35-85v-80h360v80q0 33-23.5 56.5T320-240h-80v80h-80Z"/></svg>
+            <img src="{% static 'gymapp/img/icon_mmr.png' %}" alt="MRR" class="mmr-icon-img" />
           </div>
           <div class="card-content">
             <div class="card-title">MRR</div>
@@ -183,9 +184,7 @@
             <div class="mini-card">
               <div class="mini-card-header">
                 <span class="mini-card-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
-                    <path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q134 0 227 93t93 227q0 134-93 227t-227 93Zm0-80q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70Zm0-153q-24 0-41.5-16t-20.5-40q-2 0-3.5-1.5t-1.5-3.5V-480q0-8 5.5-13.5T400-499h160v-80H400q-33 0-56.5 23.5T320-499v203q0 24 16 40.5t40 19.5q2 0 3.5 1t1.5 3.5v28q0 24 17 40t42 16Z"/>
-                  </svg>
+                  <img src="{% static 'gymapp/img/icon_mmr.png' %}" alt="MRR" class="mmr-icon-img mmr-mini-icon" />
                 </span>
                 <span class="mini-card-label">MRR</span>
               </div>
@@ -603,6 +602,31 @@
             Cancel
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+  
+  <!--NO BALANCE MODAL-->
+  <div id="modalNoBalance" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        No Balance to <span class="modal-title-highlight">Log</span>
+      </h3>
+      <p class="modal-instruction">
+        This member currently has no outstanding balance. Payments can only be recorded when there is an amount due.
+      </p>
+      <div class="modal-action-buttons">
+        <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+          Okay
+        </button>
       </div>
     </div>
   </div>
