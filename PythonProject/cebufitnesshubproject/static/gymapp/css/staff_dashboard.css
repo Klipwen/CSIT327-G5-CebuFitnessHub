@@ -244,6 +244,13 @@ body {
   justify-content: center;
 }
 
+/* MRR icon image sizing */
+.card-icon .mmr-icon-img {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
 .card-title {
   color: #555;
   font-size: 13px;
@@ -478,6 +485,12 @@ KPIs
   flex-shrink: 0;
   display: inline-flex;
 } 
+
+.mini-card-icon .mmr-icon-img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
 
 .mini-card-label {
   /* As you suggested: UPPERCASE and muted */
