@@ -1201,6 +1201,95 @@
     }
     // --- END NEW ---
 
+    // ---logic for the creation of notification in pending activation--
+    // ==========================================================
+    // AUTO-FILTER LOGIC (For Notifications)
+    // ==========================================================
+    // Check if the URL has a '?filter=pending' parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+
+    if (filterParam) {
+        // Find the dropdown button that matches this value (e.g., "pending")
+        const targetButton = document.querySelector(`.dropdown-btn[data-value="${filterParam}"]`);
+        
+        if (targetButton) {
+            // Programmatically click it to switch the table view
+            targetButton.click();
+            
+            // Optional: Scroll to the table so they see it
+            document.getElementById('members').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    //---End---
+
+    // ==========================================================
+    // NOTIFICATION AUTO-RELOADER (POLLING)
+    // ==========================================================
+    function loadNotifications() {
+      fetch('/staff/api/notifications/')
+          .then(response => response.json())
+          .then(data => {
+              const listContainer = document.querySelector('.notif-list');
+              if (!listContainer || !data.notifications) return;
+
+              // Clear current list
+              listContainer.innerHTML = '';
+
+              if (data.notifications.length === 0) {
+                  listContainer.innerHTML = `
+                      <li class="notif-item is-read">
+                          <a href="#" class="notif-link" style="pointer-events: none;">
+                              <div class="notif-content">
+                                  <span class="notif-prefix">System:</span>
+                                  <span class="notif-message">You have no notifications.</span>
+                              </div>
+                              <time class="notif-time">Just now</time>
+                          </a>
+                      </li>`;
+                  return;
+              }
+
+              // Rebuild list from JSON data
+              data.notifications.forEach(notif => {
+                  const isReadClass = notif.is_read ? 'is-read' : '';
+                  const styleClass = `notif-item--${notif.style_type}`; // e.g., notif-item--warning
+                  
+                  // Determine dot color
+                  let dotColor = 'neutral';
+                  if (notif.is_read) {
+                      dotColor = 'neutral'; // Gray if read
+                  } else if (notif.style_type === 'warning') {
+                      dotColor = 'warning'; // Yellow if warning
+                  } else {
+                      dotColor = 'success'; // Green otherwise
+                  }
+
+                  const html = `
+                      <li class="notif-item ${isReadClass} ${styleClass}">
+                          <a href="${notif.read_url}" class="notif-link">
+                              <span class="dot ${dotColor}" aria-hidden="true"></span>
+                              <div class="notif-content">
+                                  <span class="notif-prefix">${notif.prefix}</span>
+                                  <span class="notif-message">${notif.message}</span>
+                              </div>
+                              <time class="notif-time">${notif.time_ago}</time>
+                          </a>
+                      </li>
+                  `;
+                  listContainer.insertAdjacentHTML('beforeend', html);
+              });
+          })
+          .catch(err => console.error('Error loading notifications:', err));
+  }
+
+  // 1. Load immediately on init (to refresh timestamps)
+  // loadNotifications(); // Optional: Uncomment if you want JS to take over immediately
+
+  // 2. Set interval to run every 5 seconds (5000ms)
+  setInterval(loadNotifications, 5000);
+  // ==========================================================
 
     // Initialize dropdowns
     initializeActionDropdowns(modals);
