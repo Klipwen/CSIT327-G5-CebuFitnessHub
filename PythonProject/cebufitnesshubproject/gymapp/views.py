@@ -3,6 +3,7 @@ from django.db.models.functions import TruncDay
 from datetime import timedelta # Import timedelta
 from decimal import Decimal
 from django.db import transaction
+from django.utils.timesince import timesince # Import this for the timestamp formatting
 import json
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1122,6 +1123,57 @@ def mark_notification_read_view(request, notification_id):
     
     # Fallback if no URL is set
     return redirect('staff_dashboard')
+
+#auto fetch/ auto refresh
+@login_required
+def fetch_notifications_api(request):
+    """
+    API endpoint that returns the latest 10 notifications as JSON.
+    Used by JavaScript to auto-reload the notification feed.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'notifications': []})
+
+    try:
+        staff_profile = request.user.gym_staff
+        
+        # Fetch latest 10 notifications
+        notifications_qs = Notification.objects.filter(
+            recipient_staff=staff_profile
+        ).order_by('-timestamp')[:10]
+
+        data = []
+        for notif in notifications_qs:
+            # Determine the prefix/label based on type
+            prefix = "System:"
+            if notif.notification_type == 'NEW_REQUEST':
+                prefix = "Action Required:"
+            elif notif.notification_type == 'NEW_REGISTRATION':
+                prefix = "New Member:"
+
+            # Determine styling class (matches your HTML logic)
+            style_type = "neutral"
+            if notif.notification_type in ['NEW_REQUEST', 'NEW_REGISTRATION']:
+                style_type = "warning"
+
+            # Build the URL for the click action
+            from django.urls import reverse
+            read_url = reverse('mark_notification_read', args=[notif.notification_id])
+
+            data.append({
+                'id': notif.notification_id,
+                'message': notif.message,
+                'prefix': prefix,
+                'time_ago': timesince(notif.timestamp) + " ago",
+                'is_read': notif.is_read,
+                'style_type': style_type,
+                'read_url': read_url
+            })
+
+        return JsonResponse({'notifications': data})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 # --- Deprecated / Redundant Views ---
 # The logic from these views has been consolidated into 'account_settings_view'

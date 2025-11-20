@@ -37,6 +37,7 @@ from .views import (
     edit_member_view,
     revenue_chart_data_view,
     mark_notification_read_view,
+    fetch_notifications_api, #for auto refresh(asks the server, "Any new notifications?" every 5 seconds)
 )
 
 urlpatterns = [
@@ -68,6 +69,7 @@ urlpatterns = [
     path('staff/edit-member/', edit_member_view, name='edit_member_view'),
     path('staff/revenue-chart-data/', revenue_chart_data_view, name='revenue_chart_data'),
     path('staff/notifications/read/<int:notification_id>/', mark_notification_read_view, name='mark_notification_read'),
+    path('staff/api/notifications/', fetch_notifications_api, name='fetch_notifications_api'),
     
     # --- These paths are no longer needed ---
     # They all point to views that have been consolidated.
