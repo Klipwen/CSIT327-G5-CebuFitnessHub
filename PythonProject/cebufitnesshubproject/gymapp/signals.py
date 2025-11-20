@@ -71,3 +71,31 @@ def create_request_notification(sender, instance, created, **kwargs):
                 notification_type='NEW_REQUEST',
                 redirect_url=redirect_url
             )
+
+
+#For the creation of the pending activation notification
+@receiver(post_save, sender=gym_Member)
+def create_registration_notification(sender, instance, created, **kwargs):
+    """
+    Signal to notify staff when a NEW member registers (and is Pending).
+    """
+    if created:
+        # 1. Get all staff
+        all_staff = GymStaff.objects.all()
+        
+        # 2. Create message
+        member_name = instance.user.get_full_name()
+        message = f"{member_name} has registered. Pending activation."
+        
+        # 3. Define URL with a 'query parameter' so JS knows to switch tabs
+        # Points to dashboard, but adds '?filter=pending'
+        redirect_url = reverse('staff_dashboard') + '?filter=pending'
+
+        # 4. Create notifications
+        for staff in all_staff:
+            Notification.objects.create(
+                recipient_staff=staff,
+                message=message,
+                notification_type='NEW_REGISTRATION', # New type
+                redirect_url=redirect_url
+            )
