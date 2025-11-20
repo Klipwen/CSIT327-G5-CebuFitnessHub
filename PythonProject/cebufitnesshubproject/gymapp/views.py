@@ -749,6 +749,10 @@ def log_payment_view(request):
             if amount <= 0:
                 return JsonResponse({'status': 'error', 'message': 'Amount must be positive.'})
 
+            # Prevent logging payments when there is no outstanding balance
+            if member.balance <= 0:
+                return JsonResponse({'status': 'error', 'message': 'Member has no outstanding balance.'})
+
             with transaction.atomic():
                 # 1. Update the member's balance (they owe less money)
                 member.balance = F('balance') - amount
