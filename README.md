@@ -191,4 +191,4 @@ python manage.py runserver
 
 ## 🌐 Deployed Link
 
-*(Coming soon...)*
+(https://cebu-fitness-hub.onrender.com/)
