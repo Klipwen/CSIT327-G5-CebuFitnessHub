@@ -27,7 +27,7 @@ from .views import (
     
     # We must add the new ClassSchedule view
     class_schedule_view,
-    member_schedule_view,
+    # member_schedule_view,
     staff_schedule_view,
     staff_schedule_data_view,
     staff_schedule_add_view,
