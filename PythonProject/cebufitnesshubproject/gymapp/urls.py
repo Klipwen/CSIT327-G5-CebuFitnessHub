@@ -27,7 +27,8 @@ from .views import (
     
     # We must add the new ClassSchedule view
     class_schedule_view,
-    # member_schedule_view,
+    member_schedule_view,
+    member_schedule_data_view,
     staff_schedule_view,
     staff_schedule_data_view,
     staff_schedule_add_view,
@@ -58,8 +59,7 @@ urlpatterns = [
     path('check_in/', check_in_view, name='check_in'),
     path('billing_history/', billing_history_view, name='billing_history'),
     
-    # Member schedule (read-only)
-    # path('member/schedule/', member_schedule_view, name='member_schedule'),
+    path('member/schedule/', member_schedule_view, name='member_schedule'),
     # Legacy redirect
     path('class_schedule/', class_schedule_view, name='class_schedule'),
 
@@ -69,7 +69,7 @@ urlpatterns = [
     path('api/schedule/', staff_schedule_data_view, name='staff_schedule_data'),
     path('api/schedule/add/', staff_schedule_add_view, name='staff_schedule_add'),
     path('api/schedule/delete/<int:class_id>/', staff_schedule_delete_view, name='staff_schedule_delete'),
-    # path('api/member-schedule/', member_schedule_data_view, name='member_schedule_data'),
+    path('api/member-schedule/', member_schedule_data_view, name='member_schedule_data'),
 
     path('staff/check-in-out/', check_in_out_view, name='check_in_out_view'),
     path('staff/settings/', staff_settings_view, name='staff_settings'),
