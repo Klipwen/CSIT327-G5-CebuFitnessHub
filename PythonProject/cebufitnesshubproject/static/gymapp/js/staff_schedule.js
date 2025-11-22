@@ -178,11 +178,11 @@
         const label = document.createElement('label');
         label.className = 'delete-option';
         label.innerHTML = `
-          <input type="radio" name="classToDelete" value="${entry.class_id}">
+          <input type="checkbox" name="classToDelete" value="${entry.class_id}">
           <div>
             <strong>${entry.day_label}</strong><br>
             <span>${entry.start_label} - ${entry.end_label}</span><br>
-            <span>${entry.class_name} (Coach ${entry.instructor_name})</span>
+            <span>${entry.class_name} (${entry.instructor_name})</span>
           </div>
         `;
         deleteClassList.appendChild(label);
