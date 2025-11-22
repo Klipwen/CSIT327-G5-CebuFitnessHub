@@ -1,0 +1,138 @@
+.schedule-page .main {
+  padding: 24px;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.schedule-header .eyebrow {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+}
+
+.timetable-panel .panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.timetable-scroll {
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 140px repeat(7, minmax(180px, 1fr));
+  grid-auto-rows: 42px;
+  position: relative;
+  min-width: 1100px;
+}
+
+.grid-header {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  background: #f4f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.grid-header:last-child {
+  border-right: none;
+}
+
+.cell-time {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.time-cell {
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #ececec;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  grid-column: 1;
+}
+
+.grid-cell {
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #ececec;
+  position: relative;
+  overflow: visible;
+}
+
+.grid-cell:last-child {
+  border-right: none;
+}
+
+.class-block {
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: #6BCB3D;
+  margin: 0;
+  padding: 10px 12px;
+  z-index: 10;
+  box-sizing: border-box;
+  height: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.class-block .class-name {
+  font-size: 14px;
+}
+
+.class-block .class-coach,
+.class-block .class-room {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+@media (max-width: 1024px) {
+  .schedule-page .layout {
+    flex-direction: column;
+  }
+
+  .schedule-page .sidebar {
+    position: static;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .schedule-page .main {
+    padding: 16px;
+  }
+}
