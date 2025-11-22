@@ -1,6 +1,6 @@
 from django.db.models import Q # For complex 'OR' queries
 from django.db.models.functions import TruncDay
-from datetime import timedelta # Import timedelta
+from datetime import datetime, timedelta # Import timedelta and datetime utilities
 from decimal import Decimal
 from django.db import transaction
 from django.utils.timesince import timesince # Import this for the timestamp formatting
@@ -587,19 +587,213 @@ def staff_dashboard_view(request):
     }
     return render(request, 'gymapp/staff_dashboard.html', context)
 
+SCHEDULE_START_MINUTES = 7 * 60 + 30  # 7:30 AM
+SCHEDULE_END_MINUTES = 19 * 60        # 7:00 PM
+SCHEDULE_INTERVAL = 30
+
+def _format_time_label(hour: int, minute: int) -> str:
+    slot_dt = datetime(2000, 1, 1, hour, minute)
+    return slot_dt.strftime('%I:%M %p').lstrip('0').replace(' 0', ' ')
+
+def _build_time_slots():
+    slots = []
+    current = SCHEDULE_START_MINUTES
+    while current < SCHEDULE_END_MINUTES:
+        hour = current // 60
+        minute = current % 60
+        slots.append({
+            'value': f'{hour:02d}:{minute:02d}',
+            'label': _format_time_label(hour, minute)
+        })
+        current += SCHEDULE_INTERVAL
+    return slots
+
+DAY_COLUMNS = [
+    {'label': 'Mon', 'full': 'Monday', 'value': 1},
+    {'label': 'Tue', 'full': 'Tuesday', 'value': 2},
+    {'label': 'Wed', 'full': 'Wednesday', 'value': 3},
+    {'label': 'Thu', 'full': 'Thursday', 'value': 4},
+    {'label': 'Fri', 'full': 'Friday', 'value': 5},
+    {'label': 'Sat', 'full': 'Saturday', 'value': 6},
+    {'label': 'Sun', 'full': 'Sunday', 'value': 7},
+]
+
+@login_required
+def staff_schedule_view(request):
+    """
+    Renders the staff schedule management page.
+    """
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('landing')
+
+    context = {
+        'day_columns': DAY_COLUMNS,
+        'time_slots': _build_time_slots(),
+        'schedule_start_minutes': SCHEDULE_START_MINUTES,
+        'schedule_interval': SCHEDULE_INTERVAL,
+    }
+    return render(request, 'gymapp/staff_schedule.html', context)
+
+def _parse_time_value(value):
+    try:
+        return datetime.strptime(value, '%H:%M').time()
+    except (ValueError, TypeError):
+        return None
+
+def _time_to_minutes(time_value):
+    return time_value.hour * 60 + time_value.minute
+
+@login_required
+@require_http_methods(["GET"])
+def staff_schedule_data_view(request):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied.'}, status=403)
+
+    classes = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
+    payload = []
+    for schedule in classes:
+        payload.append({
+            'class_id': schedule.class_id,
+            'class_name': schedule.class_name,
+            'instructor_name': schedule.instructor_name,
+            'day_of_week': schedule.day_of_week,
+            'day_label': schedule.get_day_of_week_display(),
+            'start_time': schedule.start_time.strftime('%H:%M'),
+            'end_time': schedule.end_time.strftime('%H:%M'),
+            'start_label': schedule.start_time.strftime('%I:%M %p').lstrip('0'),
+            'end_label': schedule.end_time.strftime('%I:%M %p').lstrip('0'),
+        })
+
+    return JsonResponse({'classes': payload})
+
+@login_required
+@require_http_methods(["POST"])
+def staff_schedule_add_view(request):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied.'}, status=403)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except (json.JSONDecodeError, AttributeError):
+        data = request.POST
+
+    class_name = (data.get('class_name') or '').strip()
+    instructor_name = (data.get('instructor_name') or '').strip()
+    day_of_week = data.get('day_of_week')
+    start_time_raw = data.get('start_time')
+    end_time_raw = data.get('end_time')
+
+    if not all([class_name, instructor_name, day_of_week, start_time_raw, end_time_raw]):
+        return JsonResponse({'error': 'All fields are required.'}, status=400)
+
+    try:
+        day_of_week = int(day_of_week)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid day selected.'}, status=400)
+
+    if day_of_week < 1 or day_of_week > 7:
+        return JsonResponse({'error': 'Invalid day selected.'}, status=400)
+
+    start_time = _parse_time_value(start_time_raw)
+    end_time = _parse_time_value(end_time_raw)
+
+    if not start_time or not end_time:
+        return JsonResponse({'error': 'Invalid time format.'}, status=400)
+
+    start_minutes = _time_to_minutes(start_time)
+    end_minutes = _time_to_minutes(end_time)
+
+    if end_minutes <= start_minutes:
+        return JsonResponse({'error': 'End time must be later than start time.'}, status=400)
+
+    if start_minutes < SCHEDULE_START_MINUTES or end_minutes > SCHEDULE_END_MINUTES:
+        return JsonResponse({'error': 'Classes must be scheduled between 7:30 AM and 7:00 PM.'}, status=400)
+
+    if ((start_minutes - SCHEDULE_START_MINUTES) % SCHEDULE_INTERVAL != 0 or
+            (end_minutes - SCHEDULE_START_MINUTES) % SCHEDULE_INTERVAL != 0):
+        return JsonResponse({'error': 'Times must be in 30-minute increments.'}, status=400)
+
+    overlap_exists = ClassSchedule.objects.filter(
+        day_of_week=day_of_week,
+        start_time__lt=end_time,
+        end_time__gt=start_time
+    ).exists()
+
+    if overlap_exists:
+        return JsonResponse({'error': 'This time slot overlaps with an existing class.'}, status=400)
+
+    new_class = ClassSchedule.objects.create(
+        class_name=class_name,
+        instructor_name=instructor_name,
+        day_of_week=day_of_week,
+        start_time=start_time,
+        end_time=end_time,
+        description=None,
+        location=None,
+    )
+
+    return JsonResponse({
+        'message': 'Class added successfully.',
+        'class_id': new_class.class_id,
+    }, status=201)
+
+@login_required
+@require_http_methods(["DELETE"])
+def staff_schedule_delete_view(request, class_id):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied.'}, status=403)
+
+    schedule_entry = get_object_or_404(ClassSchedule, pk=class_id)
+    schedule_entry.delete()
+    return JsonResponse({'message': 'Class deleted successfully.'})
+
+# @login_required
+# def member_schedule_view(request):
+#     """
+#     Renders the member schedule page (read-only view of weekly timetable).
+#     """
+#     if request.user.is_staff:
+#         return redirect('staff_schedule')
+
+#     context = {
+#         'day_columns': DAY_COLUMNS,
+#         'time_slots': _build_time_slots(),
+#         'schedule_start_minutes': SCHEDULE_START_MINUTES,
+#         'schedule_interval': SCHEDULE_INTERVAL,
+#     }
+#     return render(request, 'gymapp/member_schedule.html', context)
+
 @login_required
 def class_schedule_view(request):
     """
     Fetches and displays the weekly class schedule.
+    DEPRECATED: Use member_schedule_view instead.
     """
-    # Fetch all class objects from the database
-    # Order them by day and time, just like in the model's Meta
-    schedule = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
-    
-    context = {
-        'schedule': schedule
-    }
-    return render(request, 'gymapp/class_schedule.html', context)
+    # Redirect to new member schedule view
+    return redirect('member_schedule')
+
+# @login_required
+# def member_schedule_data_view(request):
+#     # Members AND staff can use this
+#     classes = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
+
+#     payload = []
+#     for schedule in classes:
+#         payload.append({
+#             'class_id': schedule.class_id,
+#             'class_name': schedule.class_name,
+#             'instructor_name': schedule.instructor_name,
+#             'day_of_week': schedule.day_of_week,
+#             'day_label': schedule.get_day_of_week_display(),
+#             'start_time': schedule.start_time.strftime('%H:%M'),
+#             'end_time': schedule.end_time.strftime('%H:%M'),
+#             'start_label': schedule.start_time.strftime('%I:%M %p').lstrip('0'),
+#             'end_label': schedule.end_time.strftime('%I:%M %p').lstrip('0'),
+#         })
+
+#     return JsonResponse({'classes': payload})
+
 
 @login_required
 def check_in_out_view(request):

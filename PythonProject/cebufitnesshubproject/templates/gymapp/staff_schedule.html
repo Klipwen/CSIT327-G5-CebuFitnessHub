@@ -1,0 +1,272 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>Cebu Fitness Hub • Staff Schedule</title>
+  <link rel="icon" href="{% static 'gymapp/img/cebufitnesshub_logo.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'gymapp/css/staff_schedule.css' %}">
+</head>
+<body data-use-logout-modal="true">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
+      <div class="logo-text">
+        <div class="cebu-reg">CEBU</div>
+        <div class="fitness-hub-reg">FITNESS HUB</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <span class="user-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="#6BCB3D"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113Z"/></svg>
+        </span>
+        <span class="user-name">{{ request.user.get_full_name|default:"Staff User" }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-bg-fix"></div>
+
+  <div class="layout schedule-page">
+    <aside class="sidebar">
+      <h3 class="sidebar-title">STAFF DASHBOARD</h3>
+      <nav class="side-nav">
+        <a href="{% url 'staff_dashboard' %}" class="nav-item">Overview</a>
+        <a href="{% url 'staff_dashboard' %}#approvals" class="nav-item">Approval Queue</a>
+        <a href="{% url 'staff_dashboard' %}#members" class="nav-item">Member Management</a>
+        <a href="{% url 'staff_dashboard' %}#revenue" class="nav-item">Revenue Tracker</a>
+        <a href="{% url 'staff_dashboard' %}#notifications" class="nav-item">Notifications</a>
+        <a href="{% url 'staff_settings' %}" class="nav-item">Settings</a>
+        <a href="{% url 'staff_schedule' %}" class="nav-item active">Schedule</a>
+        <a href="{% url 'logout' %}" class="nav-item" id="logoutBtn" data-logout-url="{% url 'logout' %}">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="schedule-header">
+        <div>
+          <p class="eyebrow">Operations</p>
+          <h1>Gym Class Schedule Management</h1>
+          <!-- <p class="subtext">Plan and update weekly studio classes for members.</p> -->
+        </div>
+        <button type="button" class="btn-edit-schedule" id="editScheduleBtn">
+          <span class="btn-icon" aria-hidden="true">✎</span>
+          Edit Schedule
+        </button>
+      </section>
+
+      <div class="schedule-alert" id="scheduleAlert" role="status" aria-live="polite"></div>
+
+      <section class="timetable-panel">
+        <header class="panel-header">
+          <div>
+            <h2>Weekly Timetable</h2>
+          </div>
+        </header>
+        <div class="timetable-scroll">
+            <div
+            class="schedule-grid"
+            id="scheduleGrid"
+            data-start-minutes="{{ schedule_start_minutes }}"
+            data-interval="{{ schedule_interval }}"
+            data-row-offset="2"
+          >
+              <!-- Header Row -->
+              <div class="grid-header" style="grid-row: 1; grid-column: 1;">TIME</div>
+              {% for day in day_columns %}
+                <div class="grid-header"
+                     style="grid-row: 1; grid-column: {{ day.value|add:1 }};">
+                     {{ day.label }}
+                </div>
+              {% endfor %}
+          
+              <!-- Time Slots -->
+              {% for slot in time_slots %}
+                {% with forloop.counter0 as rowIndex %}
+                  <!-- TIME COLUMN -->
+                  <div class="time-cell"
+                       style="grid-row: {{ rowIndex|add:2 }}; grid-column: 1;">
+                    {{ slot.label }}
+                  </div>
+          
+                  <!-- DAY CELLS -->
+                  {% for day in day_columns %}
+                    <div class="grid-cell"
+                         style="grid-row: {{ rowIndex|add:2 }}; grid-column: {{ day.value|add:1 }};"
+                         data-day="{{ day.value }}"
+                         data-time="{{ slot.value }}">
+                    </div>
+                  {% endfor %}
+                {% endwith %}
+              {% endfor %}
+          </div>
+          
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalEditOptions" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Edit <span class="modal-title-highlight">Schedule</span>
+      </h3>
+      <p class="modal-instruction">
+        Choose what you’d like to manage.
+      </p>
+      <div class="modal-action-buttons modal-action-buttons--vertical">
+        <button type="button" class="modal-action-btn modal-btn-approve" id="openAddClass">
+          Add Class
+        </button>
+        <button type="button" class="modal-action-btn modal-btn-reject" id="openDeleteClass">
+          Delete Class
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalAddClass" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--medium">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Add <span class="modal-title-highlight">Class</span>
+      </h3>
+      <p class="modal-instruction">
+        Enter the class details to add it to the timetable.
+      </p>
+      <form class="modal-form--enhanced" id="addClassForm">
+        <div class="form-group">
+          <label for="className">Class Name</label>
+          <input type="text" id="className" name="class_name" required placeholder="e.g., HIIT Circuit">
+        </div>
+        <div class="form-group">
+          <label for="coachName">Coach Name</label>
+          <input type="text" id="coachName" name="instructor_name" required placeholder="e.g., Coach Mae">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dayOfWeek">Day of Week</label>
+            <select id="dayOfWeek" name="day_of_week" required>
+              <option value="">Select day</option>
+              {% for day in day_columns %}
+              <option value="{{ day.value }}">{{ day.full }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fromTime">From</label>
+            <select id="fromTime" name="start_time" required>
+              <option value="">Select start</option>
+              {% for slot in time_slots %}
+              <option value="{{ slot.value }}">{{ slot.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="toTime">To</label>
+            <select id="toTime" name="end_time" required>
+              <option value="">Select end</option>
+              {% for slot in time_slots %}
+              <option value="{{ slot.value }}">{{ slot.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <p class="form-note">Times are limited to 30-minute increments between 7:30 AM and 7:00 PM.</p>
+        <div class="form-error" id="addClassError" role="alert"></div>
+        <div class="modal-action-buttons">
+          <button type="submit" class="modal-action-btn modal-btn-approve" id="submitAddClass">
+            Save Class
+          </button>
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalDeleteClass" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--medium">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Delete <span class="modal-title-highlight">Class</span>
+      </h3>
+      <p class="modal-instruction">
+        Select a scheduled class to remove it from the timetable.
+      </p>
+      <form id="deleteClassForm">
+        <div class="delete-list" id="deleteClassList"></div>
+        <div class="form-error" id="deleteClassError" role="alert"></div>
+        <div class="modal-action-buttons">
+          <button type="submit" class="modal-action-btn modal-btn-reject" id="confirmDeleteClass" disabled>
+            Delete Selected
+          </button>
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalLogout" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Ready to <span class="modal-title-highlight">Logout?</span>
+      </h3>
+      <p class="modal-instruction">
+        Confirm to securely end this staff session.
+      </p>
+      <div class="modal-action-buttons">
+        <button type="button"
+                class="modal-action-btn modal-btn-approve"
+                id="btnConfirmLogout"
+                data-logout-url="{% url 'logout' %}">
+          Yes, Logout
+        </button>
+        <button type="button" class="modal-action-btn modal-btn-reject" data-close>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'gymapp/js/staff_schedule.js' %}"></script>
+</body>
+</html>
+

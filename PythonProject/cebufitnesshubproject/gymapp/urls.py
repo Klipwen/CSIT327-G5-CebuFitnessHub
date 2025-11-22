@@ -26,7 +26,12 @@ from .views import (
     billing_history_view,
     
     # We must add the new ClassSchedule view
-    class_schedule_view, 
+    class_schedule_view,
+    # member_schedule_view,
+    staff_schedule_view,
+    staff_schedule_data_view,
+    staff_schedule_add_view,
+    staff_schedule_delete_view,
     check_in_out_view,
     staff_settings_view,
     log_payment_view,
@@ -54,10 +59,18 @@ urlpatterns = [
     path('check_in/', check_in_view, name='check_in'),
     path('billing_history/', billing_history_view, name='billing_history'),
     
-    # Add the path for the new Class Schedule feature
+    # Member schedule (read-only)
+    # path('member/schedule/', member_schedule_view, name='member_schedule'),
+    # Legacy redirect
     path('class_schedule/', class_schedule_view, name='class_schedule'),
 
     path('staff_dashboard/', staff_dashboard_view, name='staff_dashboard'),
+    path('staff/schedule/', staff_schedule_view, name='staff_schedule'),
+
+    path('api/schedule/', staff_schedule_data_view, name='staff_schedule_data'),
+    path('api/schedule/add/', staff_schedule_add_view, name='staff_schedule_add'),
+    path('api/schedule/delete/<int:class_id>/', staff_schedule_delete_view, name='staff_schedule_delete'),
+    # path('api/member-schedule/', member_schedule_data_view, name='member_schedule_data'),
 
     path('staff/check-in-out/', check_in_out_view, name='check_in_out_view'),
     path('staff/settings/', staff_settings_view, name='staff_settings'),
