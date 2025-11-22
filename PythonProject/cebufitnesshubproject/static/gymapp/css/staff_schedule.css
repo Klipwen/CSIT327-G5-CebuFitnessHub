@@ -263,27 +263,35 @@
   overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 8px;
+  padding: 12px;
   margin-bottom: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .delete-option {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 14px 12px;
+  border-radius: 12px;
   cursor: pointer;
   border: 1px solid transparent;
+  text-align: center;
+  background: #fafafa;
 }
 
 .delete-option:hover {
   border-color: #d1fae5;
-  background: #f0fdf4;
+  background: #f6fff0;
+  box-shadow: 0 2px 6px rgba(107, 203, 61, 0.12);
 }
 
-.delete-option input {
-  margin-top: 4px;
+.delete-option input[type="checkbox"] {
+  accent-color: #6BCB3D;
+  width: 18px;
+  height: 18px;
 }
 
 .delete-option strong {
@@ -327,3 +335,4 @@
     grid-column: 1;
   }
 }
+
