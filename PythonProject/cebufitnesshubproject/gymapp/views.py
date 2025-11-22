@@ -656,6 +656,7 @@ def staff_schedule_data_view(request):
             'class_id': schedule.class_id,
             'class_name': schedule.class_name,
             'instructor_name': schedule.instructor_name,
+            'location': schedule.location or '',
             'day_of_week': schedule.day_of_week,
             'day_label': schedule.get_day_of_week_display(),
             'start_time': schedule.start_time.strftime('%H:%M'),
@@ -747,21 +748,18 @@ def staff_schedule_delete_view(request, class_id):
     schedule_entry.delete()
     return JsonResponse({'message': 'Class deleted successfully.'})
 
-# @login_required
-# def member_schedule_view(request):
-#     """
-#     Renders the member schedule page (read-only view of weekly timetable).
-#     """
-#     if request.user.is_staff:
-#         return redirect('staff_schedule')
+@login_required
+def member_schedule_view(request):
+    if request.user.is_staff:
+        return redirect('staff_schedule')
 
-#     context = {
-#         'day_columns': DAY_COLUMNS,
-#         'time_slots': _build_time_slots(),
-#         'schedule_start_minutes': SCHEDULE_START_MINUTES,
-#         'schedule_interval': SCHEDULE_INTERVAL,
-#     }
-#     return render(request, 'gymapp/member_schedule.html', context)
+    context = {
+        'day_columns': DAY_COLUMNS,
+        'time_slots': _build_time_slots(),
+        'schedule_start_minutes': SCHEDULE_START_MINUTES,
+        'schedule_interval': SCHEDULE_INTERVAL,
+    }
+    return render(request, 'gymapp/member_schedule.html', context)
 
 @login_required
 def class_schedule_view(request):
@@ -772,26 +770,26 @@ def class_schedule_view(request):
     # Redirect to new member schedule view
     return redirect('member_schedule')
 
-# @login_required
-# def member_schedule_data_view(request):
-#     # Members AND staff can use this
-#     classes = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
+@login_required
+def member_schedule_data_view(request):
+    classes = ClassSchedule.objects.all().order_by('day_of_week', 'start_time')
 
-#     payload = []
-#     for schedule in classes:
-#         payload.append({
-#             'class_id': schedule.class_id,
-#             'class_name': schedule.class_name,
-#             'instructor_name': schedule.instructor_name,
-#             'day_of_week': schedule.day_of_week,
-#             'day_label': schedule.get_day_of_week_display(),
-#             'start_time': schedule.start_time.strftime('%H:%M'),
-#             'end_time': schedule.end_time.strftime('%H:%M'),
-#             'start_label': schedule.start_time.strftime('%I:%M %p').lstrip('0'),
-#             'end_label': schedule.end_time.strftime('%I:%M %p').lstrip('0'),
-#         })
+    payload = []
+    for schedule in classes:
+        payload.append({
+            'class_id': schedule.class_id,
+            'class_name': schedule.class_name,
+            'instructor_name': schedule.instructor_name,
+            'location': schedule.location or '',
+            'day_of_week': schedule.day_of_week,
+            'day_label': schedule.get_day_of_week_display(),
+            'start_time': schedule.start_time.strftime('%H:%M'),
+            'end_time': schedule.end_time.strftime('%H:%M'),
+            'start_label': schedule.start_time.strftime('%I:%M %p').lstrip('0'),
+            'end_label': schedule.end_time.strftime('%I:%M %p').lstrip('0'),
+        })
 
-#     return JsonResponse({'classes': payload})
+    return JsonResponse({'classes': payload})
 
 
 @login_required
