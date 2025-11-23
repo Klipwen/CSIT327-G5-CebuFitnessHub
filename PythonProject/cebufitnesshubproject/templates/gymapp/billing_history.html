@@ -12,8 +12,7 @@
   <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'gymapp/css/billing_history.css' %}">
 </head>
-<body>
-  
+<body data-use-logout-modal="true">
   <header class="site-header">
     <div class="brand">
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -54,7 +53,7 @@
         <a href="{% url 'account_settings' %}" class="nav-item">Account Settings</a>
         
         <!-- FIX: Pointed logout to the correct URL and added ID -->
-        <a href="{% url 'logout' %}" class="nav-item" id="logoutBtn">Logout</a>
+        <a href="#" class="nav-item" id="logoutBtn" data-logout-url="{% url 'logout' %}">Logout</a> 
       </nav>
     </aside>
     <main class="main-content">
@@ -115,6 +114,38 @@
       </section>
       <!-- End of Main Content -->
     </main>
+  </div>
+
+  <div id="modalLogout" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Ready to <span class="modal-title-highlight">Logout?</span>
+      </h3>
+      <p class="modal-instruction">
+        Confirm to securely end this member session.
+      </p>
+      <div class="modal-action-buttons">
+        <button type="button"
+                class="modal-action-btn modal-btn-approve"
+                id="btnConfirmLogout"
+                data-logout-url="{% url 'logout' %}">
+          Yes, Logout
+        </button>
+        <button type="button"
+                class="modal-action-btn modal-btn-reject"
+                data-close>
+          Cancel
+        </button>
+      </div>
+    </div>
   </div>
   
   <!-- We can reuse the same dashboard.js for the logout confirm -->
