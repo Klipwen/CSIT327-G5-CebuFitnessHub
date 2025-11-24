@@ -7,8 +7,9 @@
   <title>Cebu Fitness Hub • Staff Settings</title>
   <link rel="icon" href="{% static 'gymapp/img/cebufitnesshub_logo.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'gymapp/css/staff_settings.css' %}">
+  <link rel="stylesheet" href="{% static 'gymapp/css/staff_dashboard.css' %}">
 </head>
-<body data-enable-anchor-loader="true">
+<body data-enable-anchor-loader="true" data-use-logout-modal="true">
   {% csrf_token %}
   <header class="site-header">
     <div class="brand">
@@ -41,7 +42,7 @@
         <a href="{% url 'staff_dashboard' %}#notifications" class="nav-item">Notifications</a>
         <a href="{% url 'staff_settings' %}" class="nav-item">Settings</a>
         <a href="{% url 'staff_schedule' %}" class="nav-item active">Schedule</a>
-        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout">Logout</a>
+        <a href="{% url 'logout' %}" class="nav-item" aria-label="Logout" id="logoutBtn">Logout</a>
       </nav>
     </aside>
 
@@ -197,6 +198,36 @@
         </div>
         <!-- End of Main Content Area -->
     </main>
+  </div>
+
+  <div id="modalLogout" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Ready to <span class="modal-title-highlight">Logout?</span>
+      </h3>
+      <p class="modal-instruction">
+        Confirm to securely end this staff session.
+      </p>
+      <div class="modal-action-buttons">
+        <button type="button"
+                class="modal-action-btn modal-btn-approve"
+                id="btnConfirmLogout"
+                data-logout-url="{% url 'logout' %}">
+          Yes, Logout
+        </button>
+        <button type="button" class="modal-action-btn modal-btn-reject" data-close>
+          Cancel
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
