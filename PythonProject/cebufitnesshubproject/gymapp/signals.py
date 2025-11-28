@@ -97,5 +97,6 @@ def create_registration_notification(sender, instance, created, **kwargs):
                 recipient_staff=staff,
                 message=message,
                 notification_type='NEW_REGISTRATION', # New type
-                redirect_url=redirect_url
+                redirect_url=redirect_url,
+                related_member=instance  # Link the notification to the specific member
             )
