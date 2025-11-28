@@ -3,6 +3,7 @@ from django.db.models.functions import TruncDay
 from datetime import datetime, timedelta # Import timedelta and datetime utilities
 from decimal import Decimal
 from django.db import transaction
+from django.urls import reverse
 from django.utils.timesince import timesince # Import this for the timestamp formatting
 import json
 from django.utils import timezone
@@ -1296,27 +1297,40 @@ def mark_notification_read_view(request, notification_id):
     """
     Marks a specific notification as 'read' and redirects
     the staff member to the appropriate page.
+    
+    UPDATED: Checks if the related member was rejected/approved before redirecting.
     """
     if not request.user.is_staff:
         return redirect('landing')
     
-    # Find the notification, making sure it belongs to the logged-in staff
     notification = get_object_or_404(
         Notification, 
         notification_id=notification_id, 
         recipient_staff=request.user.gym_staff
     )
     
-    # Mark it as read
+    # Mark as read
     if not notification.is_read:
         notification.is_read = True
         notification.save()
+
+    # --- START: NEW VALIDATION LOGIC ---
+    if notification.related_member:
+        # 1. If Member was Rejected
+        if notification.related_member.activation_status == 'rejected':
+            # Redirect with a special parameter so JS knows to open the modal
+            return redirect(reverse('staff_dashboard') + '?alert=request_rejected')
         
-    # Redirect to the URL stored on the notification
+        # 2. If Member was Already Approved (and the notif sends you to 'Pending')
+        elif notification.related_member.activation_status == 'approved' and 'filter=pending' in (notification.redirect_url or ''):
+            # Redirect to Active list with the specific alert parameter
+            return redirect(reverse('staff_dashboard') + '?filter=active&alert=member_approved')
+    # --- END: NEW VALIDATION LOGIC ---
+        
+    # Standard Redirect
     if notification.redirect_url:
         return redirect(notification.redirect_url)
     
-    # Fallback if no URL is set
     return redirect('staff_dashboard')
 
 #auto fetch/ auto refresh
