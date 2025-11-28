@@ -92,8 +92,8 @@ class CustomUserRegistrationForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if email and CustomUser.objects.filter(email=email).exists():
-            raise ValidationError("An account with this email address already exists.")
+        # We strictly check format here, but we moved the "Unique" check to clean()
+        # to handle the "Instance Swap" logic safely.
         return email
 
     def clean_contact_number(self):
@@ -126,7 +126,9 @@ class CustomUserRegistrationForm(forms.ModelForm):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
         password_confirm = cleaned_data.get('password_confirm')
+        email = cleaned_data.get('email')
 
+        # 1. Password Matching Validation
         if password and password_confirm and password != password_confirm:
             self.add_error('password_confirm', "Passwords do not match.")
         
@@ -135,17 +137,56 @@ class CustomUserRegistrationForm(forms.ModelForm):
                 validate_password(password, user=None)
             except ValidationError as e:
                 self.add_error('password', e)
+
+        # 2. "Rejected User Recycling" Logic
+        if email:
+            existing_user = CustomUser.objects.filter(email=email).first()
+            
+            if existing_user:
+                # Check if they are REJECTED (Safe to overwrite)
+                if hasattr(existing_user, 'gym_member') and existing_user.gym_member.activation_status == 'rejected':
+                    # [THE MAGIC FIX]
+                    # We swap the form's instance to the existing user.
+                    # This tells Django: "We are UPDATING this user, not creating a new one."
+                    self.instance = existing_user
+                
+                # Check if they are ACTIVE or PENDING (Block them)
+                else:
+                    # This provides your custom error message
+                    self.add_error('email', "An account with this email address already exists.")
+
         return cleaned_data
 
     def save(self, commit=True):
+        # Because we swapped 'self.instance' in clean(), 
+        # super().save() automatically handles both CREATING new users 
+        # and UPDATING existing rejected users.
+        
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        user.is_active = False 
 
-        # --- THIS IS THE FIX ---
-        user.is_active = False # New users are inactive until staff activates them
-        # --- END OF FIX ---
         if commit:
             user.save()
+            
+            # Check if this user has an existing profile (Case A: Re-application)
+            if hasattr(user, 'gym_member'):
+                member = user.gym_member
+                
+                # If they were rejected, flag this as a re-application for the signal
+                if member.activation_status == 'rejected':
+                    # --- THIS IS THE TRANSIENT FLAG ---
+                    member._is_reapplication = True 
+                    # --- END FLAG ---
+
+                member.activation_status = 'pending' # Move them back to Pending list
+                member.save() # This triggers the signal
+            
+            # Case B: New User (Create profile)
+            else:
+                # The signal in create_user_profile will handle the initial creation
+                gym_Member.objects.get_or_create(user=user)
+
         return user
 
 # MemberLoginForm remains unchanged
