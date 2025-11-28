@@ -379,9 +379,27 @@
                   <td>₱{{ settings.default_monthly_fee|floatformat:2|intcomma }}</td>
                   <td>N/A</td>
                   <td>₱{{ member.balance|floatformat:2|intcomma }}</td>
+                  <!--Start-->
                   <td class="action-cell">
-                    <button class="btn activate-member-btn" type="button" aria-label="Activate Member">Activate Member</button>
+                    <div class="action-menu-wrapper">
+                      <button class="action-menu-btn" type="button" aria-label="More options">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                      </button>
+                      <div class="action-dropdown" role="menu">
+                        <div class="dropdown-connector" aria-hidden="true"></div>
+                        <div class="dropdown-actions">
+                          <button type="button" class="dropdown-btn btn-positive activate-member-btn" role="menuitem">
+                            Activate Member
+                          </button>
+                          
+                          <button type="button" class="dropdown-btn btn-danger reject-member-btn" role="menuitem">
+                            Reject Request
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </td>
+                  <!--End-->
                 </tr>
               {% empty %}
                 <tr><td colspan="6" style="text-align: center;">No pending members found.</td></tr>
@@ -910,6 +928,44 @@
             Confirm Activation
           </button>
           <button type="button" class="modal-action-btn modal-btn-reject" data-close>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--modal for reject request activation-->
+  <div id="modalRejectRequest" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+
+      <h3 class="modal-title--enhanced">
+        Reject <span class="modal-title-highlight--red" style="color: #FF3838;">Request</span>
+      </h3>
+
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          Are you sure you want to reject the registration for <br> <strong id="reject-member-name" style="color: #000;">Member Name</strong>?
+        </p>
+        <p class="modal-note-reject" style="color: #FF3838; font-weight: 500; margin-top: 5px;">
+          This action cannot be undone.
+        </p>
+
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-reject" id="btnConfirmReject">
+            Confirm Reject
+          </button>
+          
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
             Cancel
           </button>
         </div>
