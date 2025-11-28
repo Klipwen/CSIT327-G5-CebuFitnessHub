@@ -507,7 +507,9 @@ def staff_dashboard_view(request):
     
     # Get the 3 separate member lists
     active_members_list = gym_Member.objects.filter(user__is_active=True, is_frozen=False).select_related('user')
-    pending_members_list = gym_Member.objects.filter(user__is_active=False).select_related('user')
+    #pending_members_list = gym_Member.objects.filter(user__is_active=False).select_related('user')
+    # NEW LINE (Filter by activation_status instead):
+    pending_members_list = gym_Member.objects.filter(activation_status='pending').select_related('user')
     frozen_members_list = gym_Member.objects.filter(is_frozen=True).select_related('user')
 
     # If a search query exists, filter the 'active' list
@@ -1113,6 +1115,7 @@ def activate_member_view(request):
                 # 2. Update the Member's profile
                 member.balance = new_balance
                 member.is_frozen = False
+                member.activation_status = 'approved' #When you activate someone, update their status to 'approved'.
                 member.next_due_date = timezone.now().date() + timedelta(days=30)
                 member.membership_id = new_membership_id # <-- SAVE THE NEW ID FOR ID GENERATOR
                 member.save()
@@ -1366,6 +1369,38 @@ def fetch_notifications_api(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def reject_member_view(request):
+    """
+    Handles rejecting a new member registration.
+    Sets activation_status='rejected' so they disappear from the Pending list.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id') # User PK
+            
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+            
+            # Security check: don't reject active members
+            if member.activation_status != 'pending':
+                return JsonResponse({'status': 'error', 'message': 'Member is not pending.'})
+
+            # Logic: Mark as rejected. User remains is_active=False (cannot login).
+            member.activation_status = 'rejected'
+            member.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Member request rejected.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 
 # --- Deprecated / Redundant Views ---
 # The logic from these views has been consolidated into 'account_settings_view'
