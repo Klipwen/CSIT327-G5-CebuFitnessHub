@@ -263,6 +263,8 @@ class Notification(models.Model):
 
     redirect_url = models.CharField(max_length=255, blank=True, null=True, help_text="URL to redirect to on click")
 
+    related_member = models.ForeignKey('gym_Member', on_delete=models.SET_NULL, null=True, blank=True)
+
     class Meta:
         ordering = ['-timestamp']
 
