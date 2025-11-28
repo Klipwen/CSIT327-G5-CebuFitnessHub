@@ -112,6 +112,19 @@ class gym_Member(models.Model):
 
     membership_id = models.CharField(max_length=20, unique=True, null=True, blank=True, help_text="e.g., CFH-2025-0001")
 
+    # --- ADD THIS NEW FIELD ---This allows us to distinguish between a "fresh" registration (Pending) and one that you have explicitly denied (Rejected).
+    ACTIVATION_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    activation_status = models.CharField(
+        max_length=10, 
+        choices=ACTIVATION_STATUS_CHOICES, 
+        default='pending'
+    )
+    # --- END ADD ---
+
     class Meta:
         verbose_name = 'Gym Member Profile'
         verbose_name_plural = 'Gym Member Profiles'
