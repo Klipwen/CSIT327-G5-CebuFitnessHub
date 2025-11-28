@@ -22,8 +22,11 @@ class gym_MemberInline(admin.StackedInline):
     model = gym_Member
     can_delete = False
     verbose_name_plural = 'Member Profile'
-    # Show the member-specific fields
-    fields = ('balance', 'monthly_fee', 'next_due_date', 'is_frozen')
+    
+    # --- FIX: Updated fields to match new model ---
+    # Removed 'monthly_fee' because it was deleted from models.py
+    # Added 'days_remaining_on_freeze' and 'membership_id'
+    fields = ('membership_id', 'balance', 'next_due_date', 'is_frozen', 'days_remaining_on_freeze')
 
 class GymStaffInline(admin.StackedInline):
     """Shows the GymStaff profile data inside the CustomUser admin page."""
