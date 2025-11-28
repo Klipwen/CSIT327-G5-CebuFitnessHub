@@ -319,6 +319,60 @@
         // Find the trigger *before* checking which button was clicked
         const trigger = document.querySelector('.action-menu-btn[aria-expanded="true"]');
         // --- END MODIFIED ---
+
+        // START: Fix for Pending/Reject Logic -----------------------
+        if (clickedButton && trigger) {
+          const row = trigger.closest('tr'); 
+
+          // --- 1. ACTIVATE MEMBER ---
+          if (clickedButton.classList.contains('activate-member-btn')) {
+              e.preventDefault();
+              const modal = modals.activateMembership;
+              
+              if (modal) {
+                  const memberName = row.cells[0].textContent.trim();
+                  // Adjust column index [2] based on your specific table layout for Fee
+                  const amount = row.cells[2].textContent.trim().replace('₱', '').replace(/[,]/g, ''); 
+                  const memberId = row.dataset.memberId;
+
+                  modal.querySelector('#activate-member-name').value = memberName;
+                  modal.querySelector('#activate-amount').value = amount;
+
+                  const confirmBtn = modal.querySelector('#btnConfirmActivation');
+                  if (confirmBtn) {
+                    confirmBtn.dataset.memberId = memberId;
+                    confirmBtn.dataset.memberName = memberName;
+                  }
+                  openModal(modal, trigger);
+              }
+          }
+
+          // --- 2. REJECT REQUEST (Updated) ---
+          else if (clickedButton.classList.contains('reject-member-btn')) {
+              e.preventDefault();
+              
+              const modal = modals.rejectRequest; // Get the new modal
+              if (!modal) return;
+
+              const memberId = row.dataset.memberId;
+              // Get name from dataset or fallback to table cell text
+              const memberName = row.dataset.memberName || row.cells[0].textContent.trim(); 
+
+              // 1. Populate the modal text
+              modal.querySelector('#reject-member-name').textContent = memberName;
+
+              // 2. Store the ID on the Confirm button so we can use it later
+              const confirmBtn = modal.querySelector('#btnConfirmReject');
+              if (confirmBtn) {
+                confirmBtn.dataset.memberId = memberId;
+              }
+
+              // 3. Open the modal
+              openModal(modal, trigger);
+          }
+        }
+        // END: Fix for Pending/Reject Logic -----------------------
+
         //ADD for reading in the html
         const row = trigger.closest('tr'); // Get the row
 
@@ -678,7 +732,8 @@
       checkInOut: document.getElementById('modalCheckInOut'), // <-- ADDED
       unfreezeAccount: document.getElementById('modalUnfreezeAccount'), //New
       activateMembership: document.getElementById('modalActivateMembership'), // <-- NEW
-      noBalance: document.getElementById('modalNoBalance') // <-- NEW
+      noBalance: document.getElementById('modalNoBalance'), // <-- NEW
+      rejectRequest: document.getElementById('modalRejectRequest')
     };
 
     // Setup member management dropdown
@@ -1128,38 +1183,6 @@
     }
     // --- END NEW ---
 
-    // --- NEW: Activate Membership Modal Logic ---
-    const pendingTableBody = document.getElementById('member-management-tbody-pending');
-    if (pendingTableBody) {
-      // Use event delegation on the 'Pending' table
-      pendingTableBody.addEventListener('click', e => {
-        const triggerButton = e.target.closest('.activate-member-btn');
-        if (!triggerButton) return; // Didn't click the button
-
-        e.preventDefault();
-        const modal = modals.activateMembership;
-        if (!modal) return;
-
-        const row = triggerButton.closest('tr');
-        const memberName = row.cells[0].textContent.trim();
-        const amount = row.cells[2].textContent.trim().replace('₱', '').replace(',', '');
-        const memberId = row.dataset.memberId; // Assuming you add data-member-id to the <tr>
-
-        // Pre-fill the modal
-        modal.querySelector('#activate-member-name').value = memberName;
-        modal.querySelector('#activate-amount').value = amount;
-
-        // Store ID on button for the handler
-        const confirmBtn = modal.querySelector('#btnConfirmActivation');
-        if (confirmBtn) {
-          confirmBtn.dataset.memberId = memberId;
-          confirmBtn.dataset.memberName = memberName;
-        }
-
-        openModal(modal, triggerButton);
-      });
-    }
-
     // --- ADD THIS NEW FETCH LOGIC ---
     const btnConfirmActivation = document.getElementById('btnConfirmActivation');
     if (btnConfirmActivation) {
@@ -1200,6 +1223,41 @@
         });
     }
     // --- END NEW ---
+
+    // --- NEW: Confirm Reject Logic ---
+    const btnConfirmReject = document.getElementById('btnConfirmReject');
+    if (btnConfirmReject) {
+        btnConfirmReject.addEventListener('click', e => {
+            const memberId = e.currentTarget.dataset.memberId;
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            showLoader();
+            
+            fetch('/staff/reject-member/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': csrfToken 
+                },
+                body: JSON.stringify({ member_id: memberId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Close modal and reload page
+                    closeModal(modals.rejectRequest);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("An error occurred.");
+            })
+            .finally(() => hideLoader());
+        });
+    }
 
     // ---logic for the creation of notification in pending activation--
     // ==========================================================
