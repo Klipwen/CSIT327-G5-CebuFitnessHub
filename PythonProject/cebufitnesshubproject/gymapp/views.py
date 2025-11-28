@@ -106,9 +106,22 @@ def member_login(request):
                     
                     else:
                         # --- ERROR 1: ACCOUNT INACTIVE ---
-                        # Password was correct, but is_active is False.
-                        error_message = 'This account is inactive and awaiting staff activation.'
-                        error_type = 'inactive'
+                        # --- NEW LOGIC FOR INACTIVE USERS ---
+                        try:
+                            member = user.gym_member
+                            if member.activation_status == 'pending':
+                                error_message = 'Your account is still pending approval from staff.'
+                                error_type = 'inactive'
+                            elif member.activation_status == 'rejected':
+                                # Just show the generic rejection message
+                                error_message = 'Your application was rejected. Please register again to update your details.'
+                                error_type = 'rejected'
+                            else:
+                                error_message = 'Account inactive.'
+                        except:
+                            # Fallback for staff who don't have gym_member profiles
+                            error_message = 'Account inactive.'
+                        # --- END NEW LOGIC ---
                 
                 else:
                     # --- ERROR 2: INVALID PASSWORD ---
@@ -174,24 +187,33 @@ def member_dashboard(request):
 
     # --- Get Data from Related Models ---
     now = timezone.now()
+    today = now.date() # Create a specific date variable for expiration check
 
-    # NEW, CORRECTED CODE-----------------------------
+    # --- 1. NEW: Expiration Check Logic ---
+    is_expired = False
+    days_overdue = 0
+    
+    if member_profile.next_due_date and member_profile.next_due_date < today:
+        is_expired = True
+        days_overdue = (today - member_profile.next_due_date).days
+    # --- END NEW CHECK ---
+
+    # --- 2. Check-in Metrics ---
     check_ins_this_month = Check_In.objects.filter(
         member=member_profile,
         check_in_time__month=now.month,
         check_in_time__year=now.year
     ).annotate(
-        day=TruncDay('check_in_time')  # 1. Group check-ins by the calendar day
+        day=TruncDay('check_in_time')  # Group check-ins by the calendar day
     ).values(
-        'day'                         # 2. Get only the unique days
-    ).distinct().count()              # 3. Count the unique days
-
-    #-----------------------------------------------
+        'day'                         # Get only the unique days
+    ).distinct().count()              # Count the unique days
 
     total_check_ins = Check_In.objects.filter(
         member=member_profile
     ).count()
 
+    # --- 3. Weekly Activity ---
     # Get last 7 days of activity logs
     one_week_ago = now.date() - timedelta(days=6)  # 6 days ago to include today (7 days total)
     weekly_activity_qs = Activity_Log.objects.filter(
@@ -199,9 +221,7 @@ def member_dashboard(request):
         activity_date__gte=one_week_ago
     )
 
-    # --- Process Data for the Template ---
-
-    # 1. Weekly Activity (convert queryset to dictionary)
+    # Convert queryset to dictionary
     weekly_activity_dict = {
         'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0
     }
@@ -214,7 +234,7 @@ def member_dashboard(request):
         if day_name:
             weekly_activity_dict[day_name] += log.duration_minutes
 
-    # 2. Account Status
+    # --- 4. Account Status ---
     if member_profile.is_frozen:
         account_status = "Frozen"
     elif request.user.is_active:
@@ -222,7 +242,7 @@ def member_dashboard(request):
     else:
         account_status = "Inactive"
 
-    # 3. Occupancy Data
+    # --- 5. Occupancy Data ---
     occupancy = OCCUPANCY_TRACKER.objects.first()
     occupancy_percent = 0
     gym_status = "Open"
@@ -249,10 +269,13 @@ def member_dashboard(request):
         'occupancy': occupancy,
         'occupancy_percent': occupancy_percent,
         'gym_status': gym_status,
+        
+        # Pass the new variables
+        'is_expired': is_expired,
+        'days_overdue': days_overdue,
     }
 
     return render(request, 'gymapp/dashboard.html', context)
-
 
 @login_required
 @require_http_methods(["GET", "POST"])
