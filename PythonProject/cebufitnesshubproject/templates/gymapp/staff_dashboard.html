@@ -973,6 +973,75 @@
     </div>
   </div>
 
+  <!--For Notifying that a certain user is rejected (MODAL) -->
+
+  <div id="modalRejectedWarning" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+
+      <h3 class="modal-title--enhanced">
+        Request <span class="modal-title-highlight--red" style="color: #FF3838;">Rejected</span>
+      </h3>
+
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          This activation request has already been rejected.
+        </p>
+        <p class="modal-instruction">
+           The member has been removed from the Pending list.
+        </p>
+
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+            Okay
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--to notify the staff that the user is already been approved-->
+  <div id="modalApprovedInfo" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+
+      <h3 class="modal-title--enhanced">
+        Member <span class="modal-title-highlight">Activated</span>
+      </h3>
+
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          This member has already been approved and activated.
+        </p>
+        <p class="modal-instruction">
+           You have been redirected to the <strong>Active Members</strong> list.
+        </p>
+
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+            Okay, Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!--For Chart-->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
