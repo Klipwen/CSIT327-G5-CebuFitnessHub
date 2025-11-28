@@ -77,18 +77,26 @@ def create_request_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=gym_Member)
 def create_registration_notification(sender, instance, created, **kwargs):
     """
-    Signal to notify staff when a NEW member registers (and is Pending).
+    Signal to notify staff when a NEW member registers OR re-applies.
     """
-    if created:
+    # Check for the temporary flag we set in the form
+    is_reapplication = getattr(instance, '_is_reapplication', False)
+
+    # Run if it's a brand new creation OR a re-application
+    if created or is_reapplication:
         # 1. Get all staff
         all_staff = GymStaff.objects.all()
         
         # 2. Create message
         member_name = instance.user.get_full_name()
-        message = f"{member_name} has registered. Pending activation."
         
-        # 3. Define URL with a 'query parameter' so JS knows to switch tabs
-        # Points to dashboard, but adds '?filter=pending'
+        # Custom message for re-applicants
+        if is_reapplication:
+            message = f"{member_name} has re-applied after rejection. Pending review."
+        else:
+            message = f"{member_name} has registered. Pending activation."
+        
+        # 3. Define URL
         redirect_url = reverse('staff_dashboard') + '?filter=pending'
 
         # 4. Create notifications
@@ -96,7 +104,7 @@ def create_registration_notification(sender, instance, created, **kwargs):
             Notification.objects.create(
                 recipient_staff=staff,
                 message=message,
-                notification_type='NEW_REGISTRATION', # New type
+                notification_type='NEW_REGISTRATION',
                 redirect_url=redirect_url,
-                related_member=instance  # Link the notification to the specific member
+                related_member=instance 
             )
