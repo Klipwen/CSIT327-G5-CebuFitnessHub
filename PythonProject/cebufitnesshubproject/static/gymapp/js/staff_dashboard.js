@@ -733,7 +733,9 @@
       unfreezeAccount: document.getElementById('modalUnfreezeAccount'), //New
       activateMembership: document.getElementById('modalActivateMembership'), // <-- NEW
       noBalance: document.getElementById('modalNoBalance'), // <-- NEW
-      rejectRequest: document.getElementById('modalRejectRequest')
+      rejectRequest: document.getElementById('modalRejectRequest'),
+      rejectedWarning: document.getElementById('modalRejectedWarning'),
+      approvedInfo: document.getElementById('modalApprovedInfo')
     };
 
     // Setup member management dropdown
@@ -1281,6 +1283,25 @@
     }
 
     //---End---
+
+    // --- NEW: AUTO-OPEN WARNING MODAL LOGIC ---
+    const alertParam = urlParams.get('alert');
+
+    if (alertParam === 'request_rejected' && modals.rejectedWarning) {
+        // Open the modal immediately
+        openModal(modals.rejectedWarning);
+
+        // Optional: Clean the URL so the modal doesn't pop up again on refresh
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    else if (alertParam === 'member_approved' && modals.approvedInfo) {
+      openModal(modals.approvedInfo);
+      // Clean URL but keep the filter!
+      const newUrl = window.location.pathname + '?filter=active';
+      window.history.replaceState({}, document.title, newUrl);
+    }
+    // --- END NEW LOGIC ---
 
     // ==========================================================
     // NOTIFICATION AUTO-RELOADER (POLLING)
