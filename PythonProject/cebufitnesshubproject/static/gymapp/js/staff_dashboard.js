@@ -1204,6 +1204,20 @@
 
     // Initialize dropdowns
     initializeActionDropdowns(modals);
+
+    // --- Notifications: show loading state on selection ---
+    const notifLinks = document.querySelectorAll('.notif-list .notif-link');
+    notifLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        const item = link.closest('.notif-item');
+        if (item) {
+          item.classList.add('is-loading');
+          item.setAttribute('aria-busy', 'true');
+        }
+        // Activate global page loader for clearer feedback
+        showLoader();
+      }, { once: true }); // prevent multiple activations
+    });
   }
 
   // Run init() on page load

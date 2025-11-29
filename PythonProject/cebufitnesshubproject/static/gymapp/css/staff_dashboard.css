@@ -694,6 +694,30 @@ KPIs
   flex-shrink: 0; /* Prevents timestamp from shrinking */
 }
 
+/* Loading state when a notification is selected */
+.notif-item.is-loading {
+  pointer-events: none;
+}
+.notif-item.is-loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+}
+.notif-item.is-loading::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e6e6e6;
+  border-top-color: #6BCB3D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 /* 4. Background Colors (Critique 5) */
 .notif-item--warning {
   background-color: #fffbf2; /* Light yellow */
