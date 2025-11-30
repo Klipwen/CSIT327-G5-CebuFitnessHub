@@ -1338,15 +1338,30 @@ def mark_notification_read_view(request, notification_id):
         notification.save()
 
     # --- START: NEW VALIDATION LOGIC ---
+    if notification.redirect_url and "#" in notification.redirect_url:
+        notification.redirect_url = notification.redirect_url.split("#")[0]
+
+    # --- FREEZE / UNFREEZE LOGIC ---
+    if notification.related_request:
+        req = notification.related_request
+
+        if req.status.upper() == 'REJECTED':
+            return redirect(reverse('staff_dashboard') + '?alert=freeze_rejected')
+
+        if req.status.upper() == 'APPROVED':
+            return redirect(reverse('staff_dashboard') + '?alert=freeze_approved')
+
+    # --- REGISTRATION LOGIC ---
     if notification.related_member:
-        # 1. If Member was Rejected
-        if notification.related_member.activation_status == 'rejected':
-            # Redirect with a special parameter so JS knows to open the modal
+        member = notification.related_member
+
+        if member.activation_status == 'rejected':
             return redirect(reverse('staff_dashboard') + '?alert=request_rejected')
-        
-        # 2. If Member was Already Approved (and the notif sends you to 'Pending')
-        elif notification.related_member.activation_status == 'approved' and 'filter=pending' in (notification.redirect_url or ''):
-            # Redirect to Active list with the specific alert parameter
+
+        if (
+            member.activation_status == 'approved'
+            and 'filter=pending' in (notification.redirect_url or '')
+        ):
             return redirect(reverse('staff_dashboard') + '?filter=active&alert=member_approved')
     # --- END: NEW VALIDATION LOGIC ---
         
