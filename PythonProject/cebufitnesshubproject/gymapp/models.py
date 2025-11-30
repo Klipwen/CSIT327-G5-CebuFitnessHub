@@ -265,6 +265,8 @@ class Notification(models.Model):
 
     related_member = models.ForeignKey('gym_Member', on_delete=models.SET_NULL, null=True, blank=True)
 
+    related_request = models.ForeignKey('Account_Request', on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    
     class Meta:
         ordering = ['-timestamp']
 
