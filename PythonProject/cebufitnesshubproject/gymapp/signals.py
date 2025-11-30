@@ -69,7 +69,8 @@ def create_request_notification(sender, instance, created, **kwargs):
                 recipient_staff=staff,
                 message=message,
                 notification_type='NEW_REQUEST',
-                redirect_url=redirect_url
+                redirect_url=redirect_url,
+                related_request=instance
             )
 
 
