@@ -1102,7 +1102,7 @@ def activate_member_view(request):
             data = json.loads(request.body)
             member_id = data.get('member_id')
             amount_str = data.get('amount')
-            description = data.get('description', 'Initial Activation Payment')
+            description = data.get('description', 'Initial Payment')
 
             member = get_object_or_404(gym_Member, user__pk=member_id)
             if member.user.is_active:
@@ -1154,7 +1154,7 @@ def activate_member_view(request):
                     staff_processor=request.user.gym_staff,
                     transaction_type='FEE',
                     amount=default_fee, # Positive amount to create debt
-                    description="Initial Membership Fee"
+                    description="Membership Fee (Initial)"
                 )
                 
                 # 5. Create the PAYMENT record

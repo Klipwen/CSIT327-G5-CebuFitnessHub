@@ -84,7 +84,16 @@
               {% for item in history %}
               <tr class="billing__row">
                 <td class="billing__cell" data-label="Date">{{ item.record.timestamp|date:"M d, Y" }}</td>
-                <td class="billing__cell" data-label="Description">{{ item.record.description }}</td>
+                <td class="billing__cell" data-label="Description">
+                  {# Friendlier labels for initial activation entries #}
+                  {% if item.record.transaction_type == 'PAYMENT' and item.record.description == 'Initial Activation Payment' %}
+                    Initial Payment
+                  {% elif item.record.transaction_type == 'FEE' and item.record.description == 'Initial Membership Fee' %}
+                    Membership Fee (Initial)
+                  {% else %}
+                    {{ item.record.description|default:"" }}
+                  {% endif %}
+                </td>
                 <td class="billing__cell" data-label="Type">{{ item.record.get_transaction_type_display }}</td>
 
                 {# Amount: show payments as positive, fees/charges as negative #}
