@@ -87,13 +87,30 @@
                 <td class="billing__cell" data-label="Description">{{ item.record.description }}</td>
                 <td class="billing__cell" data-label="Type">{{ item.record.get_transaction_type_display }}</td>
 
-                {% if item.record.amount > 0 %}
-                  <td class="billing__cell billing__cell--positive" data-label="Amount">+₱{{ item.record.amount|floatformat:2|intcomma }}</td>
+                {# Amount: show payments as positive, fees/charges as negative #}
+                {% if item.record.transaction_type == 'PAYMENT' %}
+                  {# Payments are stored as negative; display as + with absolute value #}
+                  <td class="billing__cell billing__cell--positive" data-label="Amount">+₱{{ item.record.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+                {% elif item.record.transaction_type == 'FEE' %}
+                  {# Fees increase debt; display as negative #}
+                  <td class="billing__cell billing__cell--negative" data-label="Amount">–₱{{ item.record.amount|floatformat:2|intcomma }}</td>
                 {% else %}
-                  <td class="billing__cell billing__cell--negative" data-label="Amount">–₱{{ item.record.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+                  {# Adjustments: follow the sign of the amount #}
+                  {% if item.record.amount >= 0 %}
+                    <td class="billing__cell billing__cell--negative" data-label="Amount">–₱{{ item.record.amount|floatformat:2|intcomma }}</td>
+                  {% else %}
+                    <td class="billing__cell billing__cell--positive" data-label="Amount">+₱{{ item.record.amount|floatformat:2|intcomma|slice:"1:" }}</td>
+                  {% endif %}
                 {% endif %}
 
-                <td class="billing__cell" data-label="Balance">₱{{ item.balance_after_tx|floatformat:2|intcomma }}</td>
+                {# Balance: present debt as negative, credit as positive #}
+                {% if item.balance_after_tx > 0 %}
+                  <td class="billing__cell billing__cell--negative" data-label="Balance">–₱{{ item.balance_after_tx|floatformat:2|intcomma }}</td>
+                {% elif item.balance_after_tx < 0 %}
+                  <td class="billing__cell billing__cell--positive" data-label="Balance">+₱{{ item.balance_after_tx|floatformat:2|intcomma|slice:"1:" }}</td>
+                {% else %}
+                  <td class="billing__cell" data-label="Balance">₱0.00</td>
+                {% endif %}
               </tr>
 
               {% empty %}
