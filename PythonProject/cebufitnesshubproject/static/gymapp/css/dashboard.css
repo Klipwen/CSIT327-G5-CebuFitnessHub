@@ -322,6 +322,10 @@ body {
 }
 .member-value.blue { color: #000000; }
 
+/* Balance sign colors */
+.value-negative { color: #DE0909; }
+.value-positive { color: #17BB05; }
+
 /* Weekly Activity */
 .activity-subtitle {
   color: #555555;
