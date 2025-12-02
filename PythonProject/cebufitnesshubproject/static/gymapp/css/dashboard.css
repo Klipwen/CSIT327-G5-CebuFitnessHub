@@ -634,6 +634,10 @@ body {
   color: #7CC013;
 }
 
+.modal-title-highlight--red {
+  color: #FF3838;
+}
+
 .modal-instruction {
   font-size: 14px;
   color: var(--text-muted);

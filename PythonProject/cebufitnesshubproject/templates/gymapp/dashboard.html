@@ -10,7 +10,14 @@
   <link rel="icon" href="{% static 'gymapp/img/cebufitnesshub_logo.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'gymapp/css/dashboard.css' %}">
 </head>
-<body data-use-logout-modal="true">
+<!--Data attributes for the notification modals-->
+<body data-use-logout-modal="true"
+  data-show-modal="{{ show_welcome_modal|yesno:'true,false' }}" data-is-expired="{{ is_expired|yesno:'true,false' }}"
+  data-days-overdue="{{ days_overdue }}"
+  data-has-balance="{% if member_profile.balance > 0 %}true{% else %}false{% endif %}"
+  data-days-until-due="{{ days_until_due|default:'999' }}"
+  >
+
   <header class="site-header">
     <div class="brand">
       <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub" class="logo">
@@ -62,12 +69,12 @@
       {% endif %}
 
       <!--Warning for expired membership-->
-      {% if is_expired %}
+      {% if is_expired and days_overdue > 0 %} <!--To be checked-->
       <div class="alert alert-error" style="display: flex; align-items: center; gap: 10px; padding: 15px; background: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; margin-bottom: 20px; border-radius: 8px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <div>
             <strong>Membership Expired!</strong><br>
-            Your plan expired {{ days_overdue }} days ago. Please visit the front desk to renew your membership and resume access.
+            Your plan expired {{ days_overdue }} day/s ago. Please visit the front desk to renew your membership and resume access.
         </div>
       </div>
       {% endif %}
@@ -88,9 +95,9 @@
             <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#6BCB3D"><path d="M560-440q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM280-320q-33 0-56.5-23.5T200-400v-320q0-33 23.5-56.5T280-800h560q33 0 56.5 23.5T920-720v320q0 33-23.5 56.5T840-320H280Zm80-80h400q0-33 23.5-56.5T840-480v-160q-33 0-56.5-23.5T760-720H360q0 33-23.5 56.5T280-640v160q33 0 56.5 23.5T360-400Zm440 240H120q-33 0-56.5-23.5T40-240v-440h80v440h680v80ZM280-400v-320 320Z"/></svg>
           </div>
           <div class="card-content">
-            <div class="card-title">Balance</div>
+            <div class="card-title">Balance Owed</div>
             {% if member_profile.balance > 0 %}
-              <div class="card-value value-negative">–₱{{ member_profile.balance|floatformat:2|intcomma }}</div>
+              <div class="card-value">–₱{{ member_profile.balance|floatformat:2|intcomma }}</div>
             {% elif member_profile.balance < 0 %}
               <div class="card-value value-positive">+₱{{ member_profile.balance|floatformat:2|intcomma|slice:"1:" }}</div>
             {% else %}
@@ -152,9 +159,9 @@
               <span class="member-value blue">{{ member_profile.next_due_date|date:"m/d/Y"|default:"N/A" }}</span>
             </div>
             <div class="member-item">
-              <span class="member-label">Balance</span> 
+              <span class="member-label">Balance Owed</span> 
               {% if member_profile.balance > 0 %}
-                <span class="member-value value-negative">–₱{{ member_profile.balance|floatformat:2|intcomma }}</span>
+                <span class="member-value">–₱{{ member_profile.balance|floatformat:2|intcomma }}</span>
               {% elif member_profile.balance < 0 %}
                 <span class="member-value value-positive">+₱{{ member_profile.balance|floatformat:2|intcomma|slice:"1:" }}</span>
               {% else %}
@@ -260,6 +267,7 @@
     </main>
   </div>
 
+  <!--Modal for logout-->
   <div id="modalLogout" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--small">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -288,6 +296,111 @@
                 data-close>
           Cancel
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!--Everyday notification modal , notify the member when they login and if duedate >  7 days-->
+
+  <div id="modalStatusSnapshot" class="modal" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">Welcome <span class="modal-title-highlight">Back!</span></h3>
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          Great to see you again! You are currently active. Here is a quick summary of your account.
+        </p>
+        <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:15px 0; text-align:left;">
+            <p style="margin:5px 0; font-size:14px;"><strong>Current Balance:</strong> ₱{{ member_profile.balance|floatformat:2|intcomma }}</p>
+            <p style="margin:5px 0; font-size:14px;"><strong>Next Due Date:</strong> {{ member_profile.next_due_date|date:"M d, Y" }}</p>
+        </div>
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+            Let's Workout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--The "Friendly Reminder" (Approaching) Best for: Users whose due date is approaching (3–7 days away).-->
+  <div id="modalFriendlyReminder" class="modal" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">Payment <span style="color:#E48706;">Coming Up</span></h3>
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">
+          Just a heads up! Your membership renewal is coming up. You can settle this at the front desk anytime.
+        </p>
+        <div style="background:#fffbf2; border:1px solid #ffeeba; padding:15px; border-radius:8px; margin:15px 0; text-align:left;">
+            <p style="margin:5px 0; font-size:14px; color:#856404;"><strong>Amount Due:</strong> ₱{{ member_profile.balance|floatformat:2|intcomma }}</p>
+            <p style="margin:5px 0; font-size:14px; color:#856404;"><strong>Due Date:</strong> {{ member_profile.next_due_date|date:"M d, Y" }}</p>
+        </div>
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+            Noted, thanks
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--The "Urgent Alert" (Past Due) Best for: Users whose due date has passed (overdue).-->
+  <div id="modalUrgentAlert" class="modal" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+
+      {% if days_overdue == 0 %}
+          <h3 class="modal-title--enhanced">Payment <span class="modal-title-highlight--red">Due Today</span></h3>
+      {% else %}
+          <h3 class="modal-title--enhanced">Membership <span class="modal-title-highlight--red">Expired</span></h3>
+      {% endif %}
+
+      <div class="modal-body--enhanced">
+        
+        <p class="modal-instruction">
+          {% if days_overdue == 0 %}
+             Your membership validity ends today. Please visit the front desk to settle your balance to ensure uninterrupted access.
+          {% else %}
+             Your plan expired <strong>{{ days_overdue }} day/s ago</strong>. Access to the gym is currently paused until payment is made.
+          {% endif %}
+        </p>
+
+        <div style="background:#fee2e2; border:1px solid #f5c6cb; padding:15px; border-radius:8px; margin:15px 0; text-align:left;">
+            <p style="margin:5px 0; font-size:14px; color:#721c24;"><strong>Total Due:</strong> ₱{{ member_profile.balance|floatformat:2|intcomma }}</p>
+            <p style="margin:5px 0; font-size:14px; color:#721c24;">
+                <strong>Status:</strong> 
+                {% if days_overdue == 0 %}
+                    <span style="font-weight:bold; color:#d9534f;">Due Today</span>
+                {% else %}
+                    <span style="font-weight:bold; color:#b91c1c;">Overdue by {{ days_overdue }} day/s</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-reject" data-close>
+            Noted, thanks
+          </button>
+        </div>
       </div>
     </div>
   </div>

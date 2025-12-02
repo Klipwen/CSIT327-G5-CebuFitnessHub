@@ -191,6 +191,32 @@ document.addEventListener('DOMContentLoaded', function() {
     f.addEventListener('submit', () => activate());
   });
 
+  // ============================================================
+  // GENERIC MODAL CLOSE LOGIC (Handles ALL modals)
+  // ============================================================
+  
+  // 1. Handle [data-close] buttons (The "X" or "Cancel" buttons)
+  document.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', e => {
+      const parentModal = e.target.closest('.modal');
+      closeModal(parentModal);
+    });
+  });
+
+  // 2. Handle Backdrop Clicks (Clicking outside the box)
+  document.querySelectorAll('.modal').forEach(m => {
+    m.addEventListener('click', e => {
+      if (e.target === m) {
+        // EXCEPTION: Do not close these specific notification modals on backdrop click
+        if (m.id === 'modalStatusSnapshot' || m.id === 'modalFriendlyReminder' || m.id === 'modalUrgentAlert') {
+            return; // Do nothing
+        }
+        closeModal(m);
+      }
+    });
+  });
+  // ============================================================
+
   const logoutButton = document.getElementById('logoutBtn');
   const logoutModal = document.getElementById('modalLogout');
   const logoutConfirmBtn = document.getElementById('btnConfirmLogout');
@@ -211,7 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    const modalCloseButtons = logoutModal.querySelectorAll('[data-close]');
+    //Old code for modal close buttons
+    /*const modalCloseButtons = logoutModal.querySelectorAll('[data-close]');
     modalCloseButtons.forEach(btn => {
       btn.addEventListener('click', () => closeModal(logoutModal));
     });
@@ -220,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.target === logoutModal) {
         closeModal(logoutModal);
       }
-    });
+    }); */
   } else if (logoutButton) {
     logoutButton.addEventListener('click', event => {
       event.preventDefault();
@@ -233,5 +260,33 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // =====================================================
+  // NOTIFICATION MODAL LOGIC
+  // =====================================================
+  const shouldShowModal = document.body.dataset.showModal === 'true'; // NEW CHECK
+  
+  if (shouldShowModal) {
+      const isExpired = document.body.dataset.isExpired === 'true';
+      const hasBalance = document.body.dataset.hasBalance === 'true';
+      const daysUntilDue = parseInt(document.body.dataset.daysUntilDue || '999');
+
+      // 1. Urgent (Overdue)
+      if (isExpired && hasBalance) {
+          const modal = document.getElementById('modalUrgentAlert');
+          if (modal) openModal(modal);
+      } 
+      // 2. Friendly Reminder (Due within 7 days)
+      else if (hasBalance && daysUntilDue <= 7 && daysUntilDue >= 0) {
+          const modal = document.getElementById('modalFriendlyReminder');
+          if (modal) openModal(modal);
+      }
+      // 3. Status Snapshot (Default Welcome)
+      else if (hasBalance) { 
+          const modal = document.getElementById('modalStatusSnapshot');
+          if (modal) openModal(modal);
+      }
+  }
+  
 });
   
