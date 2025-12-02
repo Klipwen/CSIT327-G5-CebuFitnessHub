@@ -95,6 +95,8 @@ def member_login(request):
                         
                         # Proceed with login
                         login(request, user)
+                        # NEW: Set a session variable that expires immediately
+                        request.session['just_logged_in'] = True
                         messages.success(request, f'Welcome back, {user.first_name}!')
                         redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
                         
@@ -193,10 +195,19 @@ def member_dashboard(request):
     is_expired = False
     days_overdue = 0
     
-    if member_profile.next_due_date and member_profile.next_due_date < today:
+    if member_profile.next_due_date and member_profile.next_due_date <= today:
         is_expired = True
         days_overdue = (today - member_profile.next_due_date).days
     # --- END NEW CHECK ---
+
+    # --- 1.5. NEW: Days Until Due (For Friendly Notification) ---
+    # Default to 999 (Safe/Infinity) so it doesn't trigger if no date exists
+    days_until_due = 999 
+    
+    # Only calculate if there is a date, and it is in the future (or today)
+    if member_profile.next_due_date and member_profile.next_due_date >= today:
+        days_until_due = (member_profile.next_due_date - today).days
+    # --- END NEW CODE ---
 
     # --- 2. Check-in Metrics ---
     check_ins_this_month = Check_In.objects.filter(
@@ -258,6 +269,9 @@ def member_dashboard(request):
         else:
             gym_status = "Open"
 
+    # NEW: Check if they just logged in
+    show_welcome_modal = request.session.pop('just_logged_in', False)
+
     # --- Final Context ---
     context = {
         'user': request.user,
@@ -273,6 +287,8 @@ def member_dashboard(request):
         # Pass the new variables
         'is_expired': is_expired,
         'days_overdue': days_overdue,
+        'days_until_due': days_until_due,
+        'show_welcome_modal': show_welcome_modal,
     }
 
     return render(request, 'gymapp/dashboard.html', context)
