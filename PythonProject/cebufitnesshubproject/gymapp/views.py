@@ -350,11 +350,25 @@ def account_settings_view(request):
                 elif pending_request:
                     messages.info(request, 'You already have a request pending review.')
                 else:
+                    # Check frequency (1 approved freeze per 30 days)
+                    thirty_days_ago = timezone.now() - timedelta(days=30)
+                    has_recent_freeze = Account_Request.objects.filter(
+                        member=member_profile,
+                        request_type='FREEZE',
+                        status='APPROVED',
+                        request_date__gte=thirty_days_ago
+                    ).exists()
+                    
+                    if has_recent_freeze:
+                        messages.error(request, 'Policy Limit: You can only have one approved freeze request every membership period (30 days).')
+                        return redirect('account_settings')
+
                     # Create the Account_Request object
                     Account_Request.objects.create(
                         member=member_profile,
                         request_type='FREEZE',
                         reason=freeze_form.cleaned_data['reason'],
+                        days_requested=int(freeze_form.cleaned_data['duration']), # Save duration
                         status='PENDING',
                         request_date=timezone.now()
                     )
@@ -384,6 +398,14 @@ def account_settings_view(request):
             else:
                 modal_to_open = 'unfreeze' # Re-open modal on error
 
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    has_recent_freeze = Account_Request.objects.filter(
+        member=member_profile,
+        request_type='FREEZE',
+        status='APPROVED',
+        request_date__gte=thirty_days_ago
+    ).exists()
+
     context = {
         'user': user,
         'member_profile': member_profile,
@@ -393,6 +415,7 @@ def account_settings_view(request):
         'modal_to_open': modal_to_open,
         'pending_request': pending_request, # Pass pending request to template
         'is_frozen': member_profile.is_frozen, # Pass frozen status to template
+        'has_recent_freeze': has_recent_freeze, 
     }
     return render(request, 'gymapp/account_settings.html', context)
 
