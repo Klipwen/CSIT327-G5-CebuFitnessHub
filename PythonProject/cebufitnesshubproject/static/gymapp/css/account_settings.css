@@ -310,6 +310,60 @@
     height: 24px;
     transition: color 0.2s ease;
 }
+
+.duration-group {
+    margin-bottom: 20px;
+}
+
+.duration-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.duration-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--input-border-gray);
+    border-radius: 8px;
+    font-size: 14px;
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999999' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.duration-group select:focus {
+    border-color: var(--enhanced-green);
+    box-shadow: 0 0 0 3px rgba(159, 216, 74, 0.3);
+    outline: none;
+}
+
+.duration-help {
+    font-size: 13px;
+    color: #6e6e6e;
+    line-height: 1.4;
+}
+
+.modal-limit {
+    font-size: 14px;
+    color: #5b5b5b;
+    background: #f4f8ec;
+    border: 1px solid #d7e8b2;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.4;
+}
+.modal-limit strong {
+    color: var(--enhanced-green);
+}
+
 /* ====================================================================
    RESPONSIVE ADJUSTMENTS
    ==================================================================== */
