@@ -350,7 +350,7 @@ def account_settings_view(request):
                 elif pending_request:
                     messages.info(request, 'You already have a request pending review.')
                 else:
-                    # --- NEW LOGIC: Check frequency (1 approved freeze per 30 days) ---
+                    # Check frequency (1 approved freeze per 30 days)
                     thirty_days_ago = timezone.now() - timedelta(days=30)
                     has_recent_freeze = Account_Request.objects.filter(
                         member=member_profile,
