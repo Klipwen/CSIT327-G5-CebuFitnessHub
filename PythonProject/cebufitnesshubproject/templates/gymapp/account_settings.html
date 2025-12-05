@@ -53,13 +53,13 @@
 
         <main class="main">
             {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
                 </div>
+                {% endfor %}
+            </div>
             {% endif %}
 
             <div class="settings-box">
@@ -72,17 +72,21 @@
                 </div>
                 <div class="settings-section">
                     <h2 class="settings-subtitle">Membership Management</h2>
-                    
+
                     {% if pending_request %}
-                        <button class="btn btn-pending" disabled>Request Pending</button>
-                    
+                    <button class="btn btn-pending" disabled>Request Pending</button>
+
                     {% elif is_frozen %}
-                        <button id="btnOpenUnfreeze" class="btn btn-green">Request Account Unfreeze</button>
-                    
+                    <button id="btnOpenUnfreeze" class="btn btn-green">Request Account Unfreeze</button>
+
+                    {% elif has_recent_freeze %}
+                    <button class="btn btn-disabled" disabled
+                        title="You can only request one freeze per membership period (30 days).">Freeze Request Limit Reached</button>
+
                     {% else %}
-                        <button id="btnOpenFreeze" class="btn btn-danger">Request Account Freeze</button>
+                    <button id="btnOpenFreeze" class="btn btn-danger">Request Account Freeze</button>
                     {% endif %}
-                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -102,7 +106,7 @@
                 <form method="post" action="{% url 'account_settings' %}" class="modal-form--enhanced">
                     {% csrf_token %}
                     {% if password_form.non_field_errors %}<div class="form-errors">{% for error in password_form.non_field_errors %}<p class="error-message">{{ error }}</p>{% endfor %}</div>{% endif %}
-                    
+
                     <div class="form-group {% if password_form.current_password.errors %}has-error{% endif %}">
                         <label for="{{ password_form.current_password.id_for_label }}">Current Password <span class="required-asterisk">*</span></label>
                         <div class="password-group">
@@ -114,7 +118,7 @@
                         </div>
                         {% if password_form.current_password.errors %}<ul class="errorlist">{% for error in password_form.current_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
-                    
+
                     <div class="form-group {% if password_form.new_password.errors %}has-error{% endif %}">
                         <label for="{{ password_form.new_password.id_for_label }}">New Password <span class="required-asterisk">*</span></label>
                         <div class="password-group">
@@ -126,7 +130,7 @@
                         </div>
                         {% if password_form.new_password.errors %}<ul class="errorlist">{% for error in password_form.new_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
-    
+
                     <div class="form-group {% if password_form.confirm_password.errors %}has-error{% endif %}">
                         <label for="{{ password_form.confirm_password.id_for_label }}">Confirm New Password <span class="required-asterisk">*</span></label>
                         <div class="password-group">
@@ -138,7 +142,7 @@
                         </div>
                         {% if password_form.confirm_password.errors %}<ul class="errorlist">{% for error in password_form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
-                    
+
                     <button type="submit" name="change_password" class="modal-submit-btn">Change Password</button>
                 </form>
             </div>
@@ -159,8 +163,29 @@
             <div class="modal-body--enhanced">
                 <p class="modal-instruction">Need to take a break? You can request to freeze your membership. This will pause your billing and access.</p>
                 <p class="modal-note">A staff member must approve this request.</p>
+                <p class="modal-limit">
+                    You can only request a freeze <br><strong>once per membership period (30 days)</strong>.
+                </p>
                 <form method="post" action="{% url 'account_settings' %}" class="modal-form--enhanced">
                     {% csrf_token %}
+                    <div class="form-group duration-group {% if freeze_form.duration.errors %}has-error{% endif %}">
+                        <label for="{{ freeze_form.duration.id_for_label }}">
+                            Duration <span class="required-asterisk">*</span>
+                        </label>
+
+                        <div class="duration-wrapper">
+                            {{ freeze_form.duration }}
+                            <span class="duration-help">You can freeze your account for 1 to 5 days.</span>
+                        </div>
+
+                        {% if freeze_form.duration.errors %}
+                            <ul class="errorlist">
+                                {% for error in freeze_form.duration.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
                     <div class="form-group {% if freeze_form.reason.errors %}has-error{% endif %}">
                         <label for="{{ freeze_form.reason.id_for_label }}">Reason <span class="required-asterisk">*</span></label>
                         {{ freeze_form.reason }}
@@ -200,37 +225,37 @@
     </div>
 
     <div id="modalLogout" class="modal" aria-hidden="true">
-    <div class="modal-content modal-content--enhanced modal-content--small">
-      <button class="modal-close-icon" data-close>&times;</button>
-      <div class="modal-brand-header">
+        <div class="modal-content modal-content--enhanced modal-content--small">
+            <button class="modal-close-icon" data-close>&times;</button>
+            <div class="modal-brand-header">
         <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
-        <div class="modal-brand-header__text">
-          <div class="modal-brand-header__line-1">CEBU</div>
-          <div class="modal-brand-header__line-2">FITNESS HUB</div>
-        </div>
-      </div>
-      <h3 class="modal-title--enhanced">
-        Ready to <span class="modal-title-highlight">Logout?</span>
-      </h3>
-      <p class="modal-instruction">
-        Confirm to securely end this member session.
-      </p>
-      <div class="modal-action-buttons">
+                <div class="modal-brand-header__text">
+                    <div class="modal-brand-header__line-1">CEBU</div>
+                    <div class="modal-brand-header__line-2">FITNESS HUB</div>
+                </div>
+            </div>
+            <h3 class="modal-title--enhanced">
+                Ready to <span class="modal-title-highlight">Logout?</span>
+            </h3>
+            <p class="modal-instruction">
+                Confirm to securely end this member session.
+            </p>
+            <div class="modal-action-buttons">
         <button type="button"
                 class="modal-action-btn modal-btn-approve"
                 id="btnConfirmLogout"
-                data-logout-url="{% url 'logout' %}">
-          Yes, Logout
-        </button>
+                    data-logout-url="{% url 'logout' %}">
+                    Yes, Logout
+                </button>
         <button type="button"
                 class="modal-action-btn modal-btn-reject"
                 data-close>
-          Cancel
-        </button>
-      </div>
+                    Cancel
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
-    
+
     <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -248,10 +273,10 @@
             let lastFocusedElement;
 
             // --- Core Modal Functions ---
-            function openModal(modal, triggerElement) { 
+            function openModal(modal, triggerElement) {
                 if (!modal) return;
                 lastFocusedElement = triggerElement;
-                modal.classList.add('show'); 
+                modal.classList.add('show');
                 modal.setAttribute('aria-hidden', 'false');
                 const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
                 focusableElements.forEach(el => el.setAttribute('tabindex', '0'));
@@ -259,17 +284,17 @@
                 if (firstFocusable) firstFocusable.focus();
                 modal.addEventListener('keydown', trapFocus);
             }
-            
-            function closeModal(modal) { 
+
+            function closeModal(modal) {
                 if (!modal) return;
                 const form = modal.querySelector('form');
                 if (form) {
-                    form.reset(); 
+                    form.reset();
                 }
                 modal.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
                 modal.querySelectorAll('.errorlist').forEach(el => el.innerHTML = '');
                 modal.querySelectorAll('.form-errors').forEach(el => el.remove());
-                
+
                 const passwordGroups = modal.querySelectorAll('.password-group');
                 passwordGroups.forEach(group => {
                     const input = group.querySelector('input');
@@ -279,25 +304,25 @@
                     if (eyeIcon) eyeIcon.classList.remove('hidden');
                     if (eyeSlashIcon) eyeSlashIcon.classList.add('hidden');
                 });
-                
+
                 const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
                 focusableElements.forEach(el => el.setAttribute('tabindex', '-1'));
-                
-                modal.classList.remove('show'); 
-                modal.setAttribute('aria-hidden', 'true'); 
+
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
                 modal.removeEventListener('keydown', trapFocus);
                 if (lastFocusedElement) {
                     lastFocusedElement.focus();
                 }
             }
-            
+
             function trapFocus(e) {
                 if (e.key !== 'Tab') return;
                 const modal = e.currentTarget;
                 const focusableElements = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => el.getAttribute('tabindex') !== '-1');
                 const firstElement = focusableElements[0];
                 const lastElement = focusableElements[focusableElements.length - 1];
-                if (e.shiftKey) { 
+                if (e.shiftKey) {
                     if (document.activeElement === firstElement) {
                         lastElement.focus();
                         e.preventDefault();
@@ -309,7 +334,7 @@
                     }
                 }
             }
-    
+
             // --- Event Listeners ---
             if (openButtons.password) openButtons.password.addEventListener('click', (e) => openModal(modals.password, e.currentTarget));
             if (openButtons.freeze) openButtons.freeze.addEventListener('click', (e) => openModal(modals.freeze, e.currentTarget));
@@ -323,7 +348,7 @@
             });
 
             document.querySelectorAll('.modal').forEach(m => {
-                m.addEventListener('click', (e) => { 
+                m.addEventListener('click', (e) => {
                     if (e.target === m) closeModal(m);
                 });
             });
@@ -332,7 +357,7 @@
             const passwordToggles = document.querySelectorAll('.toggle-password');
             function togglePasswordVisibility(e) {
                 if (e.type === 'keydown' && (e.key !== 'Enter' && e.key !== ' ')) return;
-                
+
                 const toggle = e.currentTarget;
                 const targetId = toggle.getAttribute('data-target');
                 const passwordInput = document.getElementById(targetId);
