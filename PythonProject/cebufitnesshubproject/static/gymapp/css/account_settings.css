@@ -364,6 +364,20 @@
     color: var(--enhanced-green);
 }
 
+.error-text {
+    color: var(--danger);
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    background: #ffe8e8;
+    border: 1px solid #ffcccc;
+    padding: 10px 14px;
+    border-radius: 6px;
+    width: fit-content;
+    max-width: 100%;
+    line-height: 1.4;
+}
+
 /* ====================================================================
    RESPONSIVE ADJUSTMENTS
    ==================================================================== */
