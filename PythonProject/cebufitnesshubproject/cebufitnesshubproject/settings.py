@@ -28,10 +28,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-insecure-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Read from environment with a safe default for local dev
+DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('true', '1', 'yes', 'y')
 
 if DEBUG:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'cebu-fitness-hub.onrender.com']
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost',
         'http://localhost:8000',
@@ -40,6 +41,7 @@ if DEBUG:
     ]
 else:
     ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h]
+    ALLOWED_HOSTS.append('cebu-fitness-hub.onrender.com')
     # Required for CSRF when deployed on Render
     CSRF_TRUSTED_ORIGINS = [
         *(o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o),
