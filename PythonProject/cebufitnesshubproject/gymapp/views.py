@@ -224,6 +224,15 @@ def member_dashboard(request):
         member=member_profile
     ).count()
 
+    # Total Days Attended (Distinct Days)
+    total_days_attended = Check_In.objects.filter(
+        member=member_profile
+    ).annotate(
+        day=TruncDay('check_in_time')
+    ).values(
+        'day'
+    ).distinct().count()
+
     # --- 3. Weekly Activity ---
     # Get last 7 days of activity logs
     one_week_ago = now.date() - timedelta(days=6)  # 6 days ago to include today (7 days total)
@@ -278,6 +287,7 @@ def member_dashboard(request):
         'member_profile': member_profile,
         'days_attended_this_month': check_ins_this_month,
         'total_check_ins': total_check_ins,
+        'total_days_attended': total_days_attended, # Pass the new variable
         'weekly_activity_dict': weekly_activity_dict,
         'account_status': account_status,
         'occupancy': occupancy,
