@@ -28,15 +28,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-insecure-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
-ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h]
-
-# Required for CSRF when deployed on Render
-CSRF_TRUSTED_ORIGINS = [
-    *(o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o),
-    'https://*.onrender.com',
-]
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost',
+        'http://localhost:8000',
+        'http://127.0.0.1',
+        'http://127.0.0.1:8000',
+    ]
+else:
+    ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h]
+    # Required for CSRF when deployed on Render
+    CSRF_TRUSTED_ORIGINS = [
+        *(o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o),
+        'https://*.onrender.com',
+    ]
 
 # Honor X-Forwarded-Proto for HTTPS behind Render's proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -1651,6 +1651,8 @@ KPIs
 /* 1. The wrapper holds the symbol and input */
 .input-with-symbol {
   position: relative;
+  --currency-left: 12px;
+  --currency-pad-left: 26px;
 }
 
 /* 2. The "₱" symbol */
@@ -1658,8 +1660,7 @@ KPIs
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  /* This 'left' value should match your default input padding */
-  left: 12px;
+  left: var(--currency-left);
   font-size: 14px; /* Should match your input's font-size */
   font-weight: 700;
   color: #FF3838; /* Red, as you requested */
@@ -1671,9 +1672,16 @@ KPIs
 /* This rule pushes the input's text to the right 
    to make space for the symbol */
   .input-with-symbol #log-payment-amount,
-  .input-with-symbol #activate-amount {
-    padding-left: 26px; 
+  .input-with-symbol #activate-amount,
+  .input-with-symbol #reactivate-amount {
+    padding-left: var(--currency-pad-left) !important;
   }
+
+.form-error {
+  color: #FF3838;
+  font-size: 12px;
+  margin-top: 6px;
+}
 
 
 /* ====================================================================
