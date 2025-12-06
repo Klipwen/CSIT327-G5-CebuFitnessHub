@@ -773,7 +773,9 @@
       rejectedWarning: document.getElementById('modalRejectedWarning'),
       approvedInfo: document.getElementById('modalApprovedInfo'),
       deactivateAccount: document.getElementById('modalDeactivateAccount'),
-      reactivateAccount: document.getElementById('modalReactivateAccount')
+      reactivateAccount: document.getElementById('modalReactivateAccount'),
+      freezeRequestRejected: document.getElementById('modalFreezeRequestRejected'),
+      freezeRequestApproved: document.getElementById('modalFreezeRequestApproved')
     };
 
     // Setup member management dropdown
@@ -1431,6 +1433,15 @@
       // Clean URL but keep the filter!
       const newUrl = window.location.pathname + '?filter=active';
       window.history.replaceState({}, document.title, newUrl);
+    }
+
+    else if (alertParam === 'freeze_rejected' && modals.freezeRequestRejected) {
+        openModal(modals.freezeRequestRejected);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    else if (alertParam === 'freeze_approved' && modals.freezeRequestApproved) {
+        openModal(modals.freezeRequestApproved);
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
     // --- END NEW LOGIC ---
 

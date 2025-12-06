@@ -155,7 +155,6 @@
           <div class="title-divider"></div>
         </div>
         <div class="revenue-grid">
-          <!--KPIs Start-->
           <div class="revenue-cards">
 
             <div class="mini-card">
@@ -193,8 +192,6 @@
             </div>
           
           </div>          
-          <!--End of KPIs-->
-          <!--Start of chart-->
           <div class="revenue-chart-widget">
             <div class="widget-header">
               <h3 class="widget-title" id="revenue-chart-title">Revenue</h3>
@@ -210,8 +207,7 @@
               </div>
             </div>
           </div>
-          <!--End of the chart-->
-        </div>
+          </div>
         <div class="table-wrap">
           <table class="table compact">
             <thead>
@@ -253,7 +249,6 @@
         </div>
         
         <div class="member-management-controls">
-          <!--Search bar Start-->
           <form
             class="member-search-group"
             id="member-search-group"
@@ -276,8 +271,6 @@
               Search
             </button>
           </form>
-          <!--Search bar end-->
-        
           <div class="member-filter-group" id="member-filter-component">
             <button class="member-filter-trigger" type="button" aria-haspopup="true" aria-expanded="false"
                     aria-controls="member-filter-panel">
@@ -384,7 +377,6 @@
                   <td>₱{{ settings.default_monthly_fee|floatformat:2|intcomma }}</td>
                   <td>N/A</td>
                   <td>₱{{ member.balance|floatformat:2|intcomma }}</td>
-                  <!--Start-->
                   <td class="action-cell">
                     <div class="action-menu-wrapper">
                       <button class="action-menu-btn" type="button" aria-label="More options">
@@ -404,8 +396,7 @@
                       </div>
                     </div>
                   </td>
-                  <!--End-->
-                </tr>
+                  </tr>
               {% empty %}
                 <tr><td colspan="6" style="text-align: center;">No pending members found.</td></tr>
               {% endfor %}
@@ -506,10 +497,6 @@
         </div>
       </section>
 
-      <!--Notification Start-->
-      <!-- ========================================================
-     REPLACE your old <section> with this new version
-     ======================================================== -->
       <section id="notifications" class="content-box notifications-box" data-section="notifications">
         <div class="box-header">
           <div class="box-icon">
@@ -519,14 +506,9 @@
           <div class="title-divider"></div>
         </div>
 
-        <!-- This 'notif-list' wrapper is the same -->
         <ul class="notif-list" aria-live="polite">
 
           {% for notif in notifications %}
-            <!-- 
-              This <li> is the new "chip".
-              We add dynamic classes for styling based on status.
-            -->
             <li class="notif-item 
                 {% if notif.is_read %}is-read{% endif %}
                 {% if notif.notification_type == 'NEW_REQUEST' or notif.notification_type == 'NEW_REGISTRATION' %}
@@ -554,8 +536,7 @@
               </a>
             </li>
 
-            <!--End-->
-          {% empty %}
+            {% empty %}
             <li class="notif-item is-read">
               <a href="#" class="notif-link" style="pointer-events: none;">
                 <div class="notif-content">
@@ -569,9 +550,7 @@
 
         </ul>
       </section>
-      <!--End of the Notification-->
-
-    </main>
+      </main>
   </div>
 
   <div id="modalLogout" class="modal" aria-hidden="true">
@@ -604,7 +583,6 @@
     </div>
   </div>
 
-  <!--REQUEST ACCOUNT FREEZE-->
   <div id="modalApproval" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -636,7 +614,6 @@
     </div>
   </div>
 
-  <!--LOG PAYMENT-->
   <div id="modalLogPayment" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -680,7 +657,6 @@
     </div>
   </div>
   
-  <!--NO BALANCE MODAL-->
   <div id="modalNoBalance" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--small">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -705,7 +681,6 @@
     </div>
   </div>
     
-  <!--VIEW DETAILS-->
   <div id="modalViewDetails" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--large" id="modalViewDetailsContent" data-active-tab="member">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -1050,7 +1025,6 @@
     </div>
   </div>
 
-  <!--modal for reject request activation-->
   <div id="modalRejectRequest" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -1088,8 +1062,6 @@
     </div>
   </div>
 
-  <!--For Notifying that a certain user is rejected (MODAL) -->
-
   <div id="modalRejectedWarning" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--small">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -1123,7 +1095,6 @@
     </div>
   </div>
 
-  <!--to notify the staff that the user is already been approved-->
   <div id="modalApprovedInfo" class="modal" aria-hidden="true">
     <div class="modal-content modal-content--enhanced modal-content--small">
       <button class="modal-close-icon" data-close>&times;</button>
@@ -1163,7 +1134,50 @@
       <div class="loader-text">Processing...</div>
     </div>
   </div>
-  <!--For Chart-->
+
+  <div id="modalFreezeRequestRejected" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">Request <span class="modal-title-highlight--red">Rejected</span></h3>
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">This freeze/unfreeze request was already rejected.</p>
+        <p class="modal-instruction">
+          The request is no longer available in the Approval Queue.
+        </p>
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalFreezeRequestApproved" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo" class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">Request <span class="modal-title-highlight">Processed</span></h3>
+      <div class="modal-body--enhanced">
+        <p class="modal-instruction">This freeze/unfreeze request has already been approved and processed.</p>
+        <div class="modal-action-buttons">
+          <button type="button" class="modal-action-btn modal-btn-approve" data-close>Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{% static 'gymapp/js/dashboard.js' %}"></script>
   <script defer src="{% static 'gymapp/js/staff_dashboard.js' %}"></script>

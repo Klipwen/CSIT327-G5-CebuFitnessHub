@@ -271,6 +271,13 @@ class PasswordChangeForm(forms.Form):
 
 # FreezeRequestForm remains unchanged
 class FreezeRequestForm(forms.Form):
+    duration = forms.ChoiceField(
+        label='Duration (Days)',
+        choices=[(i, f"{i} Day{'s' if i > 1 else ''}") for i in range(1, 6)],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True,
+        help_text="You can freeze your account for 1 to 5 days."
+    )
     reason = forms.CharField(
         label='Reason',
         widget=forms.Textarea(attrs={'placeholder': 'Please provide a brief reason for your request...'}),

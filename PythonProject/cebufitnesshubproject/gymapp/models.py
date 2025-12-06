@@ -184,6 +184,8 @@ class Account_Request(models.Model):
     
     staff_decision_reason = models.TextField(blank=True, null=True)
     decision_date = models.DateTimeField(null=True, blank=True)
+    
+    days_requested = models.IntegerField(null=True, blank=True, help_text="Requested freeze duration in days (1-5)")
 
     def __str__(self):
         return f"{self.get_request_type_display()} request for {self.member.user.email} ({self.status})"
@@ -265,6 +267,8 @@ class Notification(models.Model):
 
     related_member = models.ForeignKey('gym_Member', on_delete=models.SET_NULL, null=True, blank=True)
 
+    related_request = models.ForeignKey('Account_Request', on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    
     class Meta:
         ordering = ['-timestamp']
 

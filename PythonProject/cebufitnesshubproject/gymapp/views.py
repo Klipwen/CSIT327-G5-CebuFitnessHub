@@ -95,6 +95,8 @@ def member_login(request):
                         
                         # Proceed with login
                         login(request, user)
+                        # NEW: Set a session variable that expires immediately
+                        request.session['just_logged_in'] = True
                         messages.success(request, f'Welcome back, {user.first_name}!')
                         redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
                         
@@ -193,10 +195,19 @@ def member_dashboard(request):
     is_expired = False
     days_overdue = 0
     
-    if member_profile.next_due_date and member_profile.next_due_date < today:
+    if member_profile.next_due_date and member_profile.next_due_date <= today:
         is_expired = True
         days_overdue = (today - member_profile.next_due_date).days
     # --- END NEW CHECK ---
+
+    # --- 1.5. NEW: Days Until Due (For Friendly Notification) ---
+    # Default to 999 (Safe/Infinity) so it doesn't trigger if no date exists
+    days_until_due = 999 
+    
+    # Only calculate if there is a date, and it is in the future (or today)
+    if member_profile.next_due_date and member_profile.next_due_date >= today:
+        days_until_due = (member_profile.next_due_date - today).days
+    # --- END NEW CODE ---
 
     # --- 2. Check-in Metrics ---
     check_ins_this_month = Check_In.objects.filter(
@@ -212,6 +223,15 @@ def member_dashboard(request):
     total_check_ins = Check_In.objects.filter(
         member=member_profile
     ).count()
+
+    # Total Days Attended (Distinct Days)
+    total_days_attended = Check_In.objects.filter(
+        member=member_profile
+    ).annotate(
+        day=TruncDay('check_in_time')
+    ).values(
+        'day'
+    ).distinct().count()
 
     # --- 3. Weekly Activity ---
     # Get last 7 days of activity logs
@@ -258,12 +278,16 @@ def member_dashboard(request):
         else:
             gym_status = "Open"
 
+    # NEW: Check if they just logged in
+    show_welcome_modal = request.session.pop('just_logged_in', False)
+
     # --- Final Context ---
     context = {
         'user': request.user,
         'member_profile': member_profile,
         'days_attended_this_month': check_ins_this_month,
         'total_check_ins': total_check_ins,
+        'total_days_attended': total_days_attended, # Pass the new variable
         'weekly_activity_dict': weekly_activity_dict,
         'account_status': account_status,
         'occupancy': occupancy,
@@ -273,6 +297,8 @@ def member_dashboard(request):
         # Pass the new variables
         'is_expired': is_expired,
         'days_overdue': days_overdue,
+        'days_until_due': days_until_due,
+        'show_welcome_modal': show_welcome_modal,
     }
 
     return render(request, 'gymapp/dashboard.html', context)
@@ -334,11 +360,25 @@ def account_settings_view(request):
                 elif pending_request:
                     messages.info(request, 'You already have a request pending review.')
                 else:
+                    # Check frequency (1 approved freeze per 30 days)
+                    thirty_days_ago = timezone.now() - timedelta(days=30)
+                    has_recent_freeze = Account_Request.objects.filter(
+                        member=member_profile,
+                        request_type='FREEZE',
+                        status='APPROVED',
+                        request_date__gte=thirty_days_ago
+                    ).exists()
+                    
+                    if has_recent_freeze:
+                        messages.error(request, 'Policy Limit: You can only have one approved freeze request every membership period (30 days).')
+                        return redirect('account_settings')
+
                     # Create the Account_Request object
                     Account_Request.objects.create(
                         member=member_profile,
                         request_type='FREEZE',
                         reason=freeze_form.cleaned_data['reason'],
+                        days_requested=int(freeze_form.cleaned_data['duration']), # Save duration
                         status='PENDING',
                         request_date=timezone.now()
                     )
@@ -368,6 +408,14 @@ def account_settings_view(request):
             else:
                 modal_to_open = 'unfreeze' # Re-open modal on error
 
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    has_recent_freeze = Account_Request.objects.filter(
+        member=member_profile,
+        request_type='FREEZE',
+        status='APPROVED',
+        request_date__gte=thirty_days_ago
+    ).exists()
+
     context = {
         'user': user,
         'member_profile': member_profile,
@@ -377,6 +425,7 @@ def account_settings_view(request):
         'modal_to_open': modal_to_open,
         'pending_request': pending_request, # Pass pending request to template
         'is_frozen': member_profile.is_frozen, # Pass frozen status to template
+        'has_recent_freeze': has_recent_freeze, 
     }
     return render(request, 'gymapp/account_settings.html', context)
 
@@ -1455,15 +1504,30 @@ def mark_notification_read_view(request, notification_id):
         notification.save()
 
     # --- START: NEW VALIDATION LOGIC ---
+    if notification.redirect_url and "#" in notification.redirect_url:
+        notification.redirect_url = notification.redirect_url.split("#")[0]
+
+    # --- FREEZE / UNFREEZE LOGIC ---
+    if notification.related_request:
+        req = notification.related_request
+
+        if req.status.upper() == 'REJECTED':
+            return redirect(reverse('staff_dashboard') + '?alert=freeze_rejected')
+
+        if req.status.upper() == 'APPROVED':
+            return redirect(reverse('staff_dashboard') + '?alert=freeze_approved')
+
+    # --- REGISTRATION LOGIC ---
     if notification.related_member:
-        # 1. If Member was Rejected
-        if notification.related_member.activation_status == 'rejected':
-            # Redirect with a special parameter so JS knows to open the modal
+        member = notification.related_member
+
+        if member.activation_status == 'rejected':
             return redirect(reverse('staff_dashboard') + '?alert=request_rejected')
-        
-        # 2. If Member was Already Approved (and the notif sends you to 'Pending')
-        elif notification.related_member.activation_status == 'approved' and 'filter=pending' in (notification.redirect_url or ''):
-            # Redirect to Active list with the specific alert parameter
+
+        if (
+            member.activation_status == 'approved'
+            and 'filter=pending' in (notification.redirect_url or '')
+        ):
             return redirect(reverse('staff_dashboard') + '?filter=active&alert=member_approved')
     # --- END: NEW VALIDATION LOGIC ---
         
