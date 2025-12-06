@@ -501,10 +501,16 @@ def staff_dashboard_view(request):
         return redirect('landing')
 
     now = timezone.now()
+    today = now.date()
 
     # --- 1. KPI DATA ---
     pending_approvals = Account_Request.objects.filter(status='PENDING').count()
-    active_members_count = gym_Member.objects.filter(user__is_active=True, is_frozen=False).count()
+    active_members_count = gym_Member.objects.filter(
+        user__is_active=True,
+        is_frozen=False
+    ).filter(
+        Q(next_due_date__isnull=True) | Q(next_due_date__gte=today)
+    ).count()
 
     # We use .lstrip('-') to handle the negative 'PAYMENT' values
     todays_revenue = (Billing_Record.objects.filter(
@@ -530,11 +536,21 @@ def staff_dashboard_view(request):
     search_query = request.GET.get('q', None) #new logic for search filter
     
     # Get the 3 separate member lists
-    active_members_list = gym_Member.objects.filter(user__is_active=True, is_frozen=False).select_related('user')
+    active_members_list = gym_Member.objects.filter(
+        user__is_active=True,
+        is_frozen=False
+    ).filter(
+        Q(next_due_date__isnull=True) | Q(next_due_date__gte=today)
+    ).select_related('user')
     #pending_members_list = gym_Member.objects.filter(user__is_active=False).select_related('user')
     # NEW LINE (Filter by activation_status instead):
     pending_members_list = gym_Member.objects.filter(activation_status='pending').select_related('user')
     frozen_members_list = gym_Member.objects.filter(is_frozen=True).select_related('user')
+    deactivated_members_list = gym_Member.objects.filter(
+        activation_status='approved'
+    ).filter(
+        Q(user__is_active=False) | Q(next_due_date__lt=today)
+    ).select_related('user')
 
     # If a search query exists, filter the 'active' list
     if search_query:
@@ -568,6 +584,17 @@ def staff_dashboard_view(request):
         latest_checkin = member.check_ins.order_by('-check_in_time').first()
         frozen_member_data.append({
             'member': member,
+            'last_checkin_time': latest_checkin.check_in_time if latest_checkin else None
+        })
+
+    # Process the 'Deactivated' list
+    deactivated_member_data = []
+    for member in deactivated_members_list:
+        latest_checkin = member.check_ins.order_by('-check_in_time').first()
+        status_label = 'Deactivated' if not member.user.is_active else 'Expired'
+        deactivated_member_data.append({
+            'member': member,
+            'status_label': status_label,
             'last_checkin_time': latest_checkin.check_in_time if latest_checkin else None
         })
         
@@ -607,6 +634,7 @@ def staff_dashboard_view(request):
         'active_member_list': active_member_data,   # For 'Active' table
         'pending_member_list': pending_members_list, # For 'Pending' table
         'frozen_member_list': frozen_member_data,    # For 'Frozen' table
+        'deactivated_member_list': deactivated_member_data, # For 'Deactivated' table
         'approval_requests': approval_requests,
         'revenue_transactions': revenue_transactions,
         'notifications': notifications,
@@ -1173,6 +1201,95 @@ def activate_member_view(request):
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405) 
 
+@login_required
+def deactivate_member_view(request):
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+
+            if not member.user.is_active:
+                return JsonResponse({'status': 'error', 'message': 'Member is already deactivated.'})
+
+            with transaction.atomic():
+                member.user.is_active = False
+                member.user.save()
+                member.is_frozen = False
+                member.next_due_date = None
+                member.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Member deactivated successfully.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@login_required
+def reactivate_member_view(request):
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            member_id = data.get('member_id')
+            amount_str = data.get('amount')
+            description = data.get('description', 'Reactivation Payment')
+
+            member = get_object_or_404(gym_Member, user__pk=member_id)
+            now = timezone.now()
+            today = now.date()
+
+            amount_paid = None
+            if amount_str not in [None, '', '0', '0.00']:
+                amount_paid = Decimal(amount_str)
+                if amount_paid < 0:
+                    return JsonResponse({'status': 'error', 'message': 'Amount cannot be negative.'})
+
+            settings = OCCUPANCY_TRACKER.objects.first()
+            default_fee = settings.default_monthly_fee if settings else Decimal('0.00')
+
+            if member.user.is_active and member.next_due_date and member.next_due_date >= today:
+                return JsonResponse({'status': 'error', 'message': 'Member is already active.'})
+
+            with transaction.atomic():
+                member.user.is_active = True
+                member.user.save()
+                member.is_frozen = False
+                member.activation_status = 'approved'
+                member.next_due_date = today + timedelta(days=30)
+
+                if default_fee > 0:
+                    member.balance = F('balance') + default_fee
+                    member.save()
+                    Billing_Record.objects.create(
+                        member=member,
+                        staff_processor=request.user.gym_staff,
+                        transaction_type='FEE',
+                        amount=default_fee,
+                        description='Membership Fee (Reactivation)'
+                    )
+
+                if amount_paid and amount_paid > 0:
+                    member.balance = F('balance') - amount_paid
+                    member.save()
+                    Billing_Record.objects.create(
+                        member=member,
+                        staff_processor=request.user.gym_staff,
+                        transaction_type='PAYMENT',
+                        amount=-amount_paid,
+                        description=description
+                    )
+
+            return JsonResponse({'status': 'success', 'message': 'Member reactivated successfully.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 @login_required
 def manual_unfreeze_view(request):
     """

@@ -174,9 +174,10 @@
     const activeTbody = document.getElementById('member-management-tbody');
     const pendingTbody = document.getElementById('member-management-tbody-pending');
     const frozenTbody = document.getElementById('member-management-tbody-frozen');
+    const deactivatedTbody = document.getElementById('member-management-tbody-deactivated');
 
     // Hide all sections
-    [activeTbody, pendingTbody, frozenTbody].forEach(tbody => {
+    [activeTbody, pendingTbody, frozenTbody, deactivatedTbody].forEach(tbody => {
       if (tbody) tbody.style.display = 'none';
     });
 
@@ -191,6 +192,10 @@
       if (searchInput) searchInput.value = '';
     } else if (selectedValue === 'frozen' && frozenTbody) {
       frozenTbody.style.display = 'table-row-group';
+      searchGroup.style.display = 'none';
+      if (searchInput) searchInput.value = '';
+    } else if (selectedValue === 'deactivated' && deactivatedTbody) {
+      deactivatedTbody.style.display = 'table-row-group';
       searchGroup.style.display = 'none';
       if (searchInput) searchInput.value = '';
     }
@@ -369,6 +374,37 @@
 
               // 3. Open the modal
               openModal(modal, trigger);
+          }
+          // --- 3. DEACTIVATE MEMBER ---
+          else if (clickedButton.classList.contains('deactivate-member-btn')) {
+              e.preventDefault();
+              const modal = modals.deactivateAccount;
+              if (modal) {
+                  const memberName = row.dataset.memberName || row.cells[0].textContent.trim();
+                  const confirmBtn = modal.querySelector('#btnConfirmDeactivate');
+                  if (confirmBtn) {
+                      confirmBtn.dataset.memberId = row.dataset.memberId;
+                      confirmBtn.dataset.memberName = memberName;
+                  }
+                  openModal(modal, trigger);
+              }
+          }
+          // --- 4. REACTIVATE MEMBER ---
+          else if (clickedButton.classList.contains('reactivate-member-btn')) {
+              e.preventDefault();
+              const modal = modals.reactivateAccount;
+              if (modal) {
+                  const memberName = row.dataset.memberName || row.cells[0].textContent.trim();
+                  const feeStr = row.cells[2].textContent.trim().replace('₱', '').replace(/[,]/g, '');
+                  modal.querySelector('#reactivate-member-name').value = memberName;
+                  modal.querySelector('#reactivate-amount').value = feeStr;
+                  const confirmBtn = modal.querySelector('#btnConfirmReactivate');
+                  if (confirmBtn) {
+                      confirmBtn.dataset.memberId = row.dataset.memberId;
+                      confirmBtn.dataset.memberName = memberName;
+                  }
+                  openModal(modal, trigger);
+              }
           }
         }
         // END: Fix for Pending/Reject Logic -----------------------
@@ -735,7 +771,9 @@
       noBalance: document.getElementById('modalNoBalance'), // <-- NEW
       rejectRequest: document.getElementById('modalRejectRequest'),
       rejectedWarning: document.getElementById('modalRejectedWarning'),
-      approvedInfo: document.getElementById('modalApprovedInfo')
+      approvedInfo: document.getElementById('modalApprovedInfo'),
+      deactivateAccount: document.getElementById('modalDeactivateAccount'),
+      reactivateAccount: document.getElementById('modalReactivateAccount')
     };
 
     // Setup member management dropdown
@@ -1184,6 +1222,99 @@
       });
     }
     // --- END NEW ---
+
+    // --- NEW: Confirm Deactivate Logic ---
+    const btnConfirmDeactivate = document.getElementById('btnConfirmDeactivate');
+    if (btnConfirmDeactivate) {
+      btnConfirmDeactivate.addEventListener('click', e => {
+        const memberId = e.currentTarget.dataset.memberId;
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const button = e.currentTarget;
+        button.disabled = true;
+        showLoader();
+        fetch('/staff/deactivate-member/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ member_id: memberId })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            location.reload();
+          } else {
+            const feedback = document.getElementById('deactivate-feedback');
+            if (feedback) { feedback.textContent = data.message || 'Request failed.'; }
+          }
+        })
+        .finally(() => { hideLoader(); button.disabled = false; });
+      });
+    }
+
+    // --- NEW: Confirm Reactivate Logic ---
+    const btnConfirmReactivate = document.getElementById('btnConfirmReactivate');
+    if (btnConfirmReactivate) {
+      btnConfirmReactivate.addEventListener('click', e => {
+        const modal = modals.reactivateAccount;
+        const memberId = e.currentTarget.dataset.memberId;
+        const amount = modal.querySelector('#reactivate-amount').value;
+        const description = modal.querySelector('#reactivate-description').value;
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const button = e.currentTarget;
+
+        const errorEl = document.getElementById('reactivate-amount-error');
+        const val = amount.trim();
+        let isValid = true;
+        let msg = '';
+        if (val === '' || parseFloat(val) === 0) {
+          isValid = true;
+        } else {
+          const n = Number(val);
+          if (!isFinite(n) || n < 0) { isValid = false; msg = 'Enter a valid ammount.'; }
+        }
+        if (!isValid) {
+          if (errorEl) errorEl.textContent = msg;
+          return;
+        }
+
+        button.disabled = true;
+        showLoader();
+        fetch('/staff/reactivate-member/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ member_id: memberId, amount: amount, description: description })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            location.reload();
+          } else {
+            if (errorEl) errorEl.textContent = data.message || 'Request failed.';
+          }
+        })
+        .finally(() => { hideLoader(); button.disabled = false; });
+      });
+    }
+
+    const reactivateAmountInput = document.getElementById('reactivate-amount');
+    if (reactivateAmountInput) {
+      const errorEl = document.getElementById('reactivate-amount-error');
+      const confirmBtn = document.getElementById('btnConfirmReactivate');
+      const validate = () => {
+        const v = reactivateAmountInput.value.trim();
+        let valid = true;
+        let msg = '';
+        if (v === '' || parseFloat(v) === 0) {
+          valid = true;
+        } else {
+          const n = Number(v);
+          if (!isFinite(n) || n < 0) { valid = false; msg = 'Enter a valid ammount.'; }
+        }
+        if (errorEl) errorEl.textContent = msg;
+        if (confirmBtn) confirmBtn.disabled = !valid;
+      };
+      reactivateAmountInput.addEventListener('input', validate);
+      validate();
+    }
 
     // --- ADD THIS NEW FETCH LOGIC ---
     const btnConfirmActivation = document.getElementById('btnConfirmActivation');
