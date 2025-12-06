@@ -73,7 +73,13 @@
                 <div class="settings-section">
                     <h2 class="settings-subtitle">Membership Management</h2>
 
-                    {% if pending_request %}
+                    {% if is_expired %}
+                    <button class="btn btn-disabled" disabled>Freeze/Unfreeze Request Unavailable</button>
+                    <p class="error-text">
+                        Your membership has expired. Please renew to use this feature.
+                    </p>
+
+                    {% elif pending_request %}
                     <button class="btn btn-pending" disabled>Request Pending</button>
 
                     {% elif is_frozen %}
@@ -179,11 +185,11 @@
                         </div>
 
                         {% if freeze_form.duration.errors %}
-                            <ul class="errorlist">
-                                {% for error in freeze_form.duration.errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
+                        <ul class="errorlist">
+                            {% for error in freeze_form.duration.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
                         {% endif %}
                     </div>
                     <div class="form-group {% if freeze_form.reason.errors %}has-error{% endif %}">
