@@ -416,6 +416,10 @@ def account_settings_view(request):
         request_date__gte=thirty_days_ago
     ).exists()
 
+    is_expired = False
+    if member_profile.next_due_date and member_profile.next_due_date <= timezone.now().date():
+        is_expired = True
+
     context = {
         'user': user,
         'member_profile': member_profile,
@@ -425,7 +429,8 @@ def account_settings_view(request):
         'modal_to_open': modal_to_open,
         'pending_request': pending_request, # Pass pending request to template
         'is_frozen': member_profile.is_frozen, # Pass frozen status to template
-        'has_recent_freeze': has_recent_freeze, 
+        'has_recent_freeze': has_recent_freeze,
+        'is_expired': is_expired,
     }
     return render(request, 'gymapp/account_settings.html', context)
 
