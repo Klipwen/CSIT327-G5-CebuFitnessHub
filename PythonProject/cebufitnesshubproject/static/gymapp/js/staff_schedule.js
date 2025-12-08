@@ -8,6 +8,7 @@
       options: document.getElementById('modalEditOptions'),
       add: document.getElementById('modalAddClass'),
       delete: document.getElementById('modalDeleteClass'),
+      confirmDelete: document.getElementById('modalConfirmDelete'),
       logout: document.getElementById('modalLogout'),
     };
     const openAddClassBtn = document.getElementById('openAddClass');
@@ -313,32 +314,96 @@
     }
 
     if (deleteClassForm) {
-      deleteClassForm.addEventListener('submit', e => {
-        e.preventDefault();
-        if (deleteClassError) deleteClassError.textContent = '';
-        const selected = deleteClassForm.querySelector('input[name="classToDelete"]:checked');
-        if (!selected) {
-          if (deleteClassError) deleteClassError.textContent = 'Select a class to delete.';
-          return;
+      const selectAllCheckbox = document.getElementById('selectAllClasses');
+
+      // Helper to update state of "Delete Selected" button
+      const updateDeleteButtonState = () => {
+        const anyChecked = deleteClassForm.querySelector('input[name="classToDelete"]:checked');
+        if (deleteClassSubmit) {
+          deleteClassSubmit.disabled = !anyChecked;
         }
+        if (deleteClassError) deleteClassError.textContent = '';
+      };
+
+      // Handle "Select All" toggle
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', e => {
+          const checkboxes = deleteClassList.querySelectorAll('input[name="classToDelete"]');
+          checkboxes.forEach(cb => cb.checked = e.target.checked);
+          updateDeleteButtonState();
+        });
+      }
+
+      // Handle individual checkbox changes (delegated)
+      if (deleteClassList) {
+        deleteClassList.addEventListener('change', e => {
+          if (e.target && e.target.name === 'classToDelete') {
+            updateDeleteButtonState();
+
+            // Update "Select All" checkbox state based on individual selections
+            if (selectAllCheckbox) {
+              const checkboxes = deleteClassList.querySelectorAll('input[name="classToDelete"]');
+              const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+              selectAllCheckbox.checked = allChecked;
+            }
+          }
+        });
+      }
+
+      const deleteConfirmationModal = document.getElementById('modalConfirmDelete');
+      const btnRealConfirmDelete = document.getElementById('btnRealConfirmDelete');
+      const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+
+      const executeDeletion = () => {
+        const selectedCheckboxes = deleteClassForm.querySelectorAll('input[name="classToDelete"]:checked');
+        if (!selectedCheckboxes.length) return;
 
         showLoader();
-        fetch(`/api/schedule/delete/${selected.value}/`, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRFToken': csrfToken,
-          },
-        })
-          .then(handleResponse)
+
+        const deletePromises = Array.from(selectedCheckboxes).map(checkbox => {
+          return fetch(`/api/schedule/delete/${checkbox.value}/`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': csrfToken,
+            },
+          })
+            .then(handleResponse);
+        });
+
+        Promise.all(deletePromises)
           .then(() => {
-            showAlert('success', 'Class deleted successfully.');
+            showAlert('success', 'Selected classes deleted successfully.');
+            closeModal(deleteConfirmationModal);
             closeModal(modals.delete);
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
             fetchSchedule();
           })
           .catch(err => {
-            if (deleteClassError) deleteClassError.textContent = err;
+            console.error(err);
+            if (deleteClassError) deleteClassError.textContent = 'One or more deletions failed. Please refresh and try again.';
+            closeModal(deleteConfirmationModal);
           })
           .finally(hideLoader);
+      };
+
+      if (btnRealConfirmDelete) {
+        btnRealConfirmDelete.addEventListener('click', executeDeletion);
+      }
+
+      deleteClassForm.addEventListener('submit', e => {
+        e.preventDefault();
+        if (deleteClassError) deleteClassError.textContent = '';
+
+        const selectedCheckboxes = deleteClassForm.querySelectorAll('input[name="classToDelete"]:checked');
+        if (!selectedCheckboxes.length) {
+          if (deleteClassError) deleteClassError.textContent = 'Select at least one class to delete.';
+          return;
+        }
+
+        if (confirmDeleteMessage) {
+          confirmDeleteMessage.textContent = `Are you sure you want to delete ${selectedCheckboxes.length} class(es)?`;
+        }
+        openModal(deleteConfirmationModal, deleteClassSubmit);
       });
     }
 
