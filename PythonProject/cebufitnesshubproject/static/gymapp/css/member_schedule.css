@@ -1,14 +1,14 @@
 :root {
   --time-col-width: 130px;
   --day-col-min-width: 160px;
-  --header-height: 46px;
+  --schedule-header-height: 46px;
   --gap-size: clamp(12px, 3vw, 24px);
 }
 
 .schedule-page .main {
   padding: var(--gap-size);
   width: 100%;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 .schedule-header {
@@ -39,6 +39,16 @@
   margin-bottom: 8px;
 }
 
+.timetable-panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: clamp(16px, 4vw, 32px);
+  box-shadow: 0 20px 40px rgba(20, 20, 43, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 .timetable-panel .panel-header {
   display: flex;
   align-items: center;
@@ -55,7 +65,7 @@
   padding-bottom: 6px;
   position: relative;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory; 
+  scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-x: contain;
 }
@@ -63,9 +73,9 @@
 .schedule-grid {
   display: grid;
   grid-template-columns: var(--time-col-width) repeat(7, minmax(var(--day-col-min-width), 1fr));
-  grid-auto-rows: minmax(var(--header-height), auto);
+  grid-auto-rows: minmax(var(--schedule-header-height), auto);
   position: relative;
-  
+
   min-width: fit-content;
 }
 
@@ -83,8 +93,8 @@
   border-right: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
-  z-index: 40; 
-  backdrop-filter: blur(4px); 
+  z-index: 40;
+  backdrop-filter: blur(4px);
   scroll-snap-align: start;
 }
 
@@ -92,7 +102,7 @@
   position: sticky;
   left: 0;
   top: 0;
-  z-index: 60 !important; 
+  z-index: 60 !important;
   background: #f4f6f8;
   border-right: 1px solid #e5e7eb;
 }
@@ -109,7 +119,7 @@
   border-bottom: 1px solid #ececec;
   position: sticky;
   left: 0;
-  z-index: 50 !important; 
+  z-index: 50 !important;
 }
 
 .grid-cell {
@@ -117,7 +127,7 @@
   border-bottom: 1px solid #ececec;
   background: #fff;
   position: relative;
-  min-height: var(--header-height);
+  min-height: var(--schedule-header-height);
   scroll-snap-align: start;
 }
 
@@ -126,10 +136,10 @@
 }
 
 .class-block {
-  border-radius: 8px; 
+  border-radius: 8px;
   padding: 8px 10px;
   color: #fff;
-  font-size: clamp(11px, 2vw, 13px); 
+  font-size: clamp(11px, 2vw, 13px);
   font-weight: 600;
   display: flex;
   flex-direction: column;
@@ -139,7 +149,7 @@
   z-index: 10;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: calc(100% - 4px); 
+  height: calc(100% - 4px);
   margin: 2px;
 }
 
@@ -150,13 +160,13 @@
 }
 
 .class-block .class-name {
-  font-size: 1.1em; 
+  font-size: 1.1em;
   line-height: 1.2;
 }
 
 .class-block .class-coach,
 .class-block .class-room {
-  font-size: 0.9em; 
+  font-size: 0.9em;
   opacity: 0.95;
   white-space: nowrap;
   overflow: hidden;
@@ -184,8 +194,8 @@
 @media (max-width: 600px) {
   :root {
     --time-col-width: 60px;
-    --day-col-min-width: calc(100vw - 84px); 
-    --header-height: 38px;
+    --day-col-min-width: calc(100vw - 84px);
+    --schedule-header-height: 38px;
   }
 
   .schedule-header {
@@ -202,7 +212,7 @@
   .grid-header {
     font-size: 12px;
   }
-  
+
   .class-block {
     padding: 6px 8px;
   }
