@@ -73,16 +73,31 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to update active navigation state based on hash or current page
   function updateActiveNavigation(hash) {
     const navItems = document.querySelectorAll('.side-nav .nav-item');
+    let activeFound = false;
+
+    // 1. First, clear all active classes
     navItems.forEach(item => {
       item.classList.remove('active');
     });
 
-    // Check if we're on the settings page
     const currentPath = window.location.pathname;
+
+    // 2. Priority Check: Does a link match the current URL path exactly? 
+    // (This fixes the Member Dashboard)
+    navItems.forEach(item => {
+        const itemHref = item.getAttribute('href');
+        // We match if the paths are the same (ignoring trailing slashes just in case)
+        if (itemHref && itemHref.replace(/\/$/, "") === currentPath.replace(/\/$/, "")) {
+            item.classList.add('active');
+            activeFound = true;
+        }
+    });
+
+    if (activeFound) return; // If we found a path match, we are done.
+
+    // 3. Secondary Check: Staff Settings Special Case
     const isSettingsPage = currentPath.includes('/staff/settings/');
-    
     if (isSettingsPage) {
-      // Highlight Settings button if on settings page
       const settingsNavItem = document.querySelector('.side-nav .nav-item[href*="staff/settings"], .side-nav .nav-item[href="#settings"]');
       if (settingsNavItem) {
         settingsNavItem.classList.add('active');
@@ -90,24 +105,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Map hash to navigation item (for dashboard page)
+    // 4. Fallback Check: Hash Navigation (For Staff Dashboard single-page sections)
     let targetHash = hash || '#overview-section';
-    
-    // If hash is empty or just '#', default to overview
     if (!hash || hash === '#' || hash === '') {
       targetHash = '#overview-section';
     }
 
-    // Find the navigation item that matches the hash
     const activeNavItem = document.querySelector(`.side-nav .nav-item[href="${targetHash}"]`);
     if (activeNavItem) {
       activeNavItem.classList.add('active');
-    } else {
-      // Fallback: if no match found, activate overview
-      const overviewNavItem = document.querySelector('.side-nav .nav-item[href="#overview-section"]');
-      if (overviewNavItem) {
-        overviewNavItem.classList.add('active');
-      }
     }
   }
 
@@ -131,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
   } else {
     // No hash, default to overview
-    updateActiveNavigation('#overview-section');
+    updateActiveNavigation();
   }
 
   // Listen for hash changes (when user navigates via browser back/forward)
