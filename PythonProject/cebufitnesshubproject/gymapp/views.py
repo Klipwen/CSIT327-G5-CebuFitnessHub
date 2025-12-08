@@ -97,7 +97,7 @@ def member_login(request):
                         login(request, user)
                         # NEW: Set a session variable that expires immediately
                         request.session['just_logged_in'] = True
-                        messages.success(request, f'Welcome back, {user.first_name}!')
+                        #messages.success(request, f'Welcome back, {user.first_name}!')
                         redirect_url = 'staff_dashboard' if user.is_staff else 'member_dashboard'
                         
                         if is_ajax:
@@ -160,6 +160,12 @@ def general_logout_view(request):
     """
     Handles logging out both members and staff by using Django's built-in logout.
     """
+    # 1. Clear any pending messages (Flush the queue)
+    # Iterating over the messages marks them as 'read' so they disappear.
+    storage = messages.get_messages(request)
+    for _ in storage:
+        pass
+    
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('landing')
