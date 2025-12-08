@@ -162,7 +162,7 @@
           <label for="coachName">Coach Name</label>
           <input type="text" id="coachName" name="instructor_name" required placeholder="e.g., Coach Mae">
         </div>
-        <div class="form-grid">
+        <div class="form-grid form-grid--balanced">
           <div class="form-group grid-span-2">
             <label for="dayOfWeek">Day of Week</label>
             <select id="dayOfWeek" name="day_of_week" required>
@@ -221,6 +221,12 @@
         Select a scheduled class to remove it from the timetable.
       </p>
       <form id="deleteClassForm">
+        <div class="delete-controls">
+          <label class="select-all-option">
+            <input type="checkbox" id="selectAllClasses">
+            <span>Select All Classes</span>
+          </label>
+        </div>
         <div class="delete-list" id="deleteClassList"></div>
         <div class="form-error" id="deleteClassError" role="alert"></div>
         <div class="modal-action-buttons">
@@ -232,6 +238,34 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div id="modalConfirmDelete" class="modal" aria-hidden="true">
+    <div class="modal-content modal-content--enhanced modal-content--small">
+      <button class="modal-close-icon" data-close>&times;</button>
+      <div class="modal-brand-header">
+        <img src="{% static 'gymapp/img/cebufitnesshub_logo.png' %}" alt="Cebu Fitness Hub Logo"
+          class="modal-brand-header__logo">
+        <div class="modal-brand-header__text">
+          <div class="modal-brand-header__line-1">CEBU</div>
+          <div class="modal-brand-header__line-2">FITNESS HUB</div>
+        </div>
+      </div>
+      <h3 class="modal-title--enhanced">
+        Confirm <span class="modal-title-highlight">Deletion</span>
+      </h3>
+      <p class="modal-instruction" id="confirmDeleteMessage">
+        Are you sure you want to delete the selected classes?
+      </p>
+      <div class="modal-action-buttons">
+        <button type="button" class="modal-action-btn modal-btn-reject" id="btnRealConfirmDelete">
+          Yes, Delete
+        </button>
+        <button type="button" class="modal-action-btn modal-btn-approve" data-close>
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 
