@@ -508,3 +508,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expect server-side (views.member_login) to validate role and return JSON errors or redirect
   }, false);
 })();
+
+// ==========================================
+// NEW: LOCATION MAP MODAL LOGIC
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+  const mapModal = document.getElementById('modalLocationMap');
+  const openMapBtn = document.getElementById('btnOpenMap'); // Make sure your footer link has this ID
+  const closeX = document.getElementById('closeMapBtn');
+  const closeBtn = document.getElementById('closeMapActionBtn');
+
+  function showMap(e) {
+      if(e) e.preventDefault();
+      if(mapModal) {
+          mapModal.style.display = 'flex';
+          mapModal.classList.add('show');
+          mapModal.removeAttribute('aria-hidden');
+          document.body.style.overflow = 'hidden';
+      }
+  }
+
+  function hideMap() {
+      if(mapModal) {
+          mapModal.style.display = 'none';
+          mapModal.classList.remove('show');
+          mapModal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+      }
+  }
+
+  // Add Listeners
+  if (openMapBtn) openMapBtn.addEventListener('click', showMap);
+  if (closeX) closeX.addEventListener('click', hideMap);
+  if (closeBtn) closeBtn.addEventListener('click', hideMap);
+
+  // Close on Backdrop Click
+  if (mapModal) {
+      mapModal.addEventListener('click', function(e) {
+          if (e.target === mapModal) {
+              hideMap();
+          }
+      });
+  }
+});
